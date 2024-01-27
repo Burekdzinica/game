@@ -1,6 +1,7 @@
 #include <iostream>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h> 
+#include "player.hpp"
 
 
 using namespace std;
@@ -24,6 +25,7 @@ int main(int argc, char *argv[])
 {
     SDL_Surface *imageSurface = NULL;
     SDL_Surface *windowSurface = NULL; 
+
 
     SDL_Init(SDL_INIT_EVERYTHING);
     
@@ -52,6 +54,11 @@ int main(int argc, char *argv[])
 
     SDL_Event event;
     SDL_Rect rectangle = {10, 10, 50, 50}; // x upper left corner, y; width, height 
+    
+    // create player
+    Player playa = Player(3, rectangle, 300, 300);
+    
+    cout << playa.getHealth();
 
     while (true)
     {
@@ -70,7 +77,8 @@ int main(int argc, char *argv[])
                 switch (event.key.keysym.sym)
                 {
                     case SDLK_a:
-                        rectangle.x -= 10;
+                        /* rectangle.x -= 10; */
+                        playa.setX(-10);
                         break;
                     case SDLK_d:
                         rectangle.x += 10;
