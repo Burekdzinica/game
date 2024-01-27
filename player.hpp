@@ -22,9 +22,18 @@ class Player
             return this->health;
         }
 
+        SDL_Rect getAsset() {
+            return this->asset;
+        }
+
         void setX(int newX) 
         {
             this->position_x = newX;
+        }
+
+        int getX()
+        {
+            return this->asset.x;
         }
 
 };

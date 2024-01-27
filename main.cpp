@@ -2,7 +2,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h> 
 #include "player.hpp"
-
+#include "window.hpp"
 
 using namespace std;
 
@@ -53,12 +53,12 @@ int main(int argc, char *argv[])
     SDL_Texture *imageTexture = SDL_CreateTextureFromSurface(renderer, imageSurface);
 
     SDL_Event event;
-    SDL_Rect rectangle = {10, 10, 50, 50}; // x upper left corner, y; width, height 
+    SDL_Rect rectangle = {410, 360, 50, 50}; // x upper left corner, y; width, height 
     
     // create player
-    Player playa = Player(3, rectangle, 300, 300);
+    Player player = Player(3, rectangle, 300, 300);
     
-    cout << playa.getHealth();
+    cout << player.getHealth();
 
     while (true)
     {
@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
                 {
                     case SDLK_a:
                         /* rectangle.x -= 10; */
-                        playa.setX(-10);
+                        player.setX(-10);
                         break;
                     case SDLK_d:
                         rectangle.x += 10;
