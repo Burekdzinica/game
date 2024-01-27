@@ -18,7 +18,7 @@ void draw(SDL_Renderer *renderer, SDL_Rect *rect)
     SDL_RenderPresent(renderer);
 }
 
-const int WIDTH = 800, HEIGHT = 700;
+const int WIDTH = 820, HEIGHT = 720;
 
 int main(int argc, char *argv[])
 {
