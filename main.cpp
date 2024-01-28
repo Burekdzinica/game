@@ -1,6 +1,7 @@
 #include <iostream>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <time.h>
 
 #include "player.hpp"
 #include "window.hpp"
@@ -9,20 +10,26 @@
 
 using namespace std;
 
-const int WIDTH = 820, HEIGHT = 700;
+const int WIDTH = 1200, HEIGHT = 700;
 
 int main(int argc, char *argv[])
 {
+    srand(time(NULL));
+
+    int position_x = rand() % 800;
+    int position_y = rand() % 800;
+
     Window window("Reševanje bikca Ferdinanda", WIDTH, HEIGHT);
 
     Player player(3, {500, 100, 50, 50});
-    Arena arena({300,300, 50, 50});
-    Enemy enemy({200, 200, 100, 100});
+    Arena arena({rand()%800, rand()%800, 50, 50});
+    Enemy enemy({position_x, position_y, 100, 100});
     
     bool playerTouchedArena = false;
     bool playerTouchedEnemy = false;
+    bool playerAlive = true;
 
-    while (true)
+    while (playerAlive)
     {
         SDL_Event event;
         if (SDL_PollEvent(&event))
@@ -31,7 +38,6 @@ int main(int argc, char *argv[])
             {
                 break;
             }
-
 
             if (event.type == SDL_KEYDOWN)
             {
@@ -65,7 +71,10 @@ int main(int argc, char *argv[])
         }
 
         if (enemy.isPlayerTouching(player.getAsset()))
+        {
             playerTouchedEnemy = true;
+            playerAlive = false;
+        }
 
 
         window.clear();
