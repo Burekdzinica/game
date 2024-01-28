@@ -54,10 +54,12 @@ int main(int argc, char *argv[])
 
     SDL_Event event;
     SDL_Rect rectangle = {410, 360, 50, 50}; // x upper left corner, y; width, height 
+    SDL_Rect rectangle2 = {210, 160, 50, 50}; // x upper left corner, y; width, height 
     
     // create player
     Player player = Player(3, rectangle, 300, 300);
-    
+    Player player2 = Player(3, rectangle2, 300, 300);
+
     cout << player.getHealth();
 
     while (true)
@@ -77,25 +79,28 @@ int main(int argc, char *argv[])
                 switch (event.key.keysym.sym)
                 {
                     case SDLK_a:
-                        /* rectangle.x -= 10; */
                         player.setX(-10);
+                        player2.setX(-10);
                         break;
                     case SDLK_d:
-                        rectangle.x += 10;
+                        player.setX(10);
+                        player2.setX(10);
                         break;
                     case SDLK_w:
-                        rectangle.y -= 10;
+                        player.setY(-10);
+                        player2.setY(-10);
                         break;
                     case SDLK_s:
-                        rectangle.y += 10;
+                        player.setY(10);
+                        player2.setY(10);
                         break;
                 }
             }
         }
 
-
         clear(renderer); //clears the rect
-        draw(renderer, &rectangle); // draws rect
+        draw(renderer, player.getAsset()); // draws rect
+        draw(renderer, player2.getAsset()); // draws rect
         
       /*   SDL_RenderCopy(renderer, imageTexture, NULL, NULL);
         SDL_RenderPresent(renderer); */

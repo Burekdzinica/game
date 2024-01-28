@@ -1,3 +1,6 @@
+#ifndef PLAYER_HPP
+#define PLAYER_HPP
+
 #include <SDL2/SDL.h>
 
 class Player
@@ -9,32 +12,15 @@ class Player
 
     
     public:
-        Player(int health, SDL_Rect asset, int x, int y)
-        {
-            this->health = health;
-            this->asset = asset;
-            this->position_x = x;
-            this->position_y = y;
-        }  
-
-        int getHealth()
-        {
-            return this->health;
-        }
-
-        SDL_Rect getAsset() {
-            return this->asset;
-        }
-
-        void setX(int newX) 
-        {
-            this->position_x = newX;
-        }
-
-        int getX()
-        {
-            return this->asset.x;
-        }
+        Player(int health, SDL_Rect asset, int x, int y);
+        int getHealth();
+        SDL_Rect *getAsset();
+        void setX(int newX);
+        void setY(int newY);
+        int getX();
+        int getY();
 
 };
+
+#endif
 

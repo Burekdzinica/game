@@ -1,4 +1,5 @@
 #include "window.hpp"
+
 #include <iostream>
 
 using namespace std;
@@ -35,7 +36,6 @@ Window::~Window()
 {  
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
-    SDL_Quit();
 }
 
 //clears the screen // used for moving assets
@@ -48,4 +48,20 @@ void Window::clear()
 void Window::present()
 {
     SDL_RenderPresent(renderer);
+}
+
+SDL_Renderer* Window::getRenderer()
+{
+    return renderer;
+}
+
+void Window::draw(SDL_Rect rect)
+{
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    SDL_RenderFillRect(renderer, &rect);
+}
+
+void Window::draw(SDL_Texture *texture, const SDL_Rect *srcRect, const SDL_Rect &destRect)
+{
+    SDL_RenderCopy(renderer, texture, srcRect, &destRect);
 }

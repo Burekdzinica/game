@@ -16,6 +16,8 @@ class Window
         void clear();
         void present();
         SDL_Renderer* getRenderer();
+        void draw(SDL_Rect rect);
+        void draw(SDL_Texture *texture, const SDL_Rect *srcRect, const SDL_Rect &destRect);
 
 };
 
