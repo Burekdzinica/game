@@ -17,7 +17,9 @@ class Window
         void clear();
         void present();
         SDL_Renderer* getRenderer();
-        void draw(SDL_Rect rect); // for rect
+        void drawPlayer(SDL_Rect rect); // for rect
+        void drawArena(SDL_Rect rect);
+        void drawEnemy(SDL_Rect rect);
         void draw(SDL_Texture *texture, const SDL_Rect *srcRect, const SDL_Rect &destRect); //for sdl image
 };
 
@@ -60,7 +62,7 @@ SDL_Renderer* Window::getRenderer()
 }
 
 //draw rectangle
- void Window::draw(SDL_Rect rect)
+ void Window::drawPlayer(SDL_Rect rect)
 {
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
     SDL_RenderFillRect(renderer, &rect);
@@ -72,6 +74,18 @@ void Window::draw(SDL_Texture *texture, const SDL_Rect *srcRect, const SDL_Rect 
 {
     SDL_RenderCopy(renderer, texture, srcRect, &destRect);
 }   
+
+void Window::drawArena(SDL_Rect rect)
+{
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_RenderFillRect(renderer, &rect);
+}
+
+void Window::drawEnemy(SDL_Rect rect)
+{
+    SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
+    SDL_RenderFillRect(renderer, &rect);
+}
 
 
 #endif 
