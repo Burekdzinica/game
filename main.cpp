@@ -24,12 +24,13 @@ int main(int argc, char *argv[])
     Player player(3, {500, 100, 50, 50});
     Arena arena({rand()%800, rand()%800, 50, 50});
     Enemy enemy({position_x, position_y, 100, 100});
+
     
     bool playerTouchedArena = false;
     bool playerTouchedEnemy = false;
     bool playerAlive = true;
 
-    while (playerAlive)
+    while (player.getIsPlayerAlive())
     {
         SDL_Event event;
         if (SDL_PollEvent(&event))
@@ -73,7 +74,8 @@ int main(int argc, char *argv[])
         if (enemy.isPlayerTouching(player.getAsset()))
         {
             playerTouchedEnemy = true;
-            playerAlive = false;
+            // player.setIsPlayerAlive(false); 
+            player.changeHealth(-1);
         }
 
 
