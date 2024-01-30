@@ -14,6 +14,7 @@ class Window
     public:
         Window(const string &title, int width, int height);
         ~Window(); //destructor
+        void init();
         void clear();
         void present();
         SDL_Renderer* getRenderer();
@@ -42,6 +43,18 @@ Window::~Window()
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
+}
+
+void Window::init()
+{
+    
+    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+        cout << "SDL initialization failed: " << SDL_GetError() << "\n";
+    
+
+    if(TTF_Init() == 1)
+        cout << "TTF initilization failed: " << TTF_GetError() << "\n";
+    
 }
 
 //clears the screen // used for moving assets

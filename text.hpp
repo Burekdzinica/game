@@ -17,7 +17,8 @@ class Text
 
 Text::~Text()
 {
-
+    TTF_CloseFont(font);
+    SDL_DestroyTexture(texture);
 }
 
 #endif

@@ -8,13 +8,14 @@
 #include "window.hpp"
 #include "arena.hpp"
 #include "enemy.hpp"
+#include "text.hpp"
 
 using namespace std;
 
 const int WIDTH = 1700, HEIGHT = 820;
 
         TTF_Font* font;
-        SDL_Texture *texture, *text;
+        SDL_Texture *texture;
 
 int main(int argc, char *argv[])
 {
@@ -25,6 +26,7 @@ int main(int argc, char *argv[])
     Player player(3, {500, 100, 50, 50});
     Arena arena({rand()%1040, rand()%540, 50, 50});
     Enemy enemy({rand()%1040, rand()%540, 100, 100});
+    Text text;
 
         if (SDL_Init(SDL_INIT_VIDEO) < 0)
         {
@@ -47,7 +49,7 @@ int main(int argc, char *argv[])
         SDL_Color color = {255, 255, 255};
 
         const char* textString = "Hello, SDL_ttf!";
-        SDL_Surface* textSurface = TTF_RenderText_Solid(font, "I HATE NIGGERS", color);
+        SDL_Surface* textSurface = TTF_RenderText_Solid(font, "SDL SURFACE ", color);
         if (!textSurface)
         {
             cout << "ERROR" << TTF_GetError;
@@ -96,7 +98,7 @@ int main(int argc, char *argv[])
         cout << player.getAsset().x << " " << player.getAsset().y << "\n";
 
         if (arena.isPlayerNearby(player.getAsset(), arena.getAsset(), 100))
-            cout << "Player is nearby"; 
+            cout << "Player is nearby \n"; 
         
         if (arena.isPlayerTouching(player.getAsset()))
         {
@@ -132,8 +134,7 @@ int main(int argc, char *argv[])
     }
 
 
-            TTF_CloseFont(font);
-            SDL_DestroyTexture(textTexture);
+    text.~Text();
     window.~Window();
 
     return EXIT_SUCCESS;
