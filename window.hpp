@@ -47,14 +47,11 @@ Window::~Window()
 
 void Window::init()
 {
-    
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
         cout << "SDL initialization failed: " << SDL_GetError() << "\n";
-    
 
     if(TTF_Init() == 1)
         cout << "TTF initilization failed: " << TTF_GetError() << "\n";
-    
 }
 
 //clears the screen // used for moving assets
@@ -75,9 +72,9 @@ SDL_Renderer* Window::getRenderer()
 }
 
 //draw rectangle
- void Window::drawPlayer(SDL_Rect rect)
+void Window::drawPlayer(SDL_Rect rect)
 {
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderFillRect(renderer, &rect);
 } 
 

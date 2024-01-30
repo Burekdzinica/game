@@ -24,19 +24,11 @@ int main(int argc, char *argv[])
     Window window("Reševanje bikca Ferdinanda", WIDTH, HEIGHT);
 
     Player player(3, {500, 100, 50, 50});
-    Arena arena({rand()%1040, rand()%540, 50, 50});
+    Arena arena({rand()%1000, rand()%820, 50, 50});
     Enemy enemy({rand()%1040, rand()%540, 100, 100});
     Text text;
 
-        if (SDL_Init(SDL_INIT_VIDEO) < 0)
-        {
-            cout << "SDL initialization failed: " << SDL_GetError() << "\n";
-            return EXIT_FAILURE;
-        }
-
-        if(TTF_Init() == 1)
-            cout << "Could no initialize SDL2 ttf, error: " << TTF_GetError;
-        
+    window.init();
 
         font = TTF_OpenFont("fonts/test.ttf", 200);
         if(!font)
@@ -46,7 +38,7 @@ int main(int argc, char *argv[])
         }
 
 
-        SDL_Color color = {255, 255, 255};
+        SDL_Color color = {0, 0, 0};
 
         const char* textString = "Hello, SDL_ttf!";
         SDL_Surface* textSurface = TTF_RenderText_Solid(font, "SDL SURFACE ", color);
