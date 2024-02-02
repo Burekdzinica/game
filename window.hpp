@@ -10,6 +10,8 @@ class Window
     private:  
         SDL_Window *window;
         SDL_Renderer *renderer;
+        SDL_Texture *texture;
+        TTF_Font *font;
 
     public:
         Window(const string &title, int width, int height);
@@ -40,6 +42,8 @@ Window::Window(const string &title, int WIDTH, int HEIGHT)
 //deletes the window/renderer
 Window::~Window() 
 {  
+    //TTF_CloseFont(font);
+    //SDL_DestroyTexture(texture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();

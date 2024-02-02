@@ -30,27 +30,6 @@ int main(int argc, char *argv[])
 
     window.init();
 
-        font = TTF_OpenFont("fonts/test.ttf", 200);
-        if(!font)
-        {
-            cout << "ERROR: " << TTF_GetError << "\n";
-            return EXIT_FAILURE;
-        }
-
-
-        SDL_Color color = {0, 0, 0};
-
-        const char* textString = "Hello, SDL_ttf!";
-        SDL_Surface* textSurface = TTF_RenderText_Solid(font, "SDL SURFACE ", color);
-        if (!textSurface)
-        {
-            cout << "ERROR" << TTF_GetError;
-            return EXIT_FAILURE;
-        }
-        SDL_Texture* textTexture = SDL_CreateTextureFromSurface(window.getRenderer(), textSurface);
-        SDL_FreeSurface(textSurface);
-
-        SDL_Rect textRect = {50, 50, 600, 300};
 
     bool playerTouchedArena = false;
     bool playerTouchedEnemy = false;
@@ -108,7 +87,7 @@ int main(int argc, char *argv[])
         }
 
         window.clear();
-        SDL_RenderCopy(window.getRenderer(), textTexture, NULL, &textRect);
+        text.createText("test.ttf", window.getRenderer());
         //draws arena if player is near and deletes it when player touches arena
         if (!playerTouchedArena && arena.isPlayerNearby(player.getAsset(), arena.getAsset(), 100))
         {
@@ -124,7 +103,6 @@ int main(int argc, char *argv[])
         window.drawEnemy(enemy.getAsset());
         window.present();
     }
-
 
     text.~Text();
     window.~Window();
