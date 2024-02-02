@@ -41,6 +41,4 @@ bool Enemy::isPlayerTouching(const SDL_Rect& player)
     return SDL_HasIntersection(&player, &asset) == SDL_TRUE;
 }
 
-
-
 #endif

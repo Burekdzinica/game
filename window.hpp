@@ -45,6 +45,7 @@ Window::~Window()
     SDL_Quit();
 }
 
+//initializes all libraries
 void Window::init()
 {
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -74,10 +75,9 @@ SDL_Renderer* Window::getRenderer()
 //draw rectangle
 void Window::drawPlayer(SDL_Rect rect)
 {
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
     SDL_RenderFillRect(renderer, &rect);
 } 
-
 
 //draw png
 void Window::draw(SDL_Texture *texture, const SDL_Rect *srcRect, const SDL_Rect &destRect)
@@ -96,6 +96,5 @@ void Window::drawEnemy(SDL_Rect rect)
     SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
     SDL_RenderFillRect(renderer, &rect);
 }
-
 
 #endif 

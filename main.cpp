@@ -1,7 +1,7 @@
 #include <iostream>
+#include <time.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
-#include <time.h>
 #include <SDL2/SDL_ttf.h>
 
 #include "player.hpp"
@@ -37,8 +37,7 @@ int main(int argc, char *argv[])
             return EXIT_FAILURE;
         }
 
-
-        SDL_Color color = {0, 0, 0};
+        SDL_Color color = {255, 255, 255};
 
         const char* textString = "Hello, SDL_ttf!";
         SDL_Surface* textSurface = TTF_RenderText_Solid(font, "SDL SURFACE ", color);
@@ -84,8 +83,6 @@ int main(int argc, char *argv[])
                 }
             }
         }
-
-
 
         cout << player.getAsset().x << " " << player.getAsset().y << "\n";
 
