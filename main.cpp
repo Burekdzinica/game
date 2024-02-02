@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
         }
 
         window.clear();
-        SDL_RenderCopy(window.getRenderer(), textTexture, NULL, &textRect);
+        text.createText("test.ttf", window.getRenderer());
         //draws arena if player is near and deletes it when player touches arena
         if (!playerTouchedArena && arena.isPlayerNearby(player.getAsset(), arena.getAsset(), 100))
         {
@@ -121,7 +121,6 @@ int main(int argc, char *argv[])
         window.drawEnemy(enemy.getAsset());
         window.present();
     }
-
 
     text.~Text();
     window.~Window();
