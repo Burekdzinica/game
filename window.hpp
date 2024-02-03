@@ -12,6 +12,7 @@ class Window
         SDL_Renderer *renderer;
         SDL_Texture *texture;
         TTF_Font *font;
+        SDL_Texture *imgTexture;
 
     public:
         Window(const string &title, int width, int height);
@@ -20,10 +21,10 @@ class Window
         void clear();
         void present();
         SDL_Renderer* getRenderer();
-        void drawPlayer(SDL_Rect rect); // for rect
-        void drawArena(SDL_Rect rect);
-        void drawEnemy(SDL_Rect rect);
-        void draw(SDL_Texture *texture, const SDL_Rect *srcRect, const SDL_Rect &destRect); //for sdl image
+        void draw(SDL_Renderer* renderer, SDL_Rect destRec, const char* imgLocation);
+        //void draw(SDL_Texture *texture, const SDL_Rect *srcRect, const SDL_Rect &destRect); //for sdl image
+
+        //make 1 draw method --> multiple are useless
 };
 
 Window::Window(const string &title, int WIDTH, int HEIGHT)
@@ -34,18 +35,23 @@ Window::Window(const string &title, int WIDTH, int HEIGHT)
     if (window == NULL)
         cout << "Could not create window: " << SDL_GetError() << "\n";
 
-    renderer = SDL_CreateRenderer(window, -1,  SDL_RENDERER_ACCELERATED);
+    renderer = SDL_CreateRenderer(window, -1,  SDL_RENDERER_ACCELERATED);// | SDL_RENDERER_PRESENTVSYNC);
     if (renderer == NULL)
         cout << "Could not create renderer: " << SDL_GetError() << "\n";
+
+    imgTexture = IMG_LoadTexture(renderer, "assets/map.png");
+    if (imgTexture == NULL)
+        cout << "Cannot load image";
 }
 
 //deletes the window/renderer
 Window::~Window() 
 {  
-    //TTF_CloseFont(font);
-    //SDL_DestroyTexture(texture);
+    TTF_CloseFont(font);
+    SDL_DestroyTexture(imgTexture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
+    IMG_Quit();
     SDL_Quit();
 }
 
@@ -57,13 +63,23 @@ void Window::init()
 
     if(TTF_Init() == 1)
         cout << "TTF initilization failed: " << TTF_GetError() << "\n";
+
+    if(IMG_Init(IMG_INIT_PNG) == 0)
+        cout << "IMG initialization failed: " << IMG_GetError() << "\n";
 }
 
 //clears the screen // used for moving assets
-void Window::clear() 
+// void Window::clear() 
+// {
+//     SDL_SetRenderDrawColor(renderer, 204, 144, 64, 255);
+//     SDL_RenderClear(renderer);
+// }
+
+void Window::clear()
 {
-    SDL_SetRenderDrawColor(renderer, 204, 144, 64, 255);
     SDL_RenderClear(renderer);
+
+    SDL_RenderCopy(renderer, imgTexture, NULL, NULL);
 }
 
 void Window::present()
@@ -76,29 +92,22 @@ SDL_Renderer* Window::getRenderer()
     return renderer;
 }
 
-//draw rectangle
-void Window::drawPlayer(SDL_Rect rect)
+void Window::draw(SDL_Renderer *renderer, SDL_Rect destRect, const char* imgLocation)
 {
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-    SDL_RenderFillRect(renderer, &rect);
-} 
+    SDL_Surface *imgSurface = IMG_Load(imgLocation);
+    if (imgSurface == NULL)
+        cout << "Cannot find image\n";
+    
+    SDL_Texture *imgTexture = SDL_CreateTextureFromSurface(renderer, imgSurface);
+    if (imgTexture == NULL)
+        cout << "Cannot create texture\n";
 
-//draw png
-void Window::draw(SDL_Texture *texture, const SDL_Rect *srcRect, const SDL_Rect &destRect)
-{
-    SDL_RenderCopy(renderer, texture, srcRect, &destRect);
-}   
+    SDL_FreeSurface(imgSurface);
 
-void Window::drawArena(SDL_Rect rect)
-{
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    SDL_RenderFillRect(renderer, &rect);
-}
+    SDL_RenderCopy(renderer, imgTexture, NULL, &destRect);
 
-void Window::drawEnemy(SDL_Rect rect)
-{
-    SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
-    SDL_RenderFillRect(renderer, &rect);
+    SDL_DestroyTexture(imgTexture);
+
 }
 
 #endif 

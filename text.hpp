@@ -13,7 +13,7 @@ class Text
 
     public:
         ~Text();
-        void createText(string fontType, SDL_Renderer *renderer);
+        void createText(string fontType, SDL_Renderer *renderer, const char* textString);
 
 };
 
@@ -23,27 +23,29 @@ Text::~Text()
     SDL_DestroyTexture(texture);
 }
 
-void Text::createText(string fontType, SDL_Renderer *renderer)
+void Text::createText(string fontType, SDL_Renderer *renderer, const char* textString)
 {
-    font = TTF_OpenFont("fonts/test.ttf", 200);
+    font = TTF_OpenFont("fonts/test.ttf", 100);
     if(!font)
-    {
-        cout << "Font initilization failed: " << TTF_GetError << "\n";
-    }
+        cout << "Font initilization failed: " << TTF_GetError() << "\n";
+    
 
-    SDL_Color color = {0, 0, 0};
+    SDL_Color color = {230, 230, 230};
 
-    const char* textString = "Hello, SDL_ttf!";
     SDL_Surface* textSurface = TTF_RenderText_Solid(font, textString, color);
     if (!textSurface)
-    {
-        cout << "Text surface initilization failed: " << TTF_GetError;
-    }
+        cout << "Text surface initilization failed: " << TTF_GetError();
+    
 
     SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
     SDL_FreeSurface(textSurface);
 
-    SDL_Rect textRect = {50, 50, 600, 300};
+    int textWidth, textHeight;
+
+    TTF_SizeText(font, textString, &textWidth, &textHeight);
+
+
+    SDL_Rect textRect = {0, 0, textWidth, textHeight};
 
     SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
 

@@ -9,6 +9,7 @@ class Player
         int health;
         SDL_Rect asset; // stores position
         bool isPlayerAlive;
+        int points;
 
     public:
         Player(int health, SDL_Rect asset);
@@ -21,6 +22,7 @@ class Player
         void setY(int newY);
         int getX();
         int getY();
+
 
 };
 

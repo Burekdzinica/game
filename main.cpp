@@ -14,8 +14,7 @@ using namespace std;
 
 const int WIDTH = 1700, HEIGHT = 820;
 
-        TTF_Font* font;
-        SDL_Texture *texture;
+int points = 0;
 
 int main(int argc, char *argv[])
 {
@@ -23,37 +22,15 @@ int main(int argc, char *argv[])
 
     Window window("Reševanje bikca Ferdinanda", WIDTH, HEIGHT);
 
-    Player player(3, {500, 100, 50, 50});
-    Arena arena({rand()%1000, rand()%820, 50, 50});
-    Enemy enemy({rand()%1040, rand()%540, 100, 100});
+    Player player(3, {500, 100, 200, 200});
+    Arena arena({rand()%1000, rand()%820, 200, 200});
+    Enemy enemy({rand()%1040, rand()%540, 200, 200});
     Text text;
 
     window.init();
 
-        font = TTF_OpenFont("fonts/test.ttf", 200);
-        if(!font)
-        {
-            cout << "ERROR: " << TTF_GetError << "\n";
-            return EXIT_FAILURE;
-        }
-
-        SDL_Color color = {255, 255, 255};
-
-        const char* textString = "Hello, SDL_ttf!";
-        SDL_Surface* textSurface = TTF_RenderText_Solid(font, "SDL SURFACE ", color);
-        if (!textSurface)
-        {
-            cout << "ERROR" << TTF_GetError;
-            return EXIT_FAILURE;
-        }
-        SDL_Texture* textTexture = SDL_CreateTextureFromSurface(window.getRenderer(), textSurface);
-        SDL_FreeSurface(textSurface);
-
-        SDL_Rect textRect = {50, 50, 600, 300};
-
     bool playerTouchedArena = false;
     bool playerTouchedEnemy = false;
-
     while (player.getIsPlayerAlive())
     {
         SDL_Event event;
@@ -83,8 +60,9 @@ int main(int argc, char *argv[])
                 }
             }
         }
+        const char* textString = ("Points: " + to_string(points)).c_str();
 
-        cout << player.getAsset().x << " " << player.getAsset().y << "\n";
+        //cout << player.getAsset().x << " " << player.getAsset().y << "\n";
 
         if (arena.isPlayerNearby(player.getAsset(), arena.getAsset(), 100))
             cout << "Player is nearby \n"; 
@@ -102,27 +80,33 @@ int main(int argc, char *argv[])
             enemy.setX(rand()%400);
             enemy.setY(rand()%540);
             player.changeHealth(-1);
+            points += 100;
         }
 
         window.clear();
-        text.createText("test.ttf", window.getRenderer());
+        text.createText("ARCADECLASSIC.ttf", window.getRenderer(), textString);
+        
         //draws arena if player is near and deletes it when player touches arena
         if (!playerTouchedArena && arena.isPlayerNearby(player.getAsset(), arena.getAsset(), 100))
         {
-            window.drawArena(arena.getAsset());
+            window.draw(window.getRenderer(), arena.getAsset(), "assets/arena.png");
         }
+
+
 
         //deletes player if it touches enemy
         if (!playerTouchedEnemy)
         {
-            window.drawPlayer(player.getAsset());
+            //window.drawPlayer(player.getAsset());
+            window.draw(window.getRenderer(), player.getAsset(), "assets/player.png");
         }
 
-        window.drawEnemy(enemy.getAsset());
-        window.present();
-    }
 
-    text.~Text();
+        window.draw(window.getRenderer(), enemy.getAsset(), "assets/enemy.png");
+        window.present();
+        
+        }
+
     window.~Window();
 
     return EXIT_SUCCESS;
