@@ -9,6 +9,7 @@
 #include "arena.hpp"
 #include "enemy.hpp"
 #include "text.hpp"
+#include "ladder.hpp"
 
 using namespace std;
 
@@ -24,16 +25,18 @@ int main(int argc, char *argv[])
     Arena arena(3, {rand()% WIDTH, rand()% HEIGHT, 200, 200});
 
     Player player(3, {500, 100, 180, 216});
-    Enemy enemy({rand()% WIDTH, rand()% HEIGHT, 225, 225});
+    Enemy enemy({rand()% WIDTH, rand()% HEIGHT, 274, 208});
 
     Text text;
 
-    SDL_Rect healthRect = {1, 0, 588, 102};
+    Ladder ladder({rand() % WIDTH, rand() % HEIGHT, 150, 150});
+    Level level;
 
     window.init();
 
     bool playerTouchedArena = false;
     bool playerTouchedEnemy = false;
+
     while (player.getIsPlayerAlive())
     {
         SDL_Event event;
@@ -44,36 +47,22 @@ int main(int argc, char *argv[])
                 break;
             }
 
-            if (event.type == SDL_KEYDOWN)
-            {
-                switch (event.key.keysym.sym)
-                {
-                    case SDLK_a:
-                        player.setX(-10);
-                        break;
-                    case SDLK_d:
-                        player.setX(10);
-                        break;
-                    case SDLK_w:
-                        player.setY(-10);
-                        break;
-                    case SDLK_s:
-                        player.setY(10);
-                        break;
-                }
-            }
+            if (event.type == SDL_KEYDOWN) 
+                player.movePlayer(event.key.keysym.sym);    
         }
-        const char* textString = ("Points: " + to_string(points)).c_str();
 
         cout << player.getAsset().x << " " << player.getAsset().y << "\n";
 
-        if (arena.isPlayerNearby(player.getAsset(), arena.getAsset(), 100))
+        if (player.isNearby(player.getAsset(), arena.getAsset(), 100))
             cout << "Player is nearby \n"; 
         
         if (arena.isPlayerTouching(player.getAsset()))
         {
             cout << "Player is touching arena \n";
         }
+
+
+        window.clear();
 
         // collision detected
         if (enemy.isPlayerTouching(player.getAsset()))
@@ -83,11 +72,9 @@ int main(int argc, char *argv[])
             player.changeHealth(-1);
             points += 100;
         }
-
-        window.clear();
         
         //draws arena if player is near and deletes it when player touches arena
-        if (arena.isPlayerNearby(player.getAsset(), arena.getAsset(), 100) && !(arena.getLvlDone()))
+        if (player.isNearby(player.getAsset(), arena.getAsset(), 1500) && !(arena.getLvlDone()))
         {
             window.draw(window.getRenderer(), arena.getAsset(), "assets/arena.png");
             cout << "Press E to rescue bulls\n";
@@ -104,26 +91,32 @@ int main(int argc, char *argv[])
             }
         }
 
-        window.draw(window.getRenderer(), player.getAsset(), "assets/player.png");
-        
-        window.draw(window.getRenderer(), enemy.getAsset(), "assets/enemy.png");
-
-        text.createText(window.getRenderer(), textString, WIDTH - text.getTextWidth(), 0);
-        switch (player.getHealth())
+        //spawns door for next lvl
+        if (arena.getLvlDone())
         {
-            case 3:
-                window.draw(window.getRenderer(), healthRect, "assets/3_hearts.png");
-                break;
-            case 2:
-                window.draw(window.getRenderer(), healthRect, "assets/2_hearts.png");
-                break;
-            case 1:
-                window.draw(window.getRenderer(), healthRect, "assets/1_hearts.png");
-                break;
+            window.draw(window.getRenderer(), ladder.getAsset(), "assets/ladder.png");
+
+            if (player.isNearby(player.getAsset(), ladder.getAsset(), 250))
+            {
+                if (event.type == SDL_KEYDOWN)
+                {
+                    if (event.key.keysym.sym == SDLK_e)
+                    {
+                        level.setLevel();
+                    }
+                }
+            }
         }
 
-        window.present();
-        
+        window.draw(window.getRenderer(), player.getAsset(), "assets/player.png");
+        window.draw(window.getRenderer(), enemy.getAsset(), "assets/enemy.png");
+
+        text.createText(window.getRenderer(), ("Lvl: " + to_string(level.getLevel())).c_str(), WIDTH / 2, 0);
+        text.createText(window.getRenderer(), ("Points: " + to_string(points)).c_str(), WIDTH, 0);
+
+        window.drawPlayerHealth(player.getHealth());
+
+        window.present();  
     }
 
     text.~Text();

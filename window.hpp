@@ -13,6 +13,7 @@ class Window
         SDL_Texture *texture;
         TTF_Font *font;
         SDL_Texture *imgTexture;
+        SDL_Rect healthRect;
 
     public:
         Window(const string &title, int width, int height);
@@ -22,6 +23,7 @@ class Window
         void present();
         SDL_Renderer* getRenderer();
         void draw(SDL_Renderer* renderer, SDL_Rect destRec, const char* imgLocation);
+        void drawPlayerHealth(int playerHealth);
 };
 
 Window::Window(const string &title, int WIDTH, int HEIGHT)
@@ -39,6 +41,8 @@ Window::Window(const string &title, int WIDTH, int HEIGHT)
     imgTexture = IMG_LoadTexture(renderer, "assets/map.png");
     if (imgTexture == NULL)
         cout << "Cannot load image";
+
+    healthRect = {1, 0, 294, 51};
     
 }
 
@@ -102,6 +106,22 @@ void Window::draw(SDL_Renderer *renderer, SDL_Rect destRect, const char* imgLoca
     SDL_FreeSurface(imgSurface);
     SDL_RenderCopy(renderer, imgTexture, NULL, &destRect);
     SDL_DestroyTexture(imgTexture);
+}
+
+void Window::drawPlayerHealth(int playerHealth)
+{
+    switch (playerHealth)
+    {
+        case 3:
+            draw(renderer, healthRect, "assets/3_hearts.png");
+            break;
+        case 2:
+            draw(renderer, healthRect, "assets/2_hearts.png");
+            break;
+        case 1:
+            draw(renderer, healthRect, "assets/1_hearts.png");
+            break;
+    }
 }
 
 #endif 

@@ -10,8 +10,9 @@ class Text
         TTF_Font* font;
         SDL_Texture* texture;
         string fontType;
-        int textWidth;
-        int textHeight;
+        // int textWidth;
+        // int textHeight;
+        const char* textString;
 
     public:
         ~Text();
@@ -30,7 +31,7 @@ Text::~Text()
 
 void Text::createText(SDL_Renderer *renderer, const char* textString, int x, int y)
 {
-    font = TTF_OpenFont("fonts/test.ttf", 100);
+    font = TTF_OpenFont("fonts/test.ttf", 60);
     if(!font)
         cout << "Font initilization failed: " << TTF_GetError() << "\n";
     
@@ -45,23 +46,34 @@ void Text::createText(SDL_Renderer *renderer, const char* textString, int x, int
     SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
     SDL_FreeSurface(textSurface);
 
+    int textWidth, textHeight;
 
     TTF_SizeText(font, textString, &textWidth, &textHeight);
 
+    if (y == 0)
+    {
+        SDL_Rect textRect = {abs(x - textWidth), 0, textWidth, textHeight};
+        SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
 
-    SDL_Rect textRect = {x, y, textWidth, textHeight};
+    }
 
-    SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+    else
+    {
+        SDL_Rect textRect = {abs(x - textWidth), abs(y - textHeight), textWidth, textHeight};
+        SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+
+    }
+
 }
 
-int Text::getTextWidth()
-{
-    return this->textWidth;
-}
+// int Text::getTextWidth()
+// {
+//     return this->textWidth;
+// }
 
-int Text::getTextHeigth()
-{
-    return this->textHeight;
-}
+// int Text::getTextHeigth()
+// {
+//     return this->textHeight;
+// }
 
 #endif

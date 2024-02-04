@@ -18,7 +18,6 @@ class Arena
         bool getLvlDone();
         void changeArenaCounter();
         SDL_Rect getAsset();
-        bool isPlayerNearby(SDL_Rect player, SDL_Rect arena, int range);
         bool isPlayerTouching(const SDL_Rect& player);
         void setX(int newX);
         void setY(int newY);
@@ -51,18 +50,6 @@ void Arena::changeArenaCounter()
 SDL_Rect Arena::getAsset()
 {
     return this->asset;
-}
-
-bool Arena::isPlayerNearby(SDL_Rect player, SDL_Rect arena, int range)
-{
-    SDL_Rect near;
-    near.x = abs(player.x - arena.x);
-    near.y = abs(player.y - arena.y);
-
-    if (near.x < range && near.y < range)
-        return true;
-   
-    return false;  
 }
 
 bool Arena::isPlayerTouching(const SDL_Rect& player)
