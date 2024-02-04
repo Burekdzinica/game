@@ -10,12 +10,17 @@ class Text
         TTF_Font* font;
         SDL_Texture* texture;
         string fontType;
+        int textWidth;
+        int textHeight;
 
     public:
         ~Text();
-        void createText(string fontType, SDL_Renderer *renderer, const char* textString);
+        void createText(SDL_Renderer *renderer, const char* textString, int x, int y);
+        int getTextWidth();
+        int getTextHeigth();
 
 };
+
 
 Text::~Text()
 {
@@ -23,7 +28,7 @@ Text::~Text()
     SDL_DestroyTexture(texture);
 }
 
-void Text::createText(string fontType, SDL_Renderer *renderer, const char* textString)
+void Text::createText(SDL_Renderer *renderer, const char* textString, int x, int y)
 {
     font = TTF_OpenFont("fonts/test.ttf", 100);
     if(!font)
@@ -40,15 +45,23 @@ void Text::createText(string fontType, SDL_Renderer *renderer, const char* textS
     SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
     SDL_FreeSurface(textSurface);
 
-    int textWidth, textHeight;
 
     TTF_SizeText(font, textString, &textWidth, &textHeight);
 
 
-    SDL_Rect textRect = {0, 0, textWidth, textHeight};
+    SDL_Rect textRect = {x, y, textWidth, textHeight};
 
     SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+}
 
+int Text::getTextWidth()
+{
+    return this->textWidth;
+}
+
+int Text::getTextHeigth()
+{
+    return this->textHeight;
 }
 
 #endif

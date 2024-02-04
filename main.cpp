@@ -21,11 +21,14 @@ int main(int argc, char *argv[])
     srand(time(NULL));
 
     Window window("Reševanje bikca Ferdinanda", WIDTH, HEIGHT);
+    Arena arena(3, {rand()% WIDTH, rand()% HEIGHT, 200, 200});
 
-    Player player(3, {500, 100, 200, 200});
-    Arena arena({rand()%1000, rand()%820, 200, 200});
-    Enemy enemy({rand()%1040, rand()%540, 200, 200});
+    Player player(3, {500, 100, 180, 216});
+    Enemy enemy({rand()% WIDTH, rand()% HEIGHT, 225, 225});
+
     Text text;
+
+    SDL_Rect healthRect = {1, 0, 588, 102};
 
     window.init();
 
@@ -62,7 +65,7 @@ int main(int argc, char *argv[])
         }
         const char* textString = ("Points: " + to_string(points)).c_str();
 
-        //cout << player.getAsset().x << " " << player.getAsset().y << "\n";
+        cout << player.getAsset().x << " " << player.getAsset().y << "\n";
 
         if (arena.isPlayerNearby(player.getAsset(), arena.getAsset(), 100))
             cout << "Player is nearby \n"; 
@@ -70,13 +73,11 @@ int main(int argc, char *argv[])
         if (arena.isPlayerTouching(player.getAsset()))
         {
             cout << "Player is touching arena \n";
-            playerTouchedArena = true;
         }
 
         // collision detected
         if (enemy.isPlayerTouching(player.getAsset()))
         {
-            // playerTouchedEnemy = true;
             enemy.setX(rand()%400);
             enemy.setY(rand()%540);
             player.changeHealth(-1);
@@ -84,29 +85,48 @@ int main(int argc, char *argv[])
         }
 
         window.clear();
-        text.createText("ARCADECLASSIC.ttf", window.getRenderer(), textString);
         
         //draws arena if player is near and deletes it when player touches arena
-        if (!playerTouchedArena && arena.isPlayerNearby(player.getAsset(), arena.getAsset(), 100))
+        if (arena.isPlayerNearby(player.getAsset(), arena.getAsset(), 100) && !(arena.getLvlDone()))
         {
             window.draw(window.getRenderer(), arena.getAsset(), "assets/arena.png");
+            cout << "Press E to rescue bulls\n";
+
+            if (event.type == SDL_KEYDOWN)
+            {
+                if (event.key.keysym.sym == SDLK_e)
+                {
+                    arena.changeArenaCounter();
+                    arena.setX(rand() % 1000);
+                    arena.setY(rand() % 820);
+                    points += 100;
+                }
+            }
         }
 
-
-
-        //deletes player if it touches enemy
-        if (!playerTouchedEnemy)
-        {
-            //window.drawPlayer(player.getAsset());
-            window.draw(window.getRenderer(), player.getAsset(), "assets/player.png");
-        }
-
-
+        window.draw(window.getRenderer(), player.getAsset(), "assets/player.png");
+        
         window.draw(window.getRenderer(), enemy.getAsset(), "assets/enemy.png");
+
+        text.createText(window.getRenderer(), textString, WIDTH - text.getTextWidth(), 0);
+        switch (player.getHealth())
+        {
+            case 3:
+                window.draw(window.getRenderer(), healthRect, "assets/3_hearts.png");
+                break;
+            case 2:
+                window.draw(window.getRenderer(), healthRect, "assets/2_hearts.png");
+                break;
+            case 1:
+                window.draw(window.getRenderer(), healthRect, "assets/1_hearts.png");
+                break;
+        }
+
         window.present();
         
-        }
+    }
 
+    text.~Text();
     window.~Window();
 
     return EXIT_SUCCESS;

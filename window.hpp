@@ -22,9 +22,6 @@ class Window
         void present();
         SDL_Renderer* getRenderer();
         void draw(SDL_Renderer* renderer, SDL_Rect destRec, const char* imgLocation);
-        //void draw(SDL_Texture *texture, const SDL_Rect *srcRect, const SDL_Rect &destRect); //for sdl image
-
-        //make 1 draw method --> multiple are useless
 };
 
 Window::Window(const string &title, int WIDTH, int HEIGHT)
@@ -42,12 +39,13 @@ Window::Window(const string &title, int WIDTH, int HEIGHT)
     imgTexture = IMG_LoadTexture(renderer, "assets/map.png");
     if (imgTexture == NULL)
         cout << "Cannot load image";
+    
 }
 
 //deletes the window/renderer
 Window::~Window() 
 {  
-    TTF_CloseFont(font);
+    // TTF_CloseFont(font); // seg fault
     SDL_DestroyTexture(imgTexture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -68,7 +66,7 @@ void Window::init()
         cout << "IMG initialization failed: " << IMG_GetError() << "\n";
 }
 
-//clears the screen // used for moving assets
+// //clears the screen // used for moving assets
 // void Window::clear() 
 // {
 //     SDL_SetRenderDrawColor(renderer, 204, 144, 64, 255);
@@ -78,7 +76,6 @@ void Window::init()
 void Window::clear()
 {
     SDL_RenderClear(renderer);
-
     SDL_RenderCopy(renderer, imgTexture, NULL, NULL);
 }
 
@@ -103,11 +100,8 @@ void Window::draw(SDL_Renderer *renderer, SDL_Rect destRect, const char* imgLoca
         cout << "Cannot create texture\n";
 
     SDL_FreeSurface(imgSurface);
-
     SDL_RenderCopy(renderer, imgTexture, NULL, &destRect);
-
     SDL_DestroyTexture(imgTexture);
-
 }
 
 #endif 
