@@ -50,20 +50,8 @@ void Text::createText(SDL_Renderer *renderer, const char* textString, int x, int
 
     TTF_SizeText(font, textString, &textWidth, &textHeight);
 
-    if (y == 0)
-    {
-        SDL_Rect textRect = {abs(x - textWidth), 0, textWidth, textHeight};
-        SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
-
-    }
-
-    else
-    {
-        SDL_Rect textRect = {abs(x - textWidth), abs(y - textHeight), textWidth, textHeight};
-        SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
-
-    }
-
+    SDL_Rect textRect = {abs(x - textWidth), y , textWidth, textHeight};
+    SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
 }
 
 // int Text::getTextWidth()

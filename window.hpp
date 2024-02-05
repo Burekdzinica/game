@@ -42,7 +42,7 @@ Window::Window(const string &title, int WIDTH, int HEIGHT)
     if (imgTexture == NULL)
         cout << "Cannot load image";
 
-    healthRect = {1, 0, 294, 51};
+    healthRect = {1, 1, 279, 66};
     
 }
 
@@ -113,13 +113,13 @@ void Window::drawPlayerHealth(int playerHealth)
     switch (playerHealth)
     {
         case 3:
-            draw(renderer, healthRect, "assets/3_hearts.png");
+            draw(renderer, healthRect, "assets/3_hearts_reloaded.png");
             break;
         case 2:
-            draw(renderer, healthRect, "assets/2_hearts.png");
+            draw(renderer, healthRect, "assets/2_hearts_reloaded.png");
             break;
         case 1:
-            draw(renderer, healthRect, "assets/1_hearts.png");
+            draw(renderer, healthRect, "assets/1_hearts_reloaded.png");
             break;
     }
 }

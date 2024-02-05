@@ -48,7 +48,6 @@ void Player::changeHealth(int healthDiff)
 
 void Player::movePlayer(SDL_Keycode key)
 {
-
         switch (key)
         {
             case SDLK_a:
@@ -64,7 +63,6 @@ void Player::movePlayer(SDL_Keycode key)
                 setY(10);
                 break;
         }
-    
 }
 
 SDL_Rect Player::getAsset()

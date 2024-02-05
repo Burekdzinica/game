@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
         window.draw(window.getRenderer(), player.getAsset(), "assets/player.png");
         window.draw(window.getRenderer(), enemy.getAsset(), "assets/enemy.png");
 
-        text.createText(window.getRenderer(), ("Lvl: " + to_string(level.getLevel())).c_str(), WIDTH / 2, 0);
+        text.createText(window.getRenderer(), ("Level: " + to_string(level.getLevel())).c_str(), WIDTH / 2, 0);
         text.createText(window.getRenderer(), ("Points: " + to_string(points)).c_str(), WIDTH, 0);
 
         window.drawPlayerHealth(player.getHealth());
