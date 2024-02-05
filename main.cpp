@@ -4,12 +4,12 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 
-#include "player.hpp"
-#include "window.hpp"
-#include "arena.hpp"
-#include "enemy.hpp"
-#include "text.hpp"
-#include "ladder.hpp"
+#include "headers/player.hpp"
+#include "headers/window.hpp"
+#include "headers/arena.hpp"
+#include "headers/enemy.hpp"
+#include "headers/text.hpp"
+#include "headers/ladder.hpp"
 
 using namespace std;
 
@@ -61,7 +61,6 @@ int main(int argc, char *argv[])
             cout << "Player is touching arena \n";
         }
 
-
         window.clear();
 
         // collision detected
@@ -77,7 +76,6 @@ int main(int argc, char *argv[])
         if (player.isNearby(player.getAsset(), arena.getAsset(), 1500) && !(arena.getLvlDone()))
         {
             window.draw(window.getRenderer(), arena.getAsset(), "assets/arena.png");
-            cout << "Press E to rescue bulls\n";
 
             if (event.type == SDL_KEYDOWN)
             {
