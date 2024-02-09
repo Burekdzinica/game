@@ -26,28 +26,24 @@ int main(int argc, char *argv[])
 
     int randomArenaCounter = rand() % 2;
     int arenaCounter = 3 + randomArenaCounter;
-
-    Arena arena[arenaCounter];
-    Arena arenaTracker(arenaCounter, {200, 200, 200, 200});
-
-    unordered_map <int, Arena> hashmap;
+    
+    unordered_map <int, Arena> arenaList;
 
     for (int i=0; i<arenaCounter; i++)
     {
-        arena[i] = Arena(arenaCounter, {rand() % WIDTH, rand() % HEIGHT, 200, 200});
-        hashmap.insert({i, Arena(arenaCounter, {rand() % WIDTH, rand() % HEIGHT, 200, 200})});
+        arenaList.insert({i, Arena({rand() % WIDTH, rand() % HEIGHT, 200, 200})});
 
-        for (int j=0; j<i; j++)
-        {
-            SDL_Rect rect1 = arena[i].getAsset();
-            SDL_Rect rect2 = arena[j].getAsset();
+        // for (int j=0; j<i; j++)
+        // {
+        //     SDL_Rect rect1 = arena[i].getAsset();
+        //     SDL_Rect rect2 = arena[j].getAsset();
 
-            if (SDL_HasIntersection(&rect1, &rect2))
-            {
-                arena[i].setX(rand() % WIDTH);
-                arena[i].setY(rand() % HEIGHT);
-            }
-        }
+        //     if (SDL_HasIntersection(&rect1, &rect2))
+        //     {
+        //         arena[i].setX(rand() % WIDTH);
+        //         arena[i].setY(rand() % HEIGHT);
+        //     }
+        //}
     }
 
     Player player(3, {500, 100, 180, 216});
@@ -62,10 +58,12 @@ int main(int argc, char *argv[])
 
     int fps = 60;
     int desiredDelta = 1000 / fps;
+
     int isCloseTo = -1;
 
     while (player.getIsPlayerAlive())
     {
+        bool isPlayerNearArena = false;
         int startLoop = SDL_GetTicks();
 
         SDL_Event event;
@@ -84,7 +82,7 @@ int main(int argc, char *argv[])
 
         // if (player.isNearby(player.getAsset(), arena.getAsset(), 100))
         //     cout << "Player is nearby \n"; 
-        
+
         // if (arena.isPlayerTouching(player.getAsset()))
         // {
         //     cout << "Player is touching arena \n";
@@ -99,17 +97,22 @@ int main(int argc, char *argv[])
             enemy.setX(rand()%400);
             enemy.setY(rand()%540);
             player.changeHealth(-1);
+            
             points += 100;
         }
-        
-        //draws arena if player is near and deletes it when player touches arena
-        for (int i = 0; i < arenaTracker.getArenaCounter(); i++)
+
+        for (const auto& entry : arenaList)
         {
-            if (player.isNearby(player.getAsset(), arena[i].getAsset(), 1500) && !(arenaTracker.getLvlDone()) && arena[i].getArenaSpawn() != true)
+            int i = entry.first;
+            const Arena& currentArena = entry.second;
+
+            if (player.isNearby(player.getAsset(), currentArena.getAsset(), 1500)) //&& !(arenaTracker.getLvlDone()))
             {
-                window.draw(window.getRenderer(), arena[i].getAsset(), "assets/arena.png");
+                window.draw(window.getRenderer(), currentArena.getAsset(), "assets/arena.png");
 
                 isCloseTo = i;
+
+                isPlayerNearArena = true;
             }
         }
 
@@ -117,10 +120,8 @@ int main(int argc, char *argv[])
         {
             if (event.key.keysym.sym == SDLK_e && isCloseTo >= 0)
             {
-                cout << isCloseTo << "\n";
-                arena[isCloseTo].setArenaSpawn();
+                arenaList.erase(isCloseTo);
 
-                arenaTracker.changeArenaCounter();
                 points += 100;
                 
                 isCloseTo = -1;
@@ -128,7 +129,7 @@ int main(int argc, char *argv[])
         }
     
         //spawns door for next lvl 
-        if (arenaTracker.getLvlDone())
+        if (arenaList.empty())
         {
             window.draw(window.getRenderer(), ladder.getAsset(), "assets/ladder.png");
 
@@ -147,10 +148,11 @@ int main(int argc, char *argv[])
         window.draw(window.getRenderer(), player.getAsset(), "assets/player.png");
         window.draw(window.getRenderer(), enemy.getAsset(), "assets/enemy.png");
 
-        text.createText(window.getRenderer(), "Press [E]", WIDTH / 2, HEIGHT - 50);
+        if (isPlayerNearArena)
+            text.createText(window.getRenderer(), "Press [E]", WIDTH / 2, HEIGHT - 50);
 
-        if (arenaTracker.getArenaCounter() != arenaCounter)
-            text.createText(window.getRenderer(), ("Remaining arenas: " + to_string(arenaTracker.getArenaCounter())).c_str(), WIDTH, 50);
+        if (arenaList.size() < arenaCounter)
+            text.createText(window.getRenderer(), ("Remaining arenas: " + to_string(arenaList.size())).c_str(), WIDTH, 50);
 
         text.createText(window.getRenderer(), ("Level: " + to_string(level.getLevel())).c_str(), WIDTH / 2, 0);
         text.createText(window.getRenderer(), ("Points: " + to_string(points)).c_str(), WIDTH, 0);

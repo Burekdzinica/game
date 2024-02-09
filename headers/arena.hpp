@@ -9,18 +9,17 @@ class Arena
 {
     private:
         SDL_Rect asset;
-        int arenaCounter;
         bool isLvlDone;
         bool didArenaSpawn;
 
     public:
         Arena();
-        Arena(int arenaCounter, SDL_Rect asset);
-        bool getArenaSpawn();
+        Arena(SDL_Rect asset);
+        bool getArenaSpawn() const;
         int getArenaCounter();
         bool getLvlDone();
         void changeArenaCounter();
-        SDL_Rect getAsset();
+        SDL_Rect getAsset() const;
         bool isPlayerTouching(const SDL_Rect& player);
         void setArenaSpawn();
         void setX(int newX);
@@ -30,27 +29,20 @@ class Arena
 
 Arena::Arena()
 {
-    this->arenaCounter = 0;
     this->asset = {0, 0, 0, 0};  
     this->isLvlDone = false;
     this->didArenaSpawn = false;
 }
 
-Arena::Arena(int arenaCounter, SDL_Rect asset)
+Arena::Arena(SDL_Rect asset)
 {
-    this->arenaCounter = arenaCounter;
     this->asset = asset;
     this->isLvlDone = false;
 }
 
-bool Arena::getArenaSpawn()
+bool Arena::getArenaSpawn() const
 {
     return this->didArenaSpawn;
-}
-
-int Arena::getArenaCounter()
-{
-    return this->arenaCounter;
 }
 
 bool Arena::getLvlDone()
@@ -58,13 +50,7 @@ bool Arena::getLvlDone()
     return this->isLvlDone;
 }
 
-void Arena::changeArenaCounter()
-{
-    this->arenaCounter--;
-    this->isLvlDone = this->arenaCounter <= 0;
-}
-
-SDL_Rect Arena::getAsset()
+SDL_Rect Arena::getAsset() const
 {
     return this->asset;
 }

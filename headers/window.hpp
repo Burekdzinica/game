@@ -24,6 +24,7 @@ class Window
         SDL_Renderer* getRenderer();
         void draw(SDL_Renderer* renderer, SDL_Rect destRec, const char* imgLocation);
         void drawPlayerHealth(int playerHealth);
+        void drawArena();
 };
 
 Window::Window(const string &title, int WIDTH, int HEIGHT)
@@ -121,6 +122,24 @@ void Window::drawPlayerHealth(int playerHealth)
         case 1:
             draw(renderer, healthRect, "assets/1_hearts_reloaded.png");
             break;
+    }
+}
+
+void Window::drawArena()
+{
+    for (const auto& entry : arenaList)
+    {
+        int i = entry.first;
+        const Arena& currentArena = entry.second;
+
+        if (player.isNearby(player.getAsset(), currentArena.getAsset(), 1500)) //&& !(arenaTracker.getLvlDone()))
+        {
+            window.draw(window.getRenderer(), currentArena.getAsset(), "assets/arena.png");
+
+            isCloseTo = i;
+
+            isPlayerNearArena = true;
+        }
     }
 }
 
