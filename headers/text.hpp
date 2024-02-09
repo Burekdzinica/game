@@ -31,7 +31,7 @@ Text::~Text()
 
 void Text::createText(SDL_Renderer *renderer, const char* textString, int x, int y)
 {
-    font = TTF_OpenFont("fonts/test.ttf", 60);
+    font = TTF_OpenFont("fonts/test.ttf", 50);
     if(!font)
         cout << "Font initilization failed: " << TTF_GetError() << "\n";
     
