@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 
     for (int i=0; i<arenaCounter; i++)
     {
-        arenaList.insert({i, Arena({rand() % WIDTH, rand() % HEIGHT, 200, 200})});
+        arenaList.insert({i, Arena({rand() % WIDTH - 200, rand() % HEIGHT - 200, 200, 200})});
 
         // for (int j=0; j<i; j++)
         // {
@@ -46,25 +46,30 @@ int main(int argc, char *argv[])
         //}
     }
 
-    Player player(3, {500, 100, 180, 216});
-    Enemy enemy({rand()% WIDTH, rand()% HEIGHT, 274, 208});
+    Player player(3, {rand() % WIDTH - 180, rand() % HEIGHT - 216, 180, 216});
+    // Enemy enemy({rand()% WIDTH - 274, rand()% HEIGHT - 208, 274, 208});
+
+    Enemy enemy(WIDTH, HEIGHT, 274, 208);
 
     Text text;
 
-    Ladder ladder({rand() % WIDTH, rand() % HEIGHT, 150, 150});
+    Ladder ladder({rand() % WIDTH - 150, rand() % HEIGHT - 150, 150, 150});
     Level level;
 
     window.init();
 
     int fps = 60;
-    int desiredDelta = 1000 / fps;
+    int frameDelay = 1000 / fps;
+    Uint32 frameStart;
+    int frameTime;
 
     int isCloseTo = -1;
 
     while (player.getIsPlayerAlive())
     {
-        bool isPlayerNearArena = false;
         int startLoop = SDL_GetTicks();
+
+        bool isPlayerNearArena = false;
 
         SDL_Event event;
         if (SDL_PollEvent(&event))
@@ -78,7 +83,7 @@ int main(int argc, char *argv[])
                 player.movePlayer(event.key.keysym.sym);    
         }
 
-        // cout << player.getAsset().x << " " << player.getAsset().y << "\n";
+        cout << player.getAsset().x << " " << player.getAsset().y << "\n";
 
         // if (player.isNearby(player.getAsset(), arena.getAsset(), 100))
         //     cout << "Player is nearby \n"; 
@@ -88,16 +93,15 @@ int main(int argc, char *argv[])
         //     cout << "Player is touching arena \n";
         // }
 
-
         window.clear();
 
         // collision detected
         if (enemy.isPlayerTouching(player.getAsset()))
         {
-            enemy.setX(rand()%400);
-            enemy.setY(rand()%540);
+            enemy.setX(rand() % WIDTH - enemy.getAsset().w);
+            enemy.setY(rand() % HEIGHT - enemy.getAsset().h);
             player.changeHealth(-1);
-            
+
             points += 100;
         }
 
@@ -139,6 +143,7 @@ int main(int argc, char *argv[])
                 {
                     if (event.key.keysym.sym == SDLK_e)
                     {
+                        level.resetGame(player, enemy, arenaList, ladder, isCloseTo, player.getHealth(), WIDTH, HEIGHT);
                         level.setLevel();
                     }
                 }
@@ -148,11 +153,14 @@ int main(int argc, char *argv[])
         window.draw(window.getRenderer(), player.getAsset(), "assets/player.png");
         window.draw(window.getRenderer(), enemy.getAsset(), "assets/enemy.png");
 
+        if (arenaList.size() < arenaCounter)
+            text.createText(window.getRenderer(), ("Remaining arenas: " + to_string(arenaList.size())).c_str(), WIDTH, 50);
+        
         if (isPlayerNearArena)
             text.createText(window.getRenderer(), "Press [E]", WIDTH / 2, HEIGHT - 50);
 
-        if (arenaList.size() < arenaCounter)
-            text.createText(window.getRenderer(), ("Remaining arenas: " + to_string(arenaList.size())).c_str(), WIDTH, 50);
+        if (player.isNearby(player.getAsset(), ladder.getAsset(), 250))
+            text.createText(window.getRenderer(), ("Press [E]"), WIDTH / 2, HEIGHT - 50);
 
         text.createText(window.getRenderer(), ("Level: " + to_string(level.getLevel())).c_str(), WIDTH / 2, 0);
         text.createText(window.getRenderer(), ("Points: " + to_string(points)).c_str(), WIDTH, 0);
@@ -161,10 +169,10 @@ int main(int argc, char *argv[])
 
         window.present();  
 
-        int delta = SDL_GetTicks() - startLoop;
+        frameTime = SDL_GetTicks() - frameStart;
 
-        if (delta < desiredDelta)
-            SDL_Delay(desiredDelta - delta);
+        if (frameDelay > frameTime)
+            SDL_Delay(frameDelay - frameTime);
     }
 
     text.~Text();
