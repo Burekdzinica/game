@@ -10,7 +10,7 @@ class Enemy
     
     public:
         Enemy(SDL_Rect asset);
-        Enemy(int WIDTH, int HEIGHT, int WIDTH_enemy, int HEIGHT_enemy);
+        // Enemy(int WIDTH, int HEIGHT, int WIDTH_enemy, int HEIGHT_enemy);
         SDL_Rect getAsset();
         void setX(int x);
         void setY(int y);
@@ -22,25 +22,28 @@ Enemy::Enemy(SDL_Rect asset)
     this->asset = asset;
 }
 
-Enemy::Enemy(int WIDTH, int HEIGHT, int WIDTH_enemy, int HEIGHT_enemy)
-{
-    int randWidth = rand() % WIDTH;
 
-    if (randWidth < WIDTH_enemy)
-        randWidth += WIDTH_enemy;
-    else
-        randWidth -= WIDTH_enemy;
 
-    int randHeight = rand() % HEIGHT;
+
+// Enemy::Enemy(int WIDTH, int HEIGHT, int WIDTH_enemy, int HEIGHT_enemy)
+// {
+//     int randWidth = rand() % WIDTH;
+
+//     if (randWidth < WIDTH_enemy)
+//         randWidth += WIDTH_enemy;
+//     else
+//         randWidth -= WIDTH_enemy;
+
+//     int randHeight = rand() % HEIGHT;
     
-    if (randHeight < HEIGHT_enemy)
-        randHeight += HEIGHT_enemy;
-    else
-        randHeight -= HEIGHT_enemy;
+//     if (randHeight < HEIGHT_enemy)
+//         randHeight += HEIGHT_enemy;
+//     else
+//         randHeight -= HEIGHT_enemy;
 
-    asset = {randWidth, randHeight, WIDTH_enemy, HEIGHT_enemy};
+//     asset = {randWidth, randHeight, WIDTH_enemy, HEIGHT_enemy};
 
-}
+// }
 
 SDL_Rect Enemy::getAsset()
 {
@@ -49,12 +52,12 @@ SDL_Rect Enemy::getAsset()
 
 void Enemy::setX(int newX)
 {
-    this->asset.x += newX;
+    this->asset.x = newX;
 }
 
 void Enemy::setY(int newY)
 {
-    this->asset.y += newY;
+    this->asset.y = newY;
 }
 
 bool Enemy::isPlayerTouching(const SDL_Rect& player)

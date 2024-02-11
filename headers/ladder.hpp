@@ -2,6 +2,7 @@
 #define LADDER_HPP
 
 #include <SDL2/SDL.h>
+#include <time.h>
 
 using namespace std;
 
@@ -38,16 +39,21 @@ void Ladder::setY(int y)
     this->asset.y  = y;
 }
 
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 class Level
 {
     private:
         int lvl;
+        int arenaCounter;
 
     public:
         Level();
         void resetGame(Player &player, Enemy& enemy, unordered_map <int, Arena>& arenaList, Ladder& ladder, int& isCloseTo, int health, int WIDTH, int HEIGHT);
         void setLevel();
+        void setArenaCounter(int arenaCounter);
         int getLevel();
+        int getArenaCounter();
 };
 
 Level::Level()
@@ -57,23 +63,24 @@ Level::Level()
 
 void Level::resetGame(Player &player, Enemy& enemy, unordered_map <int, Arena>& arenaList, Ladder& ladder, int& isCloseTo, int health, int WIDTH, int HEIGHT)
 {
-    player = Player(health, {rand() % WIDTH, rand() % HEIGHT, 180, 216});
+    srand(time(NULL));
 
-    enemy.setX(rand() % WIDTH - enemy.getAsset().w);
-    enemy.setY(rand() % HEIGHT - enemy.getAsset().h);
+    player = Player(health, {max((rand() % WIDTH - player.getAsset().w), 0), max((rand() % HEIGHT - player.getAsset().h), 0), 180, 216});
+
+    enemy.setX(max((rand() % WIDTH - enemy.getAsset().w), 0));
+    enemy.setY(max((rand() % HEIGHT - enemy.getAsset().h), 0));
+
+    arenaCounter += rand() % 2; 
 
     arenaList.clear();
 
-    int randomArenaCounter = rand() % 2;
-    int arenaCounter = 3 + randomArenaCounter;
-
     for (int i=0; i<arenaCounter; i++)
     {
-        arenaList.insert({i, Arena({rand() % WIDTH - 200, rand() % HEIGHT - 200, 200, 200})});
+        arenaList.insert({i, Arena({max((rand() % WIDTH - 200), 0), max((rand() % HEIGHT - 200), 0), 200, 200})});
     }
 
-    ladder.setX(rand() % WIDTH - ladder.getAsset().w);
-    ladder.setY(rand() % HEIGHT - ladder.getAsset().h);
+    ladder.setX(max((rand() % WIDTH - ladder.getAsset().w), 0));
+    ladder.setY(max((rand() % HEIGHT - ladder.getAsset().h), 0));
 
     isCloseTo = -1;
 }
@@ -83,9 +90,19 @@ void Level::setLevel()
     this->lvl++;
 }
 
+void Level::setArenaCounter(int arenaCounter)
+{
+    this->arenaCounter = arenaCounter;
+}
+
 int Level::getLevel()
 {
     return this->lvl;
+}
+
+int Level::getArenaCounter()
+{
+    return this->arenaCounter;
 }
 
 

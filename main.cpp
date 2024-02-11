@@ -24,14 +24,14 @@ int main(int argc, char *argv[])
     
     Window window("Reševanje bikca Ferdinanda", WIDTH, HEIGHT);
 
-    int randomArenaCounter = rand() % 2;
-    int arenaCounter = 3 + randomArenaCounter;
-    
     unordered_map <int, Arena> arenaList;
 
-    for (int i=0; i<arenaCounter; i++)
+    Level level;
+    level.setArenaCounter(3 + rand() % 2);
+
+    for (int i=0; i < level.getArenaCounter(); i++)
     {
-        arenaList.insert({i, Arena({rand() % WIDTH - 200, rand() % HEIGHT - 200, 200, 200})});
+        arenaList.insert({i, Arena({max((rand() % WIDTH - 200), 0), max((rand() % HEIGHT - 200), 0), 200, 200})});
 
         // for (int j=0; j<i; j++)
         // {
@@ -46,15 +46,12 @@ int main(int argc, char *argv[])
         //}
     }
 
-    Player player(3, {rand() % WIDTH - 180, rand() % HEIGHT - 216, 180, 216});
-    // Enemy enemy({rand()% WIDTH - 274, rand()% HEIGHT - 208, 274, 208});
-
-    Enemy enemy(WIDTH, HEIGHT, 274, 208);
+    Player player(3, {max((rand() % WIDTH - 180), 0), max((rand() % HEIGHT - 216), 0), 180, 216});
+    Enemy enemy({max((rand()% WIDTH - 274), 0), max((rand()% HEIGHT - 208), 0), 274, 208});
 
     Text text;
 
-    Ladder ladder({rand() % WIDTH - 150, rand() % HEIGHT - 150, 150, 150});
-    Level level;
+    Ladder ladder({max((rand() % WIDTH - 150), 0), max((rand() % HEIGHT - 150), 0), 150, 150});
 
     window.init();
 
@@ -84,6 +81,7 @@ int main(int argc, char *argv[])
         }
 
         cout << player.getAsset().x << " " << player.getAsset().y << "\n";
+        // cout << enemy.getAsset().x << " " << enemy.getAsset().y << "\n";
 
         // if (player.isNearby(player.getAsset(), arena.getAsset(), 100))
         //     cout << "Player is nearby \n"; 
@@ -98,8 +96,8 @@ int main(int argc, char *argv[])
         // collision detected
         if (enemy.isPlayerTouching(player.getAsset()))
         {
-            enemy.setX(rand() % WIDTH - enemy.getAsset().w);
-            enemy.setY(rand() % HEIGHT - enemy.getAsset().h);
+            enemy.setX(max((rand() % WIDTH - enemy.getAsset().w), 0));
+            enemy.setY(max((rand() % HEIGHT - enemy.getAsset().h), 0));
             player.changeHealth(-1);
 
             points += 100;
@@ -110,7 +108,7 @@ int main(int argc, char *argv[])
             int i = entry.first;
             const Arena& currentArena = entry.second;
 
-            if (player.isNearby(player.getAsset(), currentArena.getAsset(), 1500)) //&& !(arenaTracker.getLvlDone()))
+            if (player.isNearby(player.getAsset(), currentArena.getAsset(), 2000)) //&& !(arenaTracker.getLvlDone()))
             {
                 window.draw(window.getRenderer(), currentArena.getAsset(), "assets/arena.png");
 
@@ -153,7 +151,7 @@ int main(int argc, char *argv[])
         window.draw(window.getRenderer(), player.getAsset(), "assets/player.png");
         window.draw(window.getRenderer(), enemy.getAsset(), "assets/enemy.png");
 
-        if (arenaList.size() < arenaCounter)
+        if (arenaList.size() < level.getArenaCounter())
             text.createText(window.getRenderer(), ("Remaining arenas: " + to_string(arenaList.size())).c_str(), WIDTH, 50);
         
         if (isPlayerNearArena)
@@ -166,6 +164,20 @@ int main(int argc, char *argv[])
         text.createText(window.getRenderer(), ("Points: " + to_string(points)).c_str(), WIDTH, 0);
 
         window.drawPlayerHealth(player.getHealth());
+
+
+        //Game over
+        if (!(player.getIsPlayerAlive()))
+        {
+            SDL_SetRenderDrawColor(window.getRenderer(), 0, 0, 0, 0);
+            SDL_RenderClear(window.getRenderer());
+
+            text.createText(window.getRenderer(), "Game over", WIDTH / 2, HEIGHT / 2);
+
+            window.present();
+
+            SDL_Delay(5000);
+        }
 
         window.present();  
 
