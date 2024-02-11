@@ -45,55 +45,55 @@ void Player::changeHealth(int healthDiff)
     this->isPlayerAlive = !(this->health <= 0);
 }
 
-void Player::movePlayer(SDL_Keycode key)
-{
-        switch (key)
-        {
-            case SDLK_a:
-                setX(-15);
-                break;
-            case SDLK_d:
-                setX(15);
-                break;
-            case SDLK_w:
-                setY(-15);
-                break;
-            case SDLK_s:
-                setY(15);
-                break;
-        }
-}
-
 // void Player::movePlayer(SDL_Keycode key)
 // {
-//     float x = 0;
-//     float y = 0;
-//     float speed = 10;
-
-//     switch (key)
-//     {
-//         case SDLK_a:
-//             x -= speed;
-//             break;
-//         case SDLK_d:
-//             x += speed;
-//             break;
-//         case SDLK_w:
-//             y -= speed;
-//             break;
-//         case SDLK_s:
-//             y += speed;
-//             break;
-//     }
-
-//     move(x,y);
+//         switch (key)
+//         {
+//             case SDLK_a:
+//                 setX(-15);
+//                 break;
+//             case SDLK_d:
+//                 setX(15);
+//                 break;
+//             case SDLK_w:
+//                 setY(-15);
+//                 break;
+//             case SDLK_s:
+//                 setY(15);
+//                 break;
+//         }
 // }
 
-// void Player::move(int x, int y)
-// {
-//     this->asset.x += x;
-//     this->asset.y += y;
-// }
+void Player::movePlayer(SDL_Keycode key)
+{
+    float x = 0;
+    float y = 0;
+    float speed = 10;
+
+    switch (key)
+    {
+        case SDLK_a:
+            x -= speed;
+            break;
+        case SDLK_d:
+            x += speed;
+            break;
+        case SDLK_w:
+            y -= speed;
+            break;
+        case SDLK_s:
+            y += speed;
+            break;
+    }
+
+    move(x,y);
+}
+
+void Player::move(int x, int y)
+{
+    this->asset.x += x;
+    this->asset.y += y;
+}
 
 SDL_Rect Player::getAsset() const
 {

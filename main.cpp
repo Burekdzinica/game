@@ -1,6 +1,8 @@
 #include <iostream>
 #include <unordered_map>
 #include <time.h>
+#include <chrono>
+#include <thread>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
@@ -62,11 +64,13 @@ int main(int argc, char *argv[])
 
     int isCloseTo = -1;
 
+    bool isPlayerNearArena;
+
     while (player.getIsPlayerAlive())
     {
         int startLoop = SDL_GetTicks();
 
-        bool isPlayerNearArena = false;
+        isPlayerNearArena = false;
 
         SDL_Event event;
         if (SDL_PollEvent(&event))
@@ -80,7 +84,7 @@ int main(int argc, char *argv[])
                 player.movePlayer(event.key.keysym.sym);    
         }
 
-        cout << player.getAsset().x << " " << player.getAsset().y << "\n";
+        // cout << player.getAsset().x << " " << player.getAsset().y << "\n";
         // cout << enemy.getAsset().x << " " << enemy.getAsset().y << "\n";
 
         // if (player.isNearby(player.getAsset(), arena.getAsset(), 100))
@@ -98,6 +102,8 @@ int main(int argc, char *argv[])
         {
             enemy.setX(max((rand() % WIDTH - enemy.getAsset().w), 0));
             enemy.setY(max((rand() % HEIGHT - enemy.getAsset().h), 0));
+
+            // this_thread::sleep_for(chrono::milliseconds(1000));
             player.changeHealth(-1);
 
             points += 100;
@@ -105,14 +111,14 @@ int main(int argc, char *argv[])
 
         for (const auto& entry : arenaList)
         {
-            int i = entry.first;
+            // int i = entry.first;
             const Arena& currentArena = entry.second;
 
-            if (player.isNearby(player.getAsset(), currentArena.getAsset(), 2000)) //&& !(arenaTracker.getLvlDone()))
+            if (player.isNearby(player.getAsset(), currentArena.getAsset(), 200)) //&& !(arenaTracker.getLvlDone()))
             {
                 window.draw(window.getRenderer(), currentArena.getAsset(), "assets/arena.png");
 
-                isCloseTo = i;
+                isCloseTo = entry.first;
 
                 isPlayerNearArena = true;
             }
@@ -127,13 +133,28 @@ int main(int argc, char *argv[])
                 points += 100;
                 
                 isCloseTo = -1;
-            }
+            } 
         }
-    
+
+        enemy.updateEnemyAI(player, 500);
+
+        // if ((enemy.isPlayerInView(player, 500.0f)) == true)
+        //     cout << "YES\n";
+
+        // if (event.key.keysym.sym == SDLK_h)
+        // {
+        //     for (const auto& entry : arenaList)
+        //     {
+        //         const Arena& currentArena = entry.second;
+        //         window.draw(window.getRenderer(), currentArena.getAsset(), "assets/arena.png");
+        //     }
+        // }
+
         //spawns door for next lvl 
         if (arenaList.empty())
         {
             window.draw(window.getRenderer(), ladder.getAsset(), "assets/ladder.png");
+            SDL_Delay(1);
 
             if (player.isNearby(player.getAsset(), ladder.getAsset(), 250))
             {
@@ -176,7 +197,7 @@ int main(int argc, char *argv[])
 
             window.present();
 
-            SDL_Delay(5000);
+            SDL_Delay(1000);
         }
 
         window.present();  
