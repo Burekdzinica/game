@@ -98,16 +98,15 @@ int main(int argc, char *argv[])
         window.clear();
 
         // collision detected
-        if (enemy.isPlayerTouching(player.getAsset()))
-        {
-            enemy.setX(max((rand() % WIDTH - enemy.getAsset().w), 0));
-            enemy.setY(max((rand() % HEIGHT - enemy.getAsset().h), 0));
+        // if (enemy.isPlayerTouching(player.getAsset()))
+        // {
+        //     // enemy.setX(max((rand() % WIDTH - enemy.getAsset().w), 0));
+        //     // enemy.setY(max((rand() % HEIGHT - enemy.getAsset().h), 0));
 
-            // this_thread::sleep_for(chrono::milliseconds(1000));
-            player.changeHealth(-1);
+        //     player.changeHealth(-1);
 
-            points += 100;
-        }
+        //     points += 100;
+        // }
 
         for (const auto& entry : arenaList)
         {

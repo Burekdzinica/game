@@ -12,6 +12,7 @@ enum class EnemyState
 {
     Idle,
     Chasing,
+    Attacked,
 };
 
 class Enemy
@@ -20,8 +21,11 @@ class Enemy
         SDL_Rect asset;
         EnemyState state;
         chrono::steady_clock::time_point chaseStartTime;
-        chrono::seconds chaseDuration;
-
+        chrono::steady_clock::time_point attackStartTime;
+        int xMovement;
+        int yMovement;
+        int direction;
+        int bounds[4];
     
     public:
         Enemy(SDL_Rect asset);
@@ -41,6 +45,16 @@ Enemy::Enemy(SDL_Rect asset)
 {
     this->asset = asset;
     this->state = EnemyState::Idle;
+    
+    this->xMovement = rand() % 2; // 1
+    this->yMovement = (xMovement == 1) ? 0 : 1;
+    this->direction = 1;
+
+    this->bounds[0] = this->asset.x - 100; // x left
+    this->bounds[1] = this->asset.x + 100; // x right
+    this->bounds[2] = this->asset.y - 100; // y left
+    this->bounds[3] = this->asset.y + 100; // y right
+    
 }
 
 SDL_Rect Enemy::getAsset()
@@ -75,6 +89,9 @@ void Enemy::setState(EnemyState newState)
 
 void Enemy::updateEnemyAI(Player& player, float detectionDistance)
 {
+    auto currentTime = chrono::steady_clock::now();
+    auto elapsedTime = chrono::duration_cast<chrono::milliseconds>(currentTime - chaseStartTime);
+
     switch (getState())
     {
         case EnemyState::Idle:
@@ -89,15 +106,41 @@ void Enemy::updateEnemyAI(Player& player, float detectionDistance)
         case EnemyState::Chasing:
             moveChasing(player.getAsset());
 
-            auto currentTime = chrono::steady_clock::now();
-            auto elapsedTime = chrono::duration_cast <chrono::milliseconds> (currentTime - chaseStartTime);
+            currentTime = chrono::steady_clock::now();
+            elapsedTime = chrono::duration_cast<chrono::milliseconds>(currentTime - chaseStartTime);
 
-            if (elapsedTime >= chrono::milliseconds(3000))
-                setState(EnemyState::Idle);
+            if (elapsedTime >= chrono::milliseconds(5000) && isPlayerInView(player, detectionDistance))
+            {
+                setState(EnemyState::Attacked);
+                attackStartTime = chrono::steady_clock::now();
+
+            }
             
-        
             else if (!(isPlayerInView(player, detectionDistance)))
                 setState(EnemyState::Idle);
+            
+            else if (isPlayerTouching(player.getAsset()))
+            {
+                setState(EnemyState::Attacked);
+
+                setX(asset.x - 150);
+                setY(asset.y - 150);
+
+                player.changeHealth(-1);
+
+                attackStartTime = chrono::steady_clock::now();
+
+            }
+            break;
+
+        case EnemyState::Attacked:
+            auto currentTime = chrono::steady_clock::now();
+            auto elapsedTime = chrono::duration_cast <chrono::milliseconds> (currentTime - attackStartTime);
+
+            if (elapsedTime >= chrono::milliseconds(5000))
+            {
+                setState(EnemyState::Idle);
+            }
             break;
 
     }
@@ -126,7 +169,7 @@ void Enemy::moveChasing(SDL_Rect playerAsset)
         dy /= distance;
     }
     
-    int speed = 3;
+    int speed = 2;
 
     setX(asset.x + static_cast <int> (dx * speed));
     setY(asset.y + static_cast <int> (dy * speed));
@@ -135,65 +178,22 @@ void Enemy::moveChasing(SDL_Rect playerAsset)
 
 void Enemy::moveIdle()
 {
-    srand(time(NULL));
-    
-    static bool isMovingUp;
-    static bool isMovingRight;
+    setX(asset.x + this->direction * 2 * this->xMovement);
 
-    static int random = rand() % 2;
-    if (random == 0)
-    {
-        isMovingRight = true;
-        isMovingUp = false;
+    if (asset.x > this->bounds[1])
+        this->direction *= -1;
 
-    }
-    
-    else if (random == 1)
-    {
-        isMovingUp = true;
-        isMovingRight = false;
-    }
+    else if (asset.x < this->bounds[0])
+        this->direction *= -1;
 
-    
+    setY(asset.y + this->direction * 2 * this->yMovement);
 
-    if (isMovingRight && !isMovingUp)
-    {
-        static int initialX = asset.x;
-        if (isMovingRight)
-        {
-            setX(asset.x + 2);
+    if (asset.y > this->bounds[3])
+        this->direction *= -1;
 
-            if (asset.x >= (initialX + 100))
-                isMovingRight = false;
-        }
-        else if (!isMovingRight)
-        {
-            setX(asset.x - 2);
-
-            if (asset.x <= (initialX - 100))
-                isMovingRight = true;
-        }
-    }
-    else
-    {
-        static int initialY = asset.y;
-        if (isMovingUp)
-        {
-            setY(asset.y + 2);
-
-            if (asset.y >= (initialY + 100))
-                isMovingUp = false;
-        }
-        else if (!isMovingUp)
-        {
-            setY(asset.y - 2);
-
-            if (asset.y <= (initialY - 100))
-                isMovingUp = true;
-        }
-    }
+    else if (asset.y < this->bounds[2])
+        this->direction *= -1;
 }
-
 
 
 
