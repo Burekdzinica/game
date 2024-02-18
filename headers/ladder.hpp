@@ -65,10 +65,11 @@ void Level::resetGame(Player &player, Enemy& enemy, unordered_map <int, Arena>& 
 {
     srand(time(NULL));
 
-    player = Player(health, {max((rand() % WIDTH - player.getAsset().w), 0), max((rand() % HEIGHT - player.getAsset().h), 0), 180, 216});
+    player.reset(health, {max((rand() % WIDTH - player.getAsset().w), 0), max((rand() % HEIGHT - player.getAsset().h), 0), 180, 216});
 
     enemy.setX(max((rand() % WIDTH - enemy.getAsset().w), 0));
     enemy.setY(max((rand() % HEIGHT - enemy.getAsset().h), 0));
+    enemy.setBounds();
 
     arenaCounter += rand() % 2; 
 

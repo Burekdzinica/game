@@ -34,18 +34,6 @@ int main(int argc, char *argv[])
     for (int i=0; i < level.getArenaCounter(); i++)
     {
         arenaList.insert({i, Arena({max((rand() % WIDTH - 200), 0), max((rand() % HEIGHT - 200), 0), 200, 200})});
-
-        // for (int j=0; j<i; j++)
-        // {
-        //     SDL_Rect rect1 = arena[i].getAsset();
-        //     SDL_Rect rect2 = arena[j].getAsset();
-
-        //     if (SDL_HasIntersection(&rect1, &rect2))
-        //     {
-        //         arena[i].setX(rand() % WIDTH);
-        //         arena[i].setY(rand() % HEIGHT);
-        //     }
-        //}
     }
 
     Player player(3, {max((rand() % WIDTH - 180), 0), max((rand() % HEIGHT - 216), 0), 180, 216});
@@ -66,22 +54,23 @@ int main(int argc, char *argv[])
 
     bool isPlayerNearArena;
 
+
+
     while (player.getIsPlayerAlive())
     {
         int startLoop = SDL_GetTicks();
 
-        isPlayerNearArena = false;
+        isPlayerNearArena =false;
 
         SDL_Event event;
         if (SDL_PollEvent(&event))
         {
             if (SDL_QUIT == event.type)
-            {
                 break;
-            }
-
             if (event.type == SDL_KEYDOWN) 
-                player.movePlayer(event.key.keysym.sym);    
+                player.movePlayer(event.key.keysym.sym, WIDTH, HEIGHT); 
+            else if (event.type == SDL_KEYUP)
+                player.setIsMoving(false);
         }
 
         // cout << player.getAsset().x << " " << player.getAsset().y << "\n";
@@ -97,23 +86,11 @@ int main(int argc, char *argv[])
 
         window.clear();
 
-        // collision detected
-        // if (enemy.isPlayerTouching(player.getAsset()))
-        // {
-        //     // enemy.setX(max((rand() % WIDTH - enemy.getAsset().w), 0));
-        //     // enemy.setY(max((rand() % HEIGHT - enemy.getAsset().h), 0));
-
-        //     player.changeHealth(-1);
-
-        //     points += 100;
-        // }
-
         for (const auto& entry : arenaList)
         {
-            // int i = entry.first;
             const Arena& currentArena = entry.second;
 
-            if (player.isNearby(player.getAsset(), currentArena.getAsset(), 200)) //&& !(arenaTracker.getLvlDone()))
+            if (player.isNearby(player.getAsset(), currentArena.getAsset(), 1200))
             {
                 window.draw(window.getRenderer(), currentArena.getAsset(), "assets/arena.png");
 
@@ -135,25 +112,10 @@ int main(int argc, char *argv[])
             } 
         }
 
-        enemy.updateEnemyAI(player, 500);
-
-        // if ((enemy.isPlayerInView(player, 500.0f)) == true)
-        //     cout << "YES\n";
-
-        // if (event.key.keysym.sym == SDLK_h)
-        // {
-        //     for (const auto& entry : arenaList)
-        //     {
-        //         const Arena& currentArena = entry.second;
-        //         window.draw(window.getRenderer(), currentArena.getAsset(), "assets/arena.png");
-        //     }
-        // }
-
         //spawns door for next lvl 
         if (arenaList.empty())
         {
             window.draw(window.getRenderer(), ladder.getAsset(), "assets/ladder.png");
-            SDL_Delay(1);
 
             if (player.isNearby(player.getAsset(), ladder.getAsset(), 250))
             {
@@ -168,7 +130,11 @@ int main(int argc, char *argv[])
             }
         }
 
-        window.draw(window.getRenderer(), player.getAsset(), "assets/player.png");
+        enemy.updateEnemyAI(player, 500);
+        player.updatePlayerAnimation(200);
+
+        player.draw(window.getRenderer(), player.getAsset(), "assets/player_remastared.png", player.getFlip());
+        // window.drawAnimation(window.getRenderer(), player.getSrcRect(), player.getAsset(), "assets/player_remastared.png", player.getFlip());
         window.draw(window.getRenderer(), enemy.getAsset(), "assets/enemy.png");
 
         if (arenaList.size() < level.getArenaCounter())

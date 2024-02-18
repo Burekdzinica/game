@@ -34,6 +34,7 @@ class Enemy
         void setY(int y);
         EnemyState getState();
         void setState(EnemyState state);
+        void setBounds();
         bool isPlayerTouching(const SDL_Rect& player);
         void updateEnemyAI(Player& player, float detectionDistance);
         bool isPlayerInView(Player& player, float detectionDistance);
@@ -50,11 +51,7 @@ Enemy::Enemy(SDL_Rect asset)
     this->yMovement = (xMovement == 1) ? 0 : 1;
     this->direction = 1;
 
-    this->bounds[0] = this->asset.x - 100; // x left
-    this->bounds[1] = this->asset.x + 100; // x right
-    this->bounds[2] = this->asset.y - 100; // y left
-    this->bounds[3] = this->asset.y + 100; // y right
-    
+    setBounds();
 }
 
 SDL_Rect Enemy::getAsset()
@@ -87,6 +84,14 @@ void Enemy::setState(EnemyState newState)
     this->state = newState;
 }
 
+void Enemy::setBounds()
+{
+    this->bounds[0] = this->asset.x - 100; // x left
+    this->bounds[1] = this->asset.x + 100; // x right
+    this->bounds[2] = this->asset.y - 100; // y left
+    this->bounds[3] = this->asset.y + 100; // y right
+}
+
 void Enemy::updateEnemyAI(Player& player, float detectionDistance)
 {
     auto currentTime = chrono::steady_clock::now();
@@ -105,19 +110,19 @@ void Enemy::updateEnemyAI(Player& player, float detectionDistance)
 
         case EnemyState::Chasing:
             moveChasing(player.getAsset());
-
-            currentTime = chrono::steady_clock::now();
-            elapsedTime = chrono::duration_cast<chrono::milliseconds>(currentTime - chaseStartTime);
-
+            
+            // if enemy chased for x time, goes to attacked
             if (elapsedTime >= chrono::milliseconds(5000) && isPlayerInView(player, detectionDistance))
             {
                 setState(EnemyState::Attacked);
                 attackStartTime = chrono::steady_clock::now();
-
             }
             
             else if (!(isPlayerInView(player, detectionDistance)))
+            {
                 setState(EnemyState::Idle);
+                setBounds();
+            }
             
             else if (isPlayerTouching(player.getAsset()))
             {
@@ -129,7 +134,6 @@ void Enemy::updateEnemyAI(Player& player, float detectionDistance)
                 player.changeHealth(-1);
 
                 attackStartTime = chrono::steady_clock::now();
-
             }
             break;
 
@@ -137,12 +141,20 @@ void Enemy::updateEnemyAI(Player& player, float detectionDistance)
             auto currentTime = chrono::steady_clock::now();
             auto elapsedTime = chrono::duration_cast <chrono::milliseconds> (currentTime - attackStartTime);
 
+            // waits for x time, then goes to idle
             if (elapsedTime >= chrono::milliseconds(5000))
             {
                 setState(EnemyState::Idle);
+                setBounds();
+            }
+            if (isPlayerTouching(player.getAsset()))
+            {
+                setX(asset.x - 150);
+                setY(asset.y - 150);
+
+                player.changeHealth(-1);
             }
             break;
-
     }
 }
 

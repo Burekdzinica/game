@@ -27,6 +27,7 @@ class Window
         void present();
         SDL_Renderer* getRenderer();
         void draw(SDL_Renderer* renderer, SDL_Rect destRec, const char* imgLocation);
+        void drawAnimation(SDL_Renderer* renderer,SDL_Rect srcRect, SDL_Rect destRect, const char* imgLocation, SDL_RendererFlip flip);
         void drawPlayerHealth(int playerHealth);
 };
 
@@ -109,6 +110,21 @@ void Window::draw(SDL_Renderer *renderer, SDL_Rect destRect, const char* imgLoca
 
     SDL_FreeSurface(imgSurface);
     SDL_RenderCopy(renderer, imgTexture, NULL, &destRect);
+    SDL_DestroyTexture(imgTexture);
+}
+
+void Window::drawAnimation(SDL_Renderer* renderer, SDL_Rect srcRect, SDL_Rect destRect, const char* imgLocation, SDL_RendererFlip flip)
+{
+    SDL_Surface *imgSurface = IMG_Load(imgLocation);
+    if (imgSurface == NULL)
+        std::cout << "Cannot find image\n";
+    
+    SDL_Texture *imgTexture = SDL_CreateTextureFromSurface(renderer, imgSurface);
+    if (imgTexture == NULL)
+        std::cout << "Cannot create texture\n";
+    
+    SDL_FreeSurface(imgSurface);
+    SDL_RenderCopyEx(renderer, imgTexture, &srcRect, &destRect, 0, NULL, flip);
     SDL_DestroyTexture(imgTexture);
 }
 

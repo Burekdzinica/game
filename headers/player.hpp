@@ -3,6 +3,12 @@
 
 #include <SDL2/SDL.h>
 
+enum class PlayerState
+{
+    Idle,
+    Moving,
+};
+
 class Player
 {
     private:
@@ -10,13 +16,18 @@ class Player
         SDL_Rect asset; // stores position
         bool isPlayerAlive;
         int points;
+        SDL_Rect srcRect;
+        PlayerState state;
+        bool isMoving;
+        SDL_RendererFlip flip;
+
 
     public:
         Player(int health, SDL_Rect asset);
         int getHealth();
         void changeHealth(int healthDiff);
-        void movePlayer(SDL_Keycode key);
-        void move(int x, int y);
+        void movePlayer(SDL_Keycode key, int WIDTH, int HEIGHT);
+        void move(int x, int y, int WIDTH, int HIGHT);
         SDL_Rect getAsset() const;
         bool getIsPlayerAlive();
         void setIsPlayerAlive(bool newAlive);
@@ -25,6 +36,15 @@ class Player
         void setY(int newY);
         int getX();
         int getY();
+        void draw(SDL_Renderer* renderer, SDL_Rect destRec, const char* imgLocation, SDL_RendererFlip flip);
+        void updatePlayerAnimation(int speed);
+        void setSrcRect(int x, int y, int w, int h, int frame, int speed);
+        PlayerState getState();
+        void setState(PlayerState newState);
+        void setIsMoving(bool moving);
+        SDL_RendererFlip getFlip();
+        SDL_Rect getSrcRect();
+        void reset(int health, SDL_Rect newAsset);
 };
 
 Player::Player(int health, SDL_Rect asset)
@@ -32,6 +52,8 @@ Player::Player(int health, SDL_Rect asset)
     this->health = health;
     this->asset = asset;
     this->isPlayerAlive = health > 0;
+    this->srcRect = {0, 0, 120, 116};
+    this->isMoving = false;
 }
 
 int Player::getHealth()
@@ -45,54 +67,55 @@ void Player::changeHealth(int healthDiff)
     this->isPlayerAlive = !(this->health <= 0);
 }
 
-// void Player::movePlayer(SDL_Keycode key)
-// {
-//         switch (key)
-//         {
-//             case SDLK_a:
-//                 setX(-15);
-//                 break;
-//             case SDLK_d:
-//                 setX(15);
-//                 break;
-//             case SDLK_w:
-//                 setY(-15);
-//                 break;
-//             case SDLK_s:
-//                 setY(15);
-//                 break;
-//         }
-// }
-
-void Player::movePlayer(SDL_Keycode key)
+void Player::movePlayer(SDL_Keycode key, int WIDTH, int HEIGHT)
 {
     float x = 0;
     float y = 0;
-    float speed = 10;
+    float speed = 20;
 
     switch (key)
     {
         case SDLK_a:
+            isMoving = true;
+            flip = SDL_FLIP_HORIZONTAL;
             x -= speed;
             break;
         case SDLK_d:
+            isMoving = true;
             x += speed;
             break;
         case SDLK_w:
+            isMoving = true;
             y -= speed;
             break;
         case SDLK_s:
+            isMoving = true;
             y += speed;
             break;
     }
-
-    move(x,y);
+    move(x, y, WIDTH, HEIGHT);
 }
 
-void Player::move(int x, int y)
+// doesn't go offscreen
+void Player::move(int x, int y, int WIDTH, int HEIGHT)
 {
-    this->asset.x += x;
-    this->asset.y += y;
+    if ((this->asset.x + x) > (WIDTH - asset.w))
+        this->asset.x =  (WIDTH - asset.w);
+
+    else if ((this->asset.x + x) <= 0)
+        this->asset.x = 0;
+    
+    if ((this->asset.y + y) > (HEIGHT - asset.h))
+        this->asset.y = (HEIGHT - asset.h);  
+
+    else if ((this->asset.y + y) <= 0)
+        this->asset.y = 0;
+    
+    if ((this->asset.x + x) >= 0 && (this->asset.x + x) <= (WIDTH - asset.w) && (this->asset.y + y) >= 0 && (this->asset.y + y) <= (HEIGHT - asset.h))
+    {
+        this->asset.x += x;
+        this->asset.y += y;
+    }
 }
 
 SDL_Rect Player::getAsset() const
@@ -115,7 +138,6 @@ bool Player::isNearby(const SDL_Rect sourceRect, SDL_Rect destRect, int range) c
     return (abs(sourceRect.x - destRect.x) < range && abs(sourceRect.y - destRect.y) < range);  
 }
 
-
 void Player::setX(int newX)
 {
     this->asset.x += newX;
@@ -134,6 +156,85 @@ int Player::getX()
 int Player::getY()
 {
     return this->asset.y;
+}
+
+void Player::draw(SDL_Renderer* renderer, SDL_Rect destRec, const char* imgLocation, SDL_RendererFlip flip)
+{
+    SDL_Surface *imgSurface = IMG_Load(imgLocation);
+    if (imgSurface == NULL)
+        std::cout << "Cannot find image\n";
+    
+    SDL_Texture *imgTexture = SDL_CreateTextureFromSurface(renderer, imgSurface);
+    if (imgTexture == NULL)
+        std::cout << "Cannot create texture\n";
+    
+    SDL_FreeSurface(imgSurface);
+    SDL_RenderCopyEx(renderer, imgTexture, &srcRect, &destRec, 0, NULL, flip);
+
+    SDL_DestroyTexture(imgTexture);
+}
+
+void Player::updatePlayerAnimation(int speed)
+{
+    switch(getState())
+    {
+        case PlayerState::Idle:
+            setSrcRect(0, 0, 120, 112, 4, speed);
+            if (isMoving)
+                setState(PlayerState::Moving);
+            break;
+        
+        case PlayerState::Moving:
+            setSrcRect(0, 112, 120, 112,  8, speed);
+            if (!isMoving)
+            {
+                setState(PlayerState::Idle);
+                flip = SDL_FLIP_NONE;
+            }
+            break;
+    }
+}
+
+void Player::setSrcRect(int x, int y, int w, int h, int frames, int speed)
+{
+    this->srcRect.y = y;
+    this->srcRect.w = w;
+    this->srcRect.h = h;
+    this->srcRect.x = srcRect.w * static_cast<int> ((SDL_GetTicks() / speed) % frames);
+}
+
+PlayerState Player::getState()
+{
+    return this->state;
+}
+
+void Player::setState(PlayerState newState)
+{
+    this->state = newState;
+}
+
+void Player::setIsMoving(bool moving)
+{
+    this->isMoving = moving;
+}
+
+SDL_RendererFlip Player::getFlip()
+{
+    return this->flip;
+}
+
+SDL_Rect Player::getSrcRect()
+{
+    return this->srcRect;
+}
+
+void Player::reset(int health, SDL_Rect newAsset)
+{
+    this->health = health;
+    this->isPlayerAlive = health > 0;
+    this->srcRect = {0, 0, 120, 116};
+    this->isMoving = false;
+    this->asset = newAsset;
 }
 
 #endif
