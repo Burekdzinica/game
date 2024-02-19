@@ -2,7 +2,7 @@
 #include <unordered_map>
 #include <time.h>
 #include <chrono>
-#include <thread>
+#include <vector>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
@@ -17,6 +17,10 @@
 using namespace std;
 
 const int WIDTH = 1700, HEIGHT = 820;
+const int arenaWidth = 128, arenaHeight = 128;
+const int playerWidth = 180, playerHeight = 216;
+const int enemyWidth = 274, enemyHeight = 208;
+const int ladderWidth = 150, ladderHeight = 150;
 
 int points = 0;
 
@@ -25,6 +29,7 @@ int main(int argc, char *argv[])
     srand(time(NULL));
     
     Window window("Reševanje bikca Ferdinanda", WIDTH, HEIGHT);
+    window.init();
 
     unordered_map <int, Arena> arenaList;
 
@@ -33,17 +38,39 @@ int main(int argc, char *argv[])
 
     for (int i=0; i < level.getArenaCounter(); i++)
     {
-        arenaList.insert({i, Arena({max((rand() % WIDTH - 200), 0), max((rand() % HEIGHT - 200), 0), 200, 200})});
+        // arenaList.insert({i, Arena({max((rand() % WIDTH - 200), 0), max((rand() % HEIGHT - 200), 0), 200, 200})});
+        int xArena = max((rand() % WIDTH - 200), 0);
+        int yArena = max((rand() % HEIGHT - 200), 0);
+
+        for (const auto& entry : arenaList)
+        {
+            if (entry.second.getAsset().x == xArena)
+                xArena = max((rand() % WIDTH - 200), 0);
+            
+            if (entry.second.getAsset().y == yArena)
+                yArena = max((rand() % HEIGHT - 200), 0);
+        }
+        arenaList.insert({i, Arena({xArena, yArena, arenaWidth, arenaHeight})});
     }
 
-    Player player(3, {max((rand() % WIDTH - 180), 0), max((rand() % HEIGHT - 216), 0), 180, 216});
-    Enemy enemy({max((rand()% WIDTH - 274), 0), max((rand()% HEIGHT - 208), 0), 274, 208});
+    Player player(3, {max((rand() % WIDTH - 180), 0), max((rand() % HEIGHT - 216), 0), playerWidth, playerHeight});
+    
+    int xEnemy, yEnemy;
+    do
+    {
+        xEnemy = max((rand() % WIDTH - 274), 0);
+        yEnemy =  max((rand() % HEIGHT - 208), 0);
+        
+    } while (!(xEnemy < player.getAsset().x - 200 || xEnemy > player.getAsset().x + 200) && !(yEnemy < player.getAsset().y - 200 || yEnemy > player.getAsset().y + 200));
 
-    Text text;
+    Enemy enemy({xEnemy, yEnemy, enemyWidth, enemyHeight});
 
-    Ladder ladder({max((rand() % WIDTH - 150), 0), max((rand() % HEIGHT - 150), 0), 150, 150});
+    vector <Enemy> enemyList;
+    enemyList.push_back(enemy);
 
-    window.init();
+    Ladder ladder({max((rand() % WIDTH - 150), 0), max((rand() % HEIGHT - 150), 0), ladderWidth, ladderHeight});
+
+    Text text("fonts/test.ttf", 50);
 
     int fps = 60;
     int frameDelay = 1000 / fps;
@@ -53,8 +80,6 @@ int main(int argc, char *argv[])
     int isCloseTo = -1;
 
     bool isPlayerNearArena;
-
-
 
     while (player.getIsPlayerAlive())
     {
@@ -90,7 +115,7 @@ int main(int argc, char *argv[])
         {
             const Arena& currentArena = entry.second;
 
-            if (player.isNearby(player.getAsset(), currentArena.getAsset(), 1200))
+            if (player.isNearby(player.getAsset(), currentArena.getAsset(), 2000))
             {
                 window.draw(window.getRenderer(), currentArena.getAsset(), "assets/arena.png");
 
@@ -134,7 +159,6 @@ int main(int argc, char *argv[])
         player.updatePlayerAnimation(200);
 
         player.draw(window.getRenderer(), player.getAsset(), "assets/player_remastared.png", player.getFlip());
-        // window.drawAnimation(window.getRenderer(), player.getSrcRect(), player.getAsset(), "assets/player_remastared.png", player.getFlip());
         window.draw(window.getRenderer(), enemy.getAsset(), "assets/enemy.png");
 
         if (arenaList.size() < level.getArenaCounter())
@@ -150,7 +174,6 @@ int main(int argc, char *argv[])
         text.createText(window.getRenderer(), ("Points: " + to_string(points)).c_str(), WIDTH, 0);
 
         window.drawPlayerHealth(player.getHealth());
-
 
         //Game over
         if (!(player.getIsPlayerAlive()))

@@ -108,9 +108,10 @@ void Window::draw(SDL_Renderer *renderer, SDL_Rect destRect, const char* imgLoca
     if (imgTexture == NULL)
         cout << "Cannot create texture\n";
 
-    SDL_FreeSurface(imgSurface);
     SDL_RenderCopy(renderer, imgTexture, NULL, &destRect);
+    
     SDL_DestroyTexture(imgTexture);
+    SDL_FreeSurface(imgSurface);
 }
 
 void Window::drawAnimation(SDL_Renderer* renderer, SDL_Rect srcRect, SDL_Rect destRect, const char* imgLocation, SDL_RendererFlip flip)

@@ -6,6 +6,8 @@
 #include <chrono>
 #include <thread>
 
+#include "player.hpp"
+
 using namespace std;
 
 enum class EnemyState
@@ -46,7 +48,6 @@ Enemy::Enemy(SDL_Rect asset)
 {
     this->asset = asset;
     this->state = EnemyState::Idle;
-    
     this->xMovement = rand() % 2; // 1
     this->yMovement = (xMovement == 1) ? 0 : 1;
     this->direction = 1;
@@ -128,8 +129,17 @@ void Enemy::updateEnemyAI(Player& player, float detectionDistance)
             {
                 setState(EnemyState::Attacked);
 
-                setX(asset.x - 150);
-                setY(asset.y - 150);
+                if (player.getAsset().x > asset.x)
+                    setX(max((asset.x - 50), 0));
+
+                else if (player.getAsset().x < asset.x)
+                    setX(max((asset.x + 50), 0));
+                
+                if (player.getAsset().y > asset.y)
+                    setY(max((asset.y - 50), 0));
+                
+                else if (player.getAsset().y < asset.y)
+                    setY(max((asset.y + 50), 0));
 
                 player.changeHealth(-1);
 
@@ -149,8 +159,17 @@ void Enemy::updateEnemyAI(Player& player, float detectionDistance)
             }
             if (isPlayerTouching(player.getAsset()))
             {
-                setX(asset.x - 150);
-                setY(asset.y - 150);
+                if (player.getAsset().x > asset.x)
+                    setX(max((asset.x - 50), 0));
+
+                else if (player.getAsset().x < asset.x)
+                    setX(max((asset.x + 50), 0));
+                
+                if (player.getAsset().y > asset.y)
+                    setY(max((asset.y - 50), 0));
+                
+                else if (player.getAsset().y < asset.y)
+                    setY(max((asset.y + 50), 0));
 
                 player.changeHealth(-1);
             }
@@ -190,24 +209,21 @@ void Enemy::moveChasing(SDL_Rect playerAsset)
 
 void Enemy::moveIdle()
 {
-    setX(asset.x + this->direction * 2 * this->xMovement);
+    const float speed = 2;
 
-    if (asset.x > this->bounds[1])
+    if (asset.x + this->direction * speed * this->xMovement > 1720 || asset.x + this->direction * speed * this->xMovement < 0) 
         this->direction *= -1;
 
-    else if (asset.x < this->bounds[0])
+    setX(asset.x + this->direction * speed * this->xMovement);
+    if (asset.x > this->bounds[1] || (asset.x < this->bounds[0]))//&& asset.x > 1700 - asset.w)
         this->direction *= -1;
 
-    setY(asset.y + this->direction * 2 * this->yMovement);
-
-    if (asset.y > this->bounds[3])
+    if (asset.y + this->direction * speed * this->yMovement > 1720 || asset.y + this->direction * speed * this->yMovement < 0) 
         this->direction *= -1;
 
-    else if (asset.y < this->bounds[2])
+    setY(asset.y + this->direction * speed * this->yMovement);
+    if (asset.y > this->bounds[3] || (asset.y < this->bounds[2])) // && asset.y > 820 - asset.h)
         this->direction *= -1;
 }
-
-
-
 
 #endif

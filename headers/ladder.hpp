@@ -77,7 +77,7 @@ void Level::resetGame(Player &player, Enemy& enemy, unordered_map <int, Arena>& 
 
     for (int i=0; i<arenaCounter; i++)
     {
-        arenaList.insert({i, Arena({max((rand() % WIDTH - 200), 0), max((rand() % HEIGHT - 200), 0), 200, 200})});
+        arenaList.insert({i, Arena({max((rand() % WIDTH - 200), 0), max((rand() % HEIGHT - 200), 0), 128, 128})});
     }
 
     ladder.setX(max((rand() % WIDTH - ladder.getAsset().w), 0));

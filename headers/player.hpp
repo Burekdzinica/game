@@ -15,7 +15,6 @@ class Player
         int health;
         SDL_Rect asset; // stores position
         bool isPlayerAlive;
-        int points;
         SDL_Rect srcRect;
         PlayerState state;
         bool isMoving;
@@ -54,6 +53,8 @@ Player::Player(int health, SDL_Rect asset)
     this->isPlayerAlive = health > 0;
     this->srcRect = {0, 0, 120, 116};
     this->isMoving = false;
+    this->flip = SDL_FLIP_NONE;
+    this->state = PlayerState::Idle;
 }
 
 int Player::getHealth()
@@ -187,7 +188,7 @@ void Player::updatePlayerAnimation(int speed)
         case PlayerState::Moving:
             setSrcRect(0, 112, 120, 112,  8, speed);
             if (!isMoving)
-            {
+            {   
                 setState(PlayerState::Idle);
                 flip = SDL_FLIP_NONE;
             }
@@ -200,7 +201,7 @@ void Player::setSrcRect(int x, int y, int w, int h, int frames, int speed)
     this->srcRect.y = y;
     this->srcRect.w = w;
     this->srcRect.h = h;
-    this->srcRect.x = srcRect.w * static_cast<int> ((SDL_GetTicks() / speed) % frames);
+    this->srcRect.x = srcRect.w * (static_cast<int> ((SDL_GetTicks() / speed) % frames));
 }
 
 PlayerState Player::getState()
