@@ -111,7 +111,6 @@ void Enemy::updateEnemyAI(Player& player, float detectionDistance)
 
         case EnemyState::Chasing:
             moveChasing(player.getAsset());
-            
             // if enemy chased for x time, goes to attacked
             if (elapsedTime >= chrono::milliseconds(5000) && isPlayerInView(player, detectionDistance))
             {

@@ -19,6 +19,8 @@ class Player
         PlayerState state;
         bool isMoving;
         SDL_RendererFlip flip;
+        bool nearLadder;
+        bool nearArena;
 
 
     public:
@@ -35,10 +37,14 @@ class Player
         void setY(int newY);
         int getX();
         int getY();
+        bool isNearLadder();
+        bool isNearArena();
         void draw(SDL_Renderer* renderer, SDL_Rect destRec, const char* imgLocation, SDL_RendererFlip flip);
         void updatePlayerAnimation(int speed);
         void setSrcRect(int x, int y, int w, int h, int frame, int speed);
         PlayerState getState();
+        void setNearArena(bool newNearArena);
+        void setNearLadder(bool newNearLadder);
         void setState(PlayerState newState);
         void setIsMoving(bool moving);
         SDL_RendererFlip getFlip();
@@ -55,6 +61,8 @@ Player::Player(int health, SDL_Rect asset)
     this->isMoving = false;
     this->flip = SDL_FLIP_NONE;
     this->state = PlayerState::Idle;
+    this->nearArena = false;
+    this->nearLadder = false;
 }
 
 int Player::getHealth()
@@ -159,6 +167,16 @@ int Player::getY()
     return this->asset.y;
 }
 
+bool Player::isNearArena()
+{
+    return this->nearArena;
+}
+
+bool Player::isNearLadder()
+{
+    return this->nearLadder;
+}
+
 void Player::draw(SDL_Renderer* renderer, SDL_Rect destRec, const char* imgLocation, SDL_RendererFlip flip)
 {
     SDL_Surface *imgSurface = IMG_Load(imgLocation);
@@ -207,6 +225,16 @@ void Player::setSrcRect(int x, int y, int w, int h, int frames, int speed)
 PlayerState Player::getState()
 {
     return this->state;
+}
+
+void Player::setNearArena(bool newNearArena)
+{
+    this->nearArena = newNearArena;
+}
+
+void Player::setNearLadder(bool newNearLadder)
+{
+    this->nearLadder = newNearLadder;
 }
 
 void Player::setState(PlayerState newState)

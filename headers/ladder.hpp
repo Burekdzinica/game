@@ -6,6 +6,9 @@
 
 using namespace std;
 
+extern const int enemyWidth, enemyHeight;
+extern const int arenaWidth, arenaHeight;
+
 class Ladder 
 {
     private:
@@ -49,7 +52,7 @@ class Level
 
     public:
         Level();
-        void resetGame(Player &player, Enemy& enemy, unordered_map <int, Arena>& arenaList, Ladder& ladder, int& isCloseTo, int health, int WIDTH, int HEIGHT);
+        void resetGame(Player &player, vector <Enemy> &enemyList, unordered_map <int, Arena>& arenaList, Ladder& ladder, int& isCloseTo, int health, int WIDTH, int HEIGHT);
         void setLevel();
         void setArenaCounter(int arenaCounter);
         int getLevel();
@@ -61,15 +64,40 @@ Level::Level()
     this->lvl = 1;
 }
 
-void Level::resetGame(Player &player, Enemy& enemy, unordered_map <int, Arena>& arenaList, Ladder& ladder, int& isCloseTo, int health, int WIDTH, int HEIGHT)
+void Level::resetGame(Player &player, vector <Enemy> &enemyList, unordered_map <int, Arena>& arenaList, Ladder& ladder, int& isCloseTo, int health, int WIDTH, int HEIGHT)
 {
-    srand(time(NULL));
+    player.reset(health, {max((rand() % WIDTH - player.getAsset().w), 0), max((rand() % HEIGHT - player.getAsset().h), 0), player.getAsset().w, player.getAsset().h});
 
-    player.reset(health, {max((rand() % WIDTH - player.getAsset().w), 0), max((rand() % HEIGHT - player.getAsset().h), 0), 180, 216});
+    static int levelCounter = 1;
+    levelCounter++;
+    if ((levelCounter == 2) || (((levelCounter - 2) % 3 == 0)))
+    {
+        int xEnemy, yEnemy;
+        do
+        {
+            xEnemy = max((rand() % WIDTH - enemyWidth), 0);
+            yEnemy =  max((rand() % HEIGHT - enemyHeight), 0);
 
-    enemy.setX(max((rand() % WIDTH - enemy.getAsset().w), 0));
-    enemy.setY(max((rand() % HEIGHT - enemy.getAsset().h), 0));
-    enemy.setBounds();
+        } while (!(xEnemy < player.getAsset().x - 200 || xEnemy > player.getAsset().x + 200) && !(yEnemy < player.getAsset().y - 200 || yEnemy > player.getAsset().y + 200));
+
+        Enemy newEnemy({xEnemy, yEnemy, enemyWidth, enemyHeight});
+
+        enemyList.push_back(newEnemy);
+    }
+
+    for (auto &enemy : enemyList)
+    {
+        int newX, newY;
+        do
+        {
+            newX = max((rand() % WIDTH - enemyWidth), 0);
+            newY = max((rand() % HEIGHT - enemyWidth), 0);
+
+        } while (!(newX < player.getAsset().x - 200 || newX > player.getAsset().x + 200) && !(newY < player.getAsset().y - 200 || newY > player.getAsset().y + 200));
+        enemy.setX(newX);
+        enemy.setY(newY);
+        enemy.setBounds();
+    }
 
     arenaCounter += rand() % 2; 
 
@@ -77,7 +105,7 @@ void Level::resetGame(Player &player, Enemy& enemy, unordered_map <int, Arena>& 
 
     for (int i=0; i<arenaCounter; i++)
     {
-        arenaList.insert({i, Arena({max((rand() % WIDTH - 200), 0), max((rand() % HEIGHT - 200), 0), 128, 128})});
+        arenaList.insert({i, Arena({max((rand() % WIDTH - 200), 0), max((rand() % HEIGHT - 200), 0), arenaWidth, arenaHeight})});
     }
 
     ladder.setX(max((rand() % WIDTH - ladder.getAsset().w), 0));

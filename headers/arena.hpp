@@ -11,6 +11,8 @@ class Arena
         SDL_Rect asset;
         bool isLvlDone;
         bool didArenaSpawn;
+        bool isVisible;
+        bool forcedVisibilty;
 
     public:
         Arena();
@@ -18,10 +20,13 @@ class Arena
         bool getArenaSpawn() const;
         int getArenaCounter();
         bool getLvlDone();
-        void changeArenaCounter();
         SDL_Rect getAsset() const;
+        bool getVisible() const;
+        bool isForcedVisible();
         bool isPlayerTouching(const SDL_Rect& player);
+        void setForcedVisibility(bool newForcedVisibility);
         void setArenaSpawn();
+        void setVisible(bool newVisible);
         void setX(int newX);
         void setY(int newY);
 
@@ -32,12 +37,15 @@ Arena::Arena()
     this->asset = {0, 0, 0, 0};  
     this->isLvlDone = false;
     this->didArenaSpawn = false;
+    this->isVisible = true;
 }
 
 Arena::Arena(SDL_Rect asset)
 {
     this->asset = asset;
     this->isLvlDone = false;
+    this->isVisible = false;
+    this->forcedVisibilty = false; 
 }
 
 bool Arena::getArenaSpawn() const
@@ -55,14 +63,34 @@ SDL_Rect Arena::getAsset() const
     return this->asset;
 }
 
+bool Arena::getVisible() const
+{
+    return this->isVisible;
+}
+
+bool Arena::isForcedVisible()
+{
+    return this->forcedVisibilty;
+}
+
 bool Arena::isPlayerTouching(const SDL_Rect& player)
 {
     return SDL_HasIntersection(&player, &asset) == SDL_TRUE;
 }
 
+void Arena::setForcedVisibility(bool newForcedVisibility)
+{
+    this->forcedVisibilty = newForcedVisibility;
+}
+
 void Arena::setArenaSpawn()
 {
     this->didArenaSpawn = true;
+}
+
+void Arena::setVisible(bool newVisible)
+{
+    this->isVisible = newVisible;
 }
 
 void Arena::setX(int newX)

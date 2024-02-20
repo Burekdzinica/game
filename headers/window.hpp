@@ -15,7 +15,6 @@ class Window
         SDL_Window *window;
         SDL_Renderer *renderer;
         SDL_Texture *texture;
-        TTF_Font *font;
         SDL_Texture *imgTexture;
         SDL_Rect healthRect;
 
@@ -26,9 +25,9 @@ class Window
         void clear();
         void present();
         SDL_Renderer* getRenderer();
-        void draw(SDL_Renderer* renderer, SDL_Rect destRec, const char* imgLocation);
+        void draw(SDL_Renderer* renderer, SDL_Rect destRec, SDL_Texture *imgTexture);
         void drawAnimation(SDL_Renderer* renderer,SDL_Rect srcRect, SDL_Rect destRect, const char* imgLocation, SDL_RendererFlip flip);
-        void drawPlayerHealth(int playerHealth);
+        void drawPlayerHealth(int playerHealth, SDL_Texture *hearts_1, SDL_Texture *hearts_2, SDL_Texture *hearts_3);
 };
 
 Window::Window(const string &title, int WIDTH, int HEIGHT)
@@ -47,14 +46,12 @@ Window::Window(const string &title, int WIDTH, int HEIGHT)
     if (imgTexture == NULL)
         cout << "Cannot load image";
 
-    healthRect = {1, 1, 279, 66};
-    
+    this->healthRect = {1, 1, 279, 66};
 }
 
 //deletes the window/renderer
 Window::~Window() 
 {  
-    // TTF_CloseFont(font); // seg fault
     SDL_DestroyTexture(imgTexture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -98,20 +95,15 @@ SDL_Renderer* Window::getRenderer()
     return renderer;
 }
 
-void Window::draw(SDL_Renderer *renderer, SDL_Rect destRect, const char* imgLocation)
+void Window::draw(SDL_Renderer *renderer, SDL_Rect destRect, SDL_Texture *imgTexture)
 {
-    SDL_Surface *imgSurface = IMG_Load(imgLocation);
-    if (imgSurface == NULL)
-        cout << "Cannot find image\n";
-    
-    SDL_Texture *imgTexture = SDL_CreateTextureFromSurface(renderer, imgSurface);
     if (imgTexture == NULL)
         cout << "Cannot create texture\n";
 
     SDL_RenderCopy(renderer, imgTexture, NULL, &destRect);
     
-    SDL_DestroyTexture(imgTexture);
-    SDL_FreeSurface(imgSurface);
+    // SDL_DestroyTexture(imgTexture);
+    // SDL_FreeSurface(imgSurface);
 }
 
 void Window::drawAnimation(SDL_Renderer* renderer, SDL_Rect srcRect, SDL_Rect destRect, const char* imgLocation, SDL_RendererFlip flip)
@@ -129,18 +121,18 @@ void Window::drawAnimation(SDL_Renderer* renderer, SDL_Rect srcRect, SDL_Rect de
     SDL_DestroyTexture(imgTexture);
 }
 
-void Window::drawPlayerHealth(int playerHealth)
+void Window::drawPlayerHealth(int playerHealth, SDL_Texture *hearts_1, SDL_Texture *hearts_2, SDL_Texture *hearts_3)
 {
     switch (playerHealth)
     {
         case 3:
-            draw(renderer, healthRect, "assets/3_hearts_reloaded.png");
+            draw(renderer, healthRect, hearts_1);
             break;
         case 2:
-            draw(renderer, healthRect, "assets/2_hearts_reloaded.png");
+            draw(renderer, healthRect, hearts_2);
             break;
         case 1:
-            draw(renderer, healthRect, "assets/1_hearts_reloaded.png");
+            draw(renderer, healthRect, hearts_3);
             break;
     }
 }
