@@ -10,6 +10,8 @@
 
 using namespace std;
 
+extern const int WIDTH, HEIGHT;
+
 enum class EnemyState
 {
     Idle,
@@ -28,6 +30,9 @@ class Enemy
         int yMovement;
         int direction;
         int bounds[4];
+        SDL_Rect srcRect;
+        SDL_RendererFlip flip;
+
     
     public:
         Enemy(SDL_Rect asset);
@@ -35,13 +40,16 @@ class Enemy
         void setX(int x);
         void setY(int y);
         EnemyState getState();
+        SDL_RendererFlip getFlip();
+        SDL_Rect getSrcRect();
         void setState(EnemyState state);
         void setBounds();
         bool isPlayerTouching(const SDL_Rect& player);
-        void updateEnemyAI(Player& player, float detectionDistance);
+        void updateEnemyAI(Player& player, float detectionDistance, int animationSpeed);
         bool isPlayerInView(Player& player, float detectionDistance);
         void moveChasing(SDL_Rect playerAsset);
         void moveIdle();
+        void setSrcRect(int x, int y, int w, int h, int frames, int speed);
 };
 
 Enemy::Enemy(SDL_Rect asset)
@@ -51,6 +59,8 @@ Enemy::Enemy(SDL_Rect asset)
     this->xMovement = rand() % 2; // 1
     this->yMovement = (xMovement == 1) ? 0 : 1;
     this->direction = 1;
+    this->srcRect = {0 , 0, 73, 126};
+    this->flip = SDL_FLIP_NONE;
 
     setBounds();
 }
@@ -80,6 +90,16 @@ EnemyState Enemy::getState()
     return this->state;
 }
 
+SDL_RendererFlip Enemy::getFlip()
+{
+    return this->flip;
+}
+
+SDL_Rect Enemy::getSrcRect()
+{
+    return this->srcRect;
+}
+
 void Enemy::setState(EnemyState newState)
 {
     this->state = newState;
@@ -93,7 +113,7 @@ void Enemy::setBounds()
     this->bounds[3] = this->asset.y + 100; // y right
 }
 
-void Enemy::updateEnemyAI(Player& player, float detectionDistance)
+void Enemy::updateEnemyAI(Player& player, float detectionDistance, int animationSpeed)
 {
     auto currentTime = chrono::steady_clock::now();
     auto elapsedTime = chrono::duration_cast<chrono::milliseconds>(currentTime - chaseStartTime);
@@ -101,6 +121,7 @@ void Enemy::updateEnemyAI(Player& player, float detectionDistance)
     switch (getState())
     {
         case EnemyState::Idle:
+            setSrcRect(0, 126, 73, 126, 6, animationSpeed);
             moveIdle();
             if (isPlayerInView(player, detectionDistance))
             {
@@ -110,6 +131,7 @@ void Enemy::updateEnemyAI(Player& player, float detectionDistance)
             break;
 
         case EnemyState::Chasing:
+            setSrcRect(0, 126, 73, 126, 6, animationSpeed);
             moveChasing(player.getAsset());
             // if enemy chased for x time, goes to attacked
             if (elapsedTime >= chrono::milliseconds(5000) && isPlayerInView(player, detectionDistance))
@@ -147,6 +169,8 @@ void Enemy::updateEnemyAI(Player& player, float detectionDistance)
             break;
 
         case EnemyState::Attacked:
+            setSrcRect(0, 0, 73, 126, 4, animationSpeed);
+            this->flip = SDL_FLIP_NONE;
             auto currentTime = chrono::steady_clock::now();
             auto elapsedTime = chrono::duration_cast <chrono::milliseconds> (currentTime - attackStartTime);
 
@@ -201,6 +225,11 @@ void Enemy::moveChasing(SDL_Rect playerAsset)
     
     int speed = 2;
 
+    if (dx < 0)
+        this->flip = SDL_FLIP_HORIZONTAL;
+    else    
+        this->flip = SDL_FLIP_NONE;
+
     setX(asset.x + static_cast <int> (dx * speed));
     setY(asset.y + static_cast <int> (dy * speed));
 
@@ -210,19 +239,34 @@ void Enemy::moveIdle()
 {
     const float speed = 2;
 
-    if (asset.x + this->direction * speed * this->xMovement > 1720 || asset.x + this->direction * speed * this->xMovement < 0) 
+    // bounces of corner
+    if (asset.x + this->direction * speed * this->xMovement > WIDTH || asset.x + this->direction * speed * this->xMovement < 0) 
+    {
         this->direction *= -1;
+        flip = (this->direction == -1) ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+    }
 
     setX(asset.x + this->direction * speed * this->xMovement);
     if (asset.x > this->bounds[1] || (asset.x < this->bounds[0]))//&& asset.x > 1700 - asset.w)
+    {
         this->direction *= -1;
+        flip = (this->direction == -1) ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+    }
 
-    if (asset.y + this->direction * speed * this->yMovement > 1720 || asset.y + this->direction * speed * this->yMovement < 0) 
+    if (asset.y + this->direction * speed * this->yMovement > WIDTH || asset.y + this->direction * speed * this->yMovement < 0) 
         this->direction *= -1;
 
     setY(asset.y + this->direction * speed * this->yMovement);
     if (asset.y > this->bounds[3] || (asset.y < this->bounds[2])) // && asset.y > 820 - asset.h)
         this->direction *= -1;
+}
+
+void Enemy::setSrcRect(int x, int y, int w, int h, int frames, int speed)
+{
+    this->srcRect.y = y;
+    this->srcRect.w = w;
+    this->srcRect.h = h;
+    this->srcRect.x = srcRect.w * (static_cast<int> ((SDL_GetTicks() / speed) % frames));
 }
 
 #endif

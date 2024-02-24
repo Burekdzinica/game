@@ -18,14 +18,17 @@ using namespace std;
 
 #define LOAD_TEXTURE(renderer, imgPath) SDL_CreateTextureFromSurface(renderer, IMG_Load(imgPath))
 
-const int WIDTH = 1700, HEIGHT = 820;
+const int WIDTH = 1720, HEIGHT = 820;
 
 const int arenaWidth = 128, arenaHeight = 128;
 const int playerWidth = 180, playerHeight = 216;
-const int enemyWidth = 274, enemyHeight = 208;
+const int enemyWidth = 149, enemyHeight = 256;
 const int ladderWidth = 150, ladderHeight = 150;
 
-const int sightRange = 2000;
+const int animationSpeed = 200;
+
+const int sightRange = 400;
+const int enemyRange = 300;
 
 int points = 0;
 
@@ -36,7 +39,8 @@ int main(int argc, char *argv[])
     Window window("Reševanje bikca Ferdinanda", WIDTH, HEIGHT);
     window.init();
 
-    SDL_Texture *enemyTexture = LOAD_TEXTURE(window.getRenderer(), "assets/enemy.png");
+    SDL_Texture *playerTexture = LOAD_TEXTURE(window.getRenderer(), "assets/player_remastared.png");
+    SDL_Texture *enemyTexture = LOAD_TEXTURE(window.getRenderer(), "assets/enemy_reloaded.png");
     SDL_Texture *arenaTexture = LOAD_TEXTURE(window.getRenderer(), "assets/arena.png");
     SDL_Texture *ladderTexture = LOAD_TEXTURE(window.getRenderer(), "assets/ladder.png");
     SDL_Texture *hearts_1Texture = LOAD_TEXTURE(window.getRenderer(), "assets/3_hearts_reloaded.png");
@@ -103,12 +107,10 @@ int main(int argc, char *argv[])
             if (SDL_QUIT == event.type)
                 break;
             if (event.type == SDL_KEYDOWN) 
-                player.movePlayer(event.key.keysym.sym, WIDTH, HEIGHT); 
+                player.movePlayer(event.key.keysym.sym); 
             else if (event.type == SDL_KEYUP)
                 player.setIsMoving(false);
         }
-
-        // cout << player.getAsset().x << " " << player.getAsset().y << "\n";
 
         window.clear();
 
@@ -160,9 +162,9 @@ int main(int argc, char *argv[])
             } 
         }
 
-        player.updatePlayerAnimation(200);
+        player.updatePlayerAnimation(animationSpeed);
         for (auto& currentEnemy : enemyList)
-            currentEnemy.updateEnemyAI(player, 500);
+            currentEnemy.updateEnemyAI(player, enemyRange, animationSpeed);
 
         //spawns door for next lvl 
         if (arenaList.empty())
@@ -183,10 +185,10 @@ int main(int argc, char *argv[])
             }
         }
 
-        player.draw(window.getRenderer(), player.getAsset(), "assets/player_remastared.png", player.getFlip());
+        window.drawAnimation(window.getRenderer(), player.getSrcRect(), player.getAsset(), playerTexture, player.getFlip());
         for (auto& currentEnemy : enemyList)
-            window.draw(window.getRenderer(), currentEnemy.getAsset(), enemyTexture);
-
+            window.drawAnimation(window.getRenderer(),currentEnemy.getSrcRect(), currentEnemy.getAsset(), enemyTexture, currentEnemy.getFlip());
+            
         if (arenaList.size() < level.getArenaCounter())
             text.createText(window.getRenderer(), ("Remaining arenas: " + to_string(arenaList.size())).c_str(), WIDTH, 50);
 

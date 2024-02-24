@@ -3,6 +3,8 @@
 
 #include <SDL2/SDL.h>
 
+extern const int HEIGHT, WIDTH;
+
 enum class PlayerState
 {
     Idle,
@@ -27,8 +29,8 @@ class Player
         Player(int health, SDL_Rect asset);
         int getHealth();
         void changeHealth(int healthDiff);
-        void movePlayer(SDL_Keycode key, int WIDTH, int HEIGHT);
-        void move(int x, int y, int WIDTH, int HIGHT);
+        void movePlayer(SDL_Keycode key);
+        void move(int x, int y);
         SDL_Rect getAsset() const;
         bool getIsPlayerAlive();
         void setIsPlayerAlive(bool newAlive);
@@ -39,7 +41,6 @@ class Player
         int getY();
         bool isNearLadder();
         bool isNearArena();
-        void draw(SDL_Renderer* renderer, SDL_Rect destRec, const char* imgLocation, SDL_RendererFlip flip);
         void updatePlayerAnimation(int speed);
         void setSrcRect(int x, int y, int w, int h, int frame, int speed);
         PlayerState getState();
@@ -76,7 +77,7 @@ void Player::changeHealth(int healthDiff)
     this->isPlayerAlive = !(this->health <= 0);
 }
 
-void Player::movePlayer(SDL_Keycode key, int WIDTH, int HEIGHT)
+void Player::movePlayer(SDL_Keycode key)
 {
     float x = 0;
     float y = 0;
@@ -101,12 +102,16 @@ void Player::movePlayer(SDL_Keycode key, int WIDTH, int HEIGHT)
             isMoving = true;
             y += speed;
             break;
+        case SDLK_w && SDLK_d:
+            std::cout << "AW \n";
+            break;
+        
     }
-    move(x, y, WIDTH, HEIGHT);
+    move(x, y);
 }
 
 // doesn't go offscreen
-void Player::move(int x, int y, int WIDTH, int HEIGHT)
+void Player::move(int x, int y)
 {
     if ((this->asset.x + x) > (WIDTH - asset.w))
         this->asset.x =  (WIDTH - asset.w);
@@ -175,22 +180,6 @@ bool Player::isNearArena()
 bool Player::isNearLadder()
 {
     return this->nearLadder;
-}
-
-void Player::draw(SDL_Renderer* renderer, SDL_Rect destRec, const char* imgLocation, SDL_RendererFlip flip)
-{
-    SDL_Surface *imgSurface = IMG_Load(imgLocation);
-    if (imgSurface == NULL)
-        std::cout << "Cannot find image\n";
-    
-    SDL_Texture *imgTexture = SDL_CreateTextureFromSurface(renderer, imgSurface);
-    if (imgTexture == NULL)
-        std::cout << "Cannot create texture\n";
-    
-    SDL_FreeSurface(imgSurface);
-    SDL_RenderCopyEx(renderer, imgTexture, &srcRect, &destRec, 0, NULL, flip);
-
-    SDL_DestroyTexture(imgTexture);
 }
 
 void Player::updatePlayerAnimation(int speed)

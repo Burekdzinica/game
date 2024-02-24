@@ -26,7 +26,7 @@ class Window
         void present();
         SDL_Renderer* getRenderer();
         void draw(SDL_Renderer* renderer, SDL_Rect destRec, SDL_Texture *imgTexture);
-        void drawAnimation(SDL_Renderer* renderer,SDL_Rect srcRect, SDL_Rect destRect, const char* imgLocation, SDL_RendererFlip flip);
+        void drawAnimation(SDL_Renderer *renderer, SDL_Rect srcRect, SDL_Rect destRect, SDL_Texture *imgTexture, SDL_RendererFlip flip);
         void drawPlayerHealth(int playerHealth, SDL_Texture *hearts_1, SDL_Texture *hearts_2, SDL_Texture *hearts_3);
 };
 
@@ -42,7 +42,7 @@ Window::Window(const string &title, int WIDTH, int HEIGHT)
     if (renderer == NULL)
         cout << "Could not create renderer: " << SDL_GetError() << "\n";
 
-    imgTexture = IMG_LoadTexture(renderer, "assets/map.png");
+    imgTexture = IMG_LoadTexture(renderer, "assets/map_second.png");
     if (imgTexture == NULL)
         cout << "Cannot load image";
 
@@ -106,19 +106,12 @@ void Window::draw(SDL_Renderer *renderer, SDL_Rect destRect, SDL_Texture *imgTex
     // SDL_FreeSurface(imgSurface);
 }
 
-void Window::drawAnimation(SDL_Renderer* renderer, SDL_Rect srcRect, SDL_Rect destRect, const char* imgLocation, SDL_RendererFlip flip)
+void Window::drawAnimation(SDL_Renderer *renderer, SDL_Rect srcRect, SDL_Rect destRect, SDL_Texture *imgTexture, SDL_RendererFlip flip)
 {
-    SDL_Surface *imgSurface = IMG_Load(imgLocation);
-    if (imgSurface == NULL)
-        std::cout << "Cannot find image\n";
-    
-    SDL_Texture *imgTexture = SDL_CreateTextureFromSurface(renderer, imgSurface);
     if (imgTexture == NULL)
-        std::cout << "Cannot create texture\n";
-    
-    SDL_FreeSurface(imgSurface);
+        cout << "Cannot create texture\n";
+
     SDL_RenderCopyEx(renderer, imgTexture, &srcRect, &destRect, 0, NULL, flip);
-    SDL_DestroyTexture(imgTexture);
 }
 
 void Window::drawPlayerHealth(int playerHealth, SDL_Texture *hearts_1, SDL_Texture *hearts_2, SDL_Texture *hearts_3)
