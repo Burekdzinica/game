@@ -27,8 +27,11 @@ const int ladderWidth = 150, ladderHeight = 150;
 
 const int animationSpeed = 200;
 
-const int sightRange = 400;
+const int sightRange = 2000;
 const int enemyRange = 300;
+
+const int minDistanceBetweenArenas = 10;
+const int minDistanceBetweenPlayerAndEnemy = 50;
 
 int points = 0;
 
@@ -49,35 +52,71 @@ int main(int argc, char *argv[])
 
     unordered_map <int, Arena> arenaList;
 
+    unordered_map <pair<int, int>, bool, PairHash> grid;
+    for (int i = 0; i< WIDTH / enemyWidth; i++)
+        for (int j = 0; j < HEIGHT / enemyHeight; j++)
+            grid.insert({(make_pair(i,j)), false});
+
     Level level;
     level.setArenaCounter(2 + rand() % 2);
 
+    int xArena, yArena;
     for (int i=0; i < level.getArenaCounter(); i++)
     {
-        int xArena = max((rand() % WIDTH - 200), 0);
-        int yArena = max((rand() % HEIGHT - 200), 0);
-
-        for (const auto& entry : arenaList)
+        do
         {
-            if (entry.second.getAsset().x == xArena)
-                xArena = max((rand() % WIDTH - 200), 0);
-            
-            if (entry.second.getAsset().y == yArena)
-                yArena = max((rand() % HEIGHT - 200), 0);
-        }
+            auto it = begin(grid);
+            advance(it, rand() % grid.size());
+            pair<int, int> randomCell = it->first;
+
+            xArena = randomCell.first * arenaWidth;
+            yArena = randomCell.second * arenaHeight;
+
+            bool tooCloseToExistingArena = false;
+            for (const auto& entry : arenaList)
+            {
+                int distanceX = abs(xArena - entry.second.getAsset().x);
+                int distanceY = abs(yArena - entry.second.getAsset().y);
+
+                if (distanceX < minDistanceBetweenArenas || distanceY < minDistanceBetweenArenas)
+                {
+                    tooCloseToExistingArena = true;
+                    break;
+                }
+            }
+
+            if (grid[randomCell] || arenaList.count(i) > 0 || tooCloseToExistingArena)
+                continue;
+
+            break;
+
+        } while (true);
+
         arenaList.insert({i, Arena({xArena, yArena, arenaWidth, arenaHeight})});
-    }
+        grid[{xArena / arenaWidth, yArena / arenaHeight}] = true;
+    }   
 
     Player player(3, {max((rand() % WIDTH - 180), 0), max((rand() % HEIGHT - 216), 0), playerWidth, playerHeight});
     
     int xEnemy, yEnemy;
     do
     {
-        xEnemy = max((rand() % WIDTH - enemyWidth), 0);
-        yEnemy =  max((rand() % HEIGHT - enemyHeight), 0);
-        
-    } while (!(xEnemy < player.getAsset().x - 200 || xEnemy > player.getAsset().x + 200) && !(yEnemy < player.getAsset().y - 200 || yEnemy > player.getAsset().y + 200));
+        auto it = begin(grid);
+        advance(it, rand() % grid.size());
+        pair<int, int> randomCell = it->first;
 
+        xEnemy = randomCell.first * enemyWidth;
+        yEnemy = randomCell.second * enemyHeight;
+
+        bool tooCloseToPlayer = (abs(xEnemy - player.getX()) < playerWidth + minDistanceBetweenPlayerAndEnemy) || (abs(yEnemy - player.getY()) < playerHeight + minDistanceBetweenPlayerAndEnemy);
+        if (!grid[randomCell] && !tooCloseToPlayer)
+        {
+            grid[randomCell] = true;
+            break;
+        }
+
+    } while(true);
+    
     Enemy newEnemy({xEnemy, yEnemy, enemyWidth, enemyHeight});
 
     vector <Enemy> enemyList;
