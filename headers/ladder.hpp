@@ -11,6 +11,7 @@ using namespace std;
 extern const int enemyWidth, enemyHeight;
 extern const int arenaWidth, arenaHeight;
 extern const int playerWidth, playerHeight;
+extern const int WIDTH, HEIGHT;
 
 extern const int minDistanceBetweenArenas;
 
@@ -69,7 +70,7 @@ class Level
 
     public:
         Level();
-        void resetGame(Player &player, vector <Enemy> &enemyList, unordered_map <int, Arena>& arenaList, Ladder& ladder, int& isCloseTo, int health, int WIDTH, int HEIGHT);
+        void resetGame(Player &player, vector <Enemy> &enemyList, unordered_map <int, Arena>& arenaList, Ladder& ladder, int& isCloseTo, int health);
         void setLevel();
         void setArenaCounter(int arenaCounter);
         int getLevel();
@@ -81,7 +82,7 @@ Level::Level()
     this->lvl = 1;
 }
 
-void Level::resetGame(Player &player, vector <Enemy> &enemyList, unordered_map <int, Arena>& arenaList, Ladder& ladder, int& isCloseTo, int health, int WIDTH, int HEIGHT)
+void Level::resetGame(Player &player, vector <Enemy> &enemyList, unordered_map <int, Arena>& arenaList, Ladder& ladder, int& isCloseTo, int health)
 {
     player.reset(health, {max((rand() % WIDTH - player.getAsset().w), 0), max((rand() % HEIGHT - player.getAsset().h), 0), player.getAsset().w, player.getAsset().h});
 

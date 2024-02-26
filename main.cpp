@@ -13,6 +13,7 @@
 #include "headers/enemy.hpp"
 #include "headers/text.hpp"
 #include "headers/ladder.hpp"
+#include "headers/startScreen.hpp"
 
 using namespace std;
 
@@ -28,7 +29,7 @@ const int ladderWidth = 150, ladderHeight = 150;
 const int animationSpeed = 200;
 
 const int sightRange = 2000;
-const int enemyRange = 300;
+const int enemyRange = 500;
 
 const int minDistanceBetweenArenas = 10;
 const int minDistanceBetweenPlayerAndEnemy = 50;
@@ -42,6 +43,11 @@ int main(int argc, char *argv[])
     Window window("Reševanje bikca Ferdinanda", WIDTH, HEIGHT);
     window.init();
 
+    StartScreen startScreen(window.getRenderer());
+
+    startScreen.run(window.getRenderer());
+    
+
     SDL_Texture *playerTexture = LOAD_TEXTURE(window.getRenderer(), "assets/player_remastared.png");
     SDL_Texture *enemyTexture = LOAD_TEXTURE(window.getRenderer(), "assets/enemy_reloaded.png");
     SDL_Texture *arenaTexture = LOAD_TEXTURE(window.getRenderer(), "assets/arena.png");
@@ -52,6 +58,7 @@ int main(int argc, char *argv[])
 
     unordered_map <int, Arena> arenaList;
 
+    // makes grid for spawns
     unordered_map <pair<int, int>, bool, PairHash> grid;
     for (int i = 0; i< WIDTH / enemyWidth; i++)
         for (int j = 0; j < HEIGHT / enemyHeight; j++)
@@ -146,9 +153,11 @@ int main(int argc, char *argv[])
             if (SDL_QUIT == event.type)
                 break;
             if (event.type == SDL_KEYDOWN) 
-                player.movePlayer(event.key.keysym.sym); 
+                player.movePlayer(); 
             else if (event.type == SDL_KEYUP)
                 player.setIsMoving(false);
+        
+                
         }
 
         window.clear();
@@ -217,7 +226,7 @@ int main(int argc, char *argv[])
                 {
                     if (event.key.keysym.sym == SDLK_f)
                     {
-                        level.resetGame(player, enemyList, arenaList, ladder, isCloseTo, player.getHealth(), WIDTH, HEIGHT);
+                        level.resetGame(player, enemyList, arenaList, ladder, isCloseTo, player.getHealth());
                         level.setLevel();
                     }
                 }

@@ -13,9 +13,6 @@ class Text
         Text(const char* newFont, int fontSize);
         ~Text();
         void createText(SDL_Renderer *renderer, const char* textString, int x, int y);
-        int getTextWidth();
-        int getTextHeigth();
-
 };
 
 Text::Text(const char* newFont, int fontSize)
@@ -52,14 +49,6 @@ void Text::createText(SDL_Renderer *renderer, const char* textString, int x, int
     SDL_DestroyTexture(textTexture);
 }
 
-// int Text::getTextWidth()
-// {
-//     return this->textWidth;
-// }
 
-// int Text::getTextHeigth()
-// {
-//     return this->textHeight;
-// }
 
 #endif

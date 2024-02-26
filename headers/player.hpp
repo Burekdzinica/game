@@ -1,6 +1,8 @@
 #ifndef PLAYER_HPP
 #define PLAYER_HPP
 
+#include <cmath>
+
 #include <SDL2/SDL.h>
 
 extern const int HEIGHT, WIDTH;
@@ -29,7 +31,7 @@ class Player
         Player(int health, SDL_Rect asset);
         int getHealth();
         void changeHealth(int healthDiff);
-        void movePlayer(SDL_Keycode key);
+        void movePlayer();
         void move(int x, int y);
         SDL_Rect getAsset() const;
         bool getIsPlayerAlive();
@@ -77,36 +79,43 @@ void Player::changeHealth(int healthDiff)
     this->isPlayerAlive = !(this->health <= 0);
 }
 
-void Player::movePlayer(SDL_Keycode key)
+void Player::movePlayer()
 {
+    const Uint8 *keyState = SDL_GetKeyboardState(NULL);
     float x = 0;
     float y = 0;
     float speed = 20;
 
-    switch (key)
+    if (keyState[SDL_SCANCODE_A])
     {
-        case SDLK_a:
-            isMoving = true;
-            flip = SDL_FLIP_HORIZONTAL;
-            x -= speed;
-            break;
-        case SDLK_d:
-            isMoving = true;
-            x += speed;
-            break;
-        case SDLK_w:
-            isMoving = true;
-            y -= speed;
-            break;
-        case SDLK_s:
-            isMoving = true;
-            y += speed;
-            break;
-        case SDLK_w && SDLK_d:
-            std::cout << "AW \n";
-            break;
-        
+        isMoving = true;
+        flip = SDL_FLIP_HORIZONTAL;
+        x -= speed;
     }
+    if (keyState[SDL_SCANCODE_D])
+    {
+        isMoving = true;
+        x += speed;
+    }
+    if (keyState[SDL_SCANCODE_W])
+    {
+        isMoving = true;
+        y -= speed;
+    }
+    if (keyState[SDL_SCANCODE_S])
+    {
+        isMoving = true;
+        y += speed;
+    }
+
+    if (x != 0 && y != 0)
+    {
+        float diagonalSpeed = speed / sqrt(2);
+        x = (x > 0) ? diagonalSpeed : -diagonalSpeed;
+        y = (y > 0) ? diagonalSpeed : -diagonalSpeed;
+
+    }
+
     move(x, y);
 }
 

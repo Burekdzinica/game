@@ -55,7 +55,8 @@ class Enemy
 Enemy::Enemy(SDL_Rect asset)
 {
     this->asset = asset;
-    this->state = EnemyState::Idle;
+    this->state = EnemyState::Attacked;
+    this->attackStartTime = chrono::steady_clock::now();
     this->xMovement = rand() % 2; // 1
     this->yMovement = (xMovement == 1) ? 0 : 1;
     this->direction = 1;
