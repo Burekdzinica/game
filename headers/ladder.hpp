@@ -5,13 +5,13 @@
 #include <time.h>
 
 #include "player.hpp"
+#include "gameSettings.hpp"
 
 using namespace std;
 
 extern const int enemyWidth, enemyHeight;
 extern const int arenaWidth, arenaHeight;
 extern const int playerWidth, playerHeight;
-extern const int WIDTH, HEIGHT;
 
 extern const int minDistanceBetweenArenas;
 
@@ -21,6 +21,7 @@ class Ladder
         SDL_Rect asset;
 
     public:
+        Ladder() = default;
         Ladder(SDL_Rect asset);
         SDL_Rect getAsset();
         void setX(int x);
@@ -69,6 +70,7 @@ class Level
         int arenaCounter;
 
     public:
+        // Level() = default;
         Level();
         void resetGame(Player &player, vector <Enemy> &enemyList, unordered_map <int, Arena>& arenaList, Ladder& ladder, int& isCloseTo, int health);
         void setLevel();
@@ -84,11 +86,11 @@ Level::Level()
 
 void Level::resetGame(Player &player, vector <Enemy> &enemyList, unordered_map <int, Arena>& arenaList, Ladder& ladder, int& isCloseTo, int health)
 {
-    player.reset(health, {max((rand() % WIDTH - player.getAsset().w), 0), max((rand() % HEIGHT - player.getAsset().h), 0), player.getAsset().w, player.getAsset().h});
+    player.reset(health, {max((rand() % GameSettings::WIDTH - player.getAsset().w), 0), max((rand() % GameSettings::HEIGHT - player.getAsset().h), 0), player.getAsset().w, player.getAsset().h});
 
     unordered_map <pair<int, int>, bool, PairHash> grid;
-    for (int i = 0; i< WIDTH / enemyWidth; i++)
-        for (int j = 0; j < HEIGHT / enemyHeight; j++)
+    for (int i = 0; i < GameSettings::WIDTH / enemyWidth; i++)
+        for (int j = 0; j < GameSettings::HEIGHT / enemyHeight; j++)
             grid.insert({(make_pair(i,j)), false});
 
     static int levelCounter = 1;
@@ -169,8 +171,8 @@ void Level::resetGame(Player &player, vector <Enemy> &enemyList, unordered_map <
         grid[{xArena / arenaWidth, yArena / arenaHeight}] = true;
     }
 
-    ladder.setX(max((rand() % WIDTH - ladder.getAsset().w), 0));
-    ladder.setY(max((rand() % HEIGHT - ladder.getAsset().h), 0));
+    ladder.setX(max((rand() % GameSettings::WIDTH - ladder.getAsset().w), 0));
+    ladder.setY(max((rand() % GameSettings::HEIGHT - ladder.getAsset().h), 0));
 
     isCloseTo = -1;
 }

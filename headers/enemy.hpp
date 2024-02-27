@@ -7,10 +7,11 @@
 #include <thread>
 
 #include "player.hpp"
+#include "gameSettings.hpp"
 
 using namespace std;
 
-extern const int WIDTH, HEIGHT;
+const int boundRange = 900;
 
 enum class EnemyState
 {
@@ -108,10 +109,10 @@ void Enemy::setState(EnemyState newState)
 
 void Enemy::setBounds()
 {
-    this->bounds[0] = this->asset.x - 100; // x left
-    this->bounds[1] = this->asset.x + 100; // x right
-    this->bounds[2] = this->asset.y - 100; // y left
-    this->bounds[3] = this->asset.y + 100; // y right
+    this->bounds[0] = this->asset.x - boundRange; // x left
+    this->bounds[1] = this->asset.x + boundRange; // x right
+    this->bounds[2] = this->asset.y - boundRange; // y left
+    this->bounds[3] = this->asset.y + boundRange; // y right
 }
 
 void Enemy::updateEnemyAI(Player& player, float detectionDistance, int animationSpeed)
@@ -224,7 +225,7 @@ void Enemy::moveChasing(SDL_Rect playerAsset)
         dy /= distance;
     }
     
-    int speed = 2;
+    float speed = 2.15;
 
     if (dx < 0)
         this->flip = SDL_FLIP_HORIZONTAL;
@@ -238,10 +239,10 @@ void Enemy::moveChasing(SDL_Rect playerAsset)
 
 void Enemy::moveIdle()
 {
-    const float speed = 2;
+    const float speed = 1.5;
 
     // bounces of corner
-    if (asset.x + this->direction * speed * this->xMovement > WIDTH || asset.x + this->direction * speed * this->xMovement < 0) 
+    if (asset.x + this->direction * speed * this->xMovement > GameSettings::WIDTH - asset.w|| asset.x + this->direction * speed * this->xMovement < 0) 
     {
         this->direction *= -1;
         flip = (this->direction == -1) ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
@@ -254,7 +255,7 @@ void Enemy::moveIdle()
         flip = (this->direction == -1) ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
     }
 
-    if (asset.y + this->direction * speed * this->yMovement > WIDTH || asset.y + this->direction * speed * this->yMovement < 0) 
+    if (asset.y + this->direction * speed * this->yMovement > GameSettings::HEIGHT - asset.h || asset.y + this->direction * speed * this->yMovement < 0) 
         this->direction *= -1;
 
     setY(asset.y + this->direction * speed * this->yMovement);

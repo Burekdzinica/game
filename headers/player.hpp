@@ -2,10 +2,11 @@
 #define PLAYER_HPP
 
 #include <cmath>
-
 #include <SDL2/SDL.h>
 
-extern const int HEIGHT, WIDTH;
+#include "gameSettings.hpp"
+
+extern const int animationSpeed;
 
 enum class PlayerState
 {
@@ -26,8 +27,8 @@ class Player
         bool nearLadder;
         bool nearArena;
 
-
     public:
+        Player() = default;
         Player(int health, SDL_Rect asset);
         int getHealth();
         void changeHealth(int healthDiff);
@@ -49,8 +50,8 @@ class Player
         void setNearArena(bool newNearArena);
         void setNearLadder(bool newNearLadder);
         void setState(PlayerState newState);
-        void setIsMoving(bool moving);
         SDL_RendererFlip getFlip();
+        void setFlip(SDL_RendererFlip newflip);
         SDL_Rect getSrcRect();
         void reset(int health, SDL_Rect newAsset);
 };
@@ -81,30 +82,33 @@ void Player::changeHealth(int healthDiff)
 
 void Player::movePlayer()
 {
-    const Uint8 *keyState = SDL_GetKeyboardState(NULL);
+    const Uint8 *keyState = SDL_GetKeyboardState(nullptr);
     float x = 0;
     float y = 0;
-    float speed = 20;
+    float speed = 5;
 
     if (keyState[SDL_SCANCODE_A])
     {
-        isMoving = true;
+        this->state = PlayerState::Moving;
         flip = SDL_FLIP_HORIZONTAL;
         x -= speed;
     }
     if (keyState[SDL_SCANCODE_D])
     {
-        isMoving = true;
+        this->state = PlayerState::Moving;
         x += speed;
     }
+
     if (keyState[SDL_SCANCODE_W])
     {
-        isMoving = true;
+        this->state = PlayerState::Moving;
         y -= speed;
+
     }
+
     if (keyState[SDL_SCANCODE_S])
     {
-        isMoving = true;
+        this->state = PlayerState::Moving;
         y += speed;
     }
 
@@ -122,23 +126,24 @@ void Player::movePlayer()
 // doesn't go offscreen
 void Player::move(int x, int y)
 {
-    if ((this->asset.x + x) > (WIDTH - asset.w))
-        this->asset.x =  (WIDTH - asset.w);
+    if ((this->asset.x + x) > (GameSettings::WIDTH - asset.w))
+        this->asset.x = (GameSettings::WIDTH - asset.w);
 
     else if ((this->asset.x + x) <= 0)
         this->asset.x = 0;
     
-    if ((this->asset.y + y) > (HEIGHT - asset.h))
-        this->asset.y = (HEIGHT - asset.h);  
+    if ((this->asset.y + y) > (GameSettings::HEIGHT - asset.h))
+        this->asset.y = (GameSettings::HEIGHT - asset.h);  
 
     else if ((this->asset.y + y) <= 0)
         this->asset.y = 0;
     
-    if ((this->asset.x + x) >= 0 && (this->asset.x + x) <= (WIDTH - asset.w) && (this->asset.y + y) >= 0 && (this->asset.y + y) <= (HEIGHT - asset.h))
+    if ((this->asset.x + x) >= 0 && (this->asset.x + x) <= (GameSettings::WIDTH - asset.w) && (this->asset.y + y) >= 0 && (this->asset.y + y) <= (GameSettings::HEIGHT - asset.h))
     {
         this->asset.x += x;
         this->asset.y += y;
     }
+    updatePlayerAnimation(animationSpeed);
 }
 
 SDL_Rect Player::getAsset() const
@@ -197,17 +202,10 @@ void Player::updatePlayerAnimation(int speed)
     {
         case PlayerState::Idle:
             setSrcRect(0, 0, 120, 112, 4, speed);
-            if (isMoving)
-                setState(PlayerState::Moving);
             break;
         
         case PlayerState::Moving:
             setSrcRect(0, 112, 120, 112,  8, speed);
-            if (!isMoving)
-            {   
-                setState(PlayerState::Idle);
-                flip = SDL_FLIP_NONE;
-            }
             break;
     }
 }
@@ -225,6 +223,11 @@ PlayerState Player::getState()
     return this->state;
 }
 
+void Player::setState(PlayerState newState)
+{
+    this->state = newState;
+}
+
 void Player::setNearArena(bool newNearArena)
 {
     this->nearArena = newNearArena;
@@ -235,19 +238,14 @@ void Player::setNearLadder(bool newNearLadder)
     this->nearLadder = newNearLadder;
 }
 
-void Player::setState(PlayerState newState)
-{
-    this->state = newState;
-}
-
-void Player::setIsMoving(bool moving)
-{
-    this->isMoving = moving;
-}
-
 SDL_RendererFlip Player::getFlip()
 {
     return this->flip;
+}
+
+void Player::setFlip(SDL_RendererFlip newFlip)
+{
+    this->flip = newFlip;
 }
 
 SDL_Rect Player::getSrcRect()
@@ -265,4 +263,3 @@ void Player::reset(int health, SDL_Rect newAsset)
 }
 
 #endif
-

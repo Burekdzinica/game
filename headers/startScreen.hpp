@@ -5,22 +5,24 @@
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL.h>
 
-using namespace std;
+#include "options.hpp"
+#include "gameSettings.hpp"
 
-const extern int WIDTH, HEIGHT;
+using namespace std;
 
 const int nameWidth = 200, nameHeight = 100;
 const int gameNameWidth = 1000, gameNameHeight = 100;
 
-struct TextSize
-{
-    int width, height;
-};
+// struct TextSize
+// {
+//     int width, height;
+// };
 
 class StartScreen
 {
     private:
         bool quit;
+        Options options;
         unordered_map<string, TextSize> textCache;
         string playerName;
         SDL_Texture *imgTexture;
@@ -42,7 +44,7 @@ class StartScreen
         void handleMouseClick(SDL_Renderer *renderer);
         void createPlayerName(SDL_Renderer *renderer);
         void renderUI(SDL_Renderer* renderer);
-        void openOptions(SDL_Renderer* renderer);
+        // void openOptions(SDL_Renderer* renderer);
         void run(SDL_Renderer *renderer);
 };
 
@@ -53,12 +55,12 @@ StartScreen::StartScreen(SDL_Renderer *renderer)
     this->font = TTF_OpenFont("fonts/test.ttf", 50);
     this->textColor = {255, 255, 255};
 
-    this->screenRect = {0, 0, WIDTH, HEIGHT};
-    this->playButton = {WIDTH / 2 - nameWidth / 2, (HEIGHT / 2), nameWidth, nameHeight};
-    this->gameName = {(WIDTH - gameNameWidth) / 2, 0, gameNameWidth, gameNameHeight};
-    this->inputNameRect = {WIDTH / 2 - nameWidth / 2, (HEIGHT / 2) - nameHeight, nameWidth, nameHeight};
-    this->playerNameRect = {WIDTH / 2 - nameWidth / 2, (HEIGHT / 2), nameWidth, nameHeight};
-    this->optionsButton = {WIDTH / 2 - nameWidth / 2, (HEIGHT) - nameHeight, nameWidth, nameHeight};
+    this->screenRect = {0, 0, GameSettings::WIDTH, GameSettings::HEIGHT};
+    this->playButton = {GameSettings::WIDTH / 2 - nameWidth / 2, (GameSettings::HEIGHT / 2), nameWidth, nameHeight};
+    this->gameName = {(GameSettings::WIDTH - gameNameWidth) / 2, 0, gameNameWidth, gameNameHeight};
+    this->inputNameRect = {GameSettings::WIDTH / 2 - nameWidth / 2, (GameSettings::HEIGHT / 2) - nameHeight, nameWidth, nameHeight};
+    this->playerNameRect = {GameSettings::WIDTH / 2 - nameWidth / 2, (GameSettings::HEIGHT / 2), nameWidth, nameHeight};
+    this->optionsButton = {GameSettings::WIDTH / 2 - nameWidth / 2, (GameSettings::HEIGHT) - nameHeight, nameWidth, nameHeight};
 
 }
 
@@ -93,7 +95,7 @@ void StartScreen::createText(SDL_Renderer *renderer, const char* textString, SDL
     destRect.w = textSize.width;
     destRect.h = textSize.height;
 
-    destRect.x = (WIDTH - destRect.w) / 2;
+    destRect.x = (GameSettings::WIDTH - destRect.w) / 2;
 
     SDL_RenderCopy(renderer, textTexture, NULL, &destRect);
 
@@ -113,8 +115,10 @@ void StartScreen::createUI(SDL_Renderer *renderer)
     createText(renderer, "Play", playButton);
 
     playerNameRect.x = inputNameRect.x + inputNameRect.w - playerNameRect.w;
-    playerNameRect.y = HEIGHT / 4;
-    createText(renderer, playerName.c_str(), playerNameRect);
+    playerNameRect.y = GameSettings::HEIGHT / 4;
+
+    if (!playerName.empty())
+        createText(renderer, playerName.c_str(), playerNameRect);
 
     createText(renderer, "Options", optionsButton);
 
@@ -130,7 +134,7 @@ void StartScreen::handleMouseClick(SDL_Renderer *renderer)
         this->quit = true;
 
     else if (mouseX >= optionsButton.x && mouseX <= optionsButton.x + optionsButton.w && mouseY >= optionsButton.y && mouseY <= optionsButton.y + optionsButton.h)
-        openOptions(renderer);
+        options.open(renderer);
 }
 
 void StartScreen::createPlayerName(SDL_Renderer* renderer)
@@ -152,7 +156,7 @@ void StartScreen::createPlayerName(SDL_Renderer* renderer)
             }
             else if (event.type == SDL_KEYDOWN)
             {
-                if (event.key.keysym.scancode == SDL_SCANCODE_BACKSPACE && !playerName.empty())
+                if (event.key.keysym.scancode == (SDL_SCANCODE_BACKSPACE || SDL_SCANCODE_KP_ENTER) && !playerName.empty())
                 {
                     playerName.pop_back();
                     renderUI(renderer);
@@ -176,35 +180,37 @@ void StartScreen::renderUI(SDL_Renderer* renderer)
     SDL_RenderCopy(renderer, imgTexture, NULL, &this->screenRect);
     createText(renderer, "Resevanje bikca Ferdinda", gameName);
     createText(renderer, "Enter name: ", inputNameRect);
-    createText(renderer, playerName.c_str(), playerNameRect);
+
+    if (!playerName.empty())
+        createText(renderer, playerName.c_str(), playerNameRect);
 
     SDL_RenderPresent(renderer);
 }
 
-void StartScreen::openOptions(SDL_Renderer* renderer)
-{
-    bool inOptions = true;
-    while (inOptions)
-    {
-        SDL_Event event;
-        if (SDL_PollEvent(&event))
-        {
-            if (SDL_QUIT == event.type)
-                exit(0);
-            else if (event.type == SDL_KEYDOWN)
-            {
-                if (event.key.keysym.scancode == SDL_SCANCODE_BACKSPACE)
-                    inOptions = false;
-            }
-        }
+// void StartScreen::openOptions(SDL_Renderer* renderer)
+// {
+//     bool inOptions = true;
+//     while (inOptions)
+//     {
+//         SDL_Event event;
+//         if (SDL_PollEvent(&event))
+//         {
+//             if (SDL_QUIT == event.type)
+//                 exit(0);
+//             else if (event.type == SDL_KEYDOWN)
+//             {
+//                 if (event.key.keysym.scancode == SDL_SCANCODE_BACKSPACE)
+//                     inOptions = false;
+//             }
+//         }
         
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderClear(renderer);
-        SDL_RenderPresent(renderer);
+//         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+//         SDL_RenderClear(renderer);
+//         SDL_RenderPresent(renderer);
 
         
-    }
-}
+//     }
+// }
 
 void StartScreen::run(SDL_Renderer *renderer)
 {
