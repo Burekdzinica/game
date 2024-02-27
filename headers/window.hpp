@@ -9,6 +9,8 @@
 
 using namespace std;
 
+const extern int WIDTH, HEIGHT;
+
 class Window
 {
     private:  
@@ -19,6 +21,7 @@ class Window
         SDL_Rect healthRect;
 
     public:
+        Window();
         Window(const string &title, int width, int height);
         ~Window(); //destructor
         void init();
@@ -30,11 +33,11 @@ class Window
         void drawPlayerHealth(int playerHealth, SDL_Texture *hearts_1, SDL_Texture *hearts_2, SDL_Texture *hearts_3);
 };
 
-Window::Window(const string &title, int WIDTH, int HEIGHT)
+Window::Window()
 {
     SDL_Init(SDL_INIT_EVERYTHING);
 
-    SDL_Window *window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_ALLOW_HIGHDPI);
+    SDL_Window *window = SDL_CreateWindow("Reševanje bikca Ferdinanda", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_ALLOW_HIGHDPI);
     if (window == NULL)
         cout << "Could not create window: " << SDL_GetError() << "\n";
 
@@ -47,6 +50,28 @@ Window::Window(const string &title, int WIDTH, int HEIGHT)
         cout << "Cannot load image";
 
     this->healthRect = {1, 1, 279, 66};
+
+    init();
+}
+
+Window::Window(const string &title, int WIDTH, int HEIGHT)
+{
+    SDL_Init(SDL_INIT_EVERYTHING);
+
+    // SDL_Window *window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_ALLOW_HIGHDPI);
+    if (window == NULL)
+        cout << "Could not create window: " << SDL_GetError() << "\n";
+
+    renderer = SDL_CreateRenderer(window, -1,  SDL_RENDERER_ACCELERATED);// | SDL_RENDERER_PRESENTVSYNC);
+    if (renderer == NULL)
+        cout << "Could not create renderer: " << SDL_GetError() << "\n";
+
+    imgTexture = IMG_LoadTexture(renderer, "assets/map_second.png");
+    if (imgTexture == NULL)
+        cout << "Cannot load image";
+
+    this->healthRect = {1, 1, 279, 66};
+
 }
 
 //deletes the window/renderer
@@ -65,7 +90,7 @@ void Window::init()
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
         cout << "SDL initialization failed: " << SDL_GetError() << "\n";
 
-    if(TTF_Init() == 1)
+    if(TTF_Init() == -1)
         cout << "TTF initilization failed: " << TTF_GetError() << "\n";
 
     if(IMG_Init(IMG_INIT_PNG) == 0)

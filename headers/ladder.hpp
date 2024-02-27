@@ -21,6 +21,7 @@ class Ladder
         SDL_Rect asset;
 
     public:
+        Ladder() = default;
         Ladder(SDL_Rect asset);
         SDL_Rect getAsset();
         void setX(int x);
@@ -69,6 +70,7 @@ class Level
         int arenaCounter;
 
     public:
+        // Level() = default;
         Level();
         void resetGame(Player &player, vector <Enemy> &enemyList, unordered_map <int, Arena>& arenaList, Ladder& ladder, int& isCloseTo, int health);
         void setLevel();

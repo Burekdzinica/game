@@ -10,10 +10,18 @@ class Text
         TTF_Font* font;
 
     public:
+        Text();
         Text(const char* newFont, int fontSize);
         ~Text();
         void createText(SDL_Renderer *renderer, const char* textString, int x, int y);
 };
+
+Text::Text()
+{
+    this->font = TTF_OpenFont("fonts/test.ttf", 50);
+    if (!font)
+        cout << "Font initilization failed " << TTF_GetError() << "\n"; 
+}
 
 Text::Text(const char* newFont, int fontSize)
 {
