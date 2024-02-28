@@ -31,7 +31,7 @@ const int animationSpeed = 200;
 
 const int sightRange = 350;
 const int enemyRange = 500;
-const int interactionRange = sightRange - 100;
+const int interactionRange = sightRange - 150;
 
 const int minDistanceBetweenArenas = 10;
 const int minDistanceBetweenPlayerAndEnemy = 50;

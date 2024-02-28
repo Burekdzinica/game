@@ -22,6 +22,7 @@ class StartScreen
 {
     private:
         bool quit;
+        bool exitedOptions;
         Options options;
         unordered_map<string, TextSize> textCache;
         string playerName;
@@ -51,6 +52,7 @@ class StartScreen
 StartScreen::StartScreen(SDL_Renderer *renderer)
 {
     this->quit = false;
+    this->exitedOptions = false;
     this->imgTexture = IMG_LoadTexture(renderer, "assets/startScreen.png");
     this->font = TTF_OpenFont("fonts/test.ttf", 50);
     this->textColor = {255, 255, 255};
@@ -105,6 +107,7 @@ void StartScreen::createText(SDL_Renderer *renderer, const char* textString, SDL
 
 void StartScreen::createUI(SDL_Renderer *renderer)
 {
+    SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer, imgTexture, NULL, &this->screenRect);
 
     createText(renderer, "Resevanje bikca Ferdinda", gameName);
@@ -141,6 +144,7 @@ void StartScreen::createPlayerName(SDL_Renderer* renderer)
 {   
     createText(renderer, "Enter name: ", inputNameRect);
     bool nameTyped = false;
+
     while (!nameTyped)
     {
         SDL_Event event;
@@ -150,18 +154,17 @@ void StartScreen::createPlayerName(SDL_Renderer* renderer)
                 exit(0);
             else if (event.type == SDL_TEXTINPUT)
             {
-                playerName += event.text.text;
-                // createText(renderer, playerName.c_str(), playerNameRect);
+                playerName += event.text.text;;
                 renderUI(renderer);
             }
             else if (event.type == SDL_KEYDOWN)
             {
-                if (event.key.keysym.scancode == (SDL_SCANCODE_BACKSPACE || SDL_SCANCODE_KP_ENTER) && !playerName.empty())
+                if (event.key.keysym.scancode == SDL_SCANCODE_BACKSPACE && !playerName.empty())
                 {
                     playerName.pop_back();
                     renderUI(renderer);
                 }
-                if (event.key.keysym.scancode == SDL_SCANCODE_RETURN)  
+                if (event.key.keysym.scancode == SDL_SCANCODE_RETURN || event.key.keysym.scancode == SDL_SCANCODE_KP_ENTER)  
                     nameTyped = true;
             }
         }
@@ -184,38 +187,12 @@ void StartScreen::renderUI(SDL_Renderer* renderer)
     if (!playerName.empty())
         createText(renderer, playerName.c_str(), playerNameRect);
 
-    SDL_RenderPresent(renderer);
 }
-
-// void StartScreen::openOptions(SDL_Renderer* renderer)
-// {
-//     bool inOptions = true;
-//     while (inOptions)
-//     {
-//         SDL_Event event;
-//         if (SDL_PollEvent(&event))
-//         {
-//             if (SDL_QUIT == event.type)
-//                 exit(0);
-//             else if (event.type == SDL_KEYDOWN)
-//             {
-//                 if (event.key.keysym.scancode == SDL_SCANCODE_BACKSPACE)
-//                     inOptions = false;
-//             }
-//         }
-        
-//         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-//         SDL_RenderClear(renderer);
-//         SDL_RenderPresent(renderer);
-
-        
-//     }
-// }
 
 void StartScreen::run(SDL_Renderer *renderer)
 {
     createUI(renderer);
-
+    
     while(!this->quit)
     {
         SDL_Event event;
@@ -227,10 +204,19 @@ void StartScreen::run(SDL_Renderer *renderer)
                 handleMouseClick(renderer);
         }
 
+        if (!options.isOpen() && options.getCounter() == 1)
+        {
+            playerName.clear();
+
+            createUI(renderer);
+            SDL_RenderPresent(renderer);
+
+            options.setCounter(0);
+        }
+        
 
 
 
-        SDL_RenderPresent(renderer);
     }
 }
 
