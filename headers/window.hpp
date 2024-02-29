@@ -10,6 +10,8 @@
 
 using namespace std;
 
+const extern int WIDTH, HEIGHT;
+
 class Window
 {
     private:  
@@ -20,6 +22,7 @@ class Window
         SDL_Rect healthRect;
 
     public:
+        Window();
         Window();
         Window(const string &title, int width, int height);
         ~Window(); //destructor
@@ -60,6 +63,7 @@ Window::Window(const string &title, int WIDTH, int HEIGHT)
     SDL_Init(SDL_INIT_EVERYTHING);
 
     // SDL_Window *window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_ALLOW_HIGHDPI);
+    // SDL_Window *window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_ALLOW_HIGHDPI);
     if (window == NULL)
         cout << "Could not create window: " << SDL_GetError() << "\n";
 
@@ -72,6 +76,7 @@ Window::Window(const string &title, int WIDTH, int HEIGHT)
         cout << "Cannot load image";
 
     this->healthRect = {1, 1, 279, 66};
+
 
 }
 
@@ -91,6 +96,7 @@ void Window::init()
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
         cout << "SDL initialization failed: " << SDL_GetError() << "\n";
 
+    if(TTF_Init() == -1)
     if(TTF_Init() == -1)
         cout << "TTF initilization failed: " << TTF_GetError() << "\n";
 

@@ -28,6 +28,7 @@ class Player
 
     public:
         Player() = default;
+        Player() = default;
         Player(int health, SDL_Rect asset);
         void setHealth(int newHealth);
         int getHealth();
@@ -49,6 +50,7 @@ class Player
         void setNearLadder(bool newNearLadder);
         void setState(PlayerState newState);
         SDL_RendererFlip getFlip();
+        void setFlip(SDL_RendererFlip newflip);
         void setFlip(SDL_RendererFlip newflip);
         SDL_Rect getSrcRect();
         void reset(int health, SDL_Rect newAsset);
@@ -87,6 +89,7 @@ void Player::changeHealth(int healthDiff)
 void Player::movePlayer()
 {
     const Uint8 *keyState = SDL_GetKeyboardState(nullptr);
+    const Uint8 *keyState = SDL_GetKeyboardState(nullptr);
     float x = 0;
     float y = 0;
     float speed = 8;
@@ -94,24 +97,31 @@ void Player::movePlayer()
     if (keyState[SDL_SCANCODE_A])
     {
         this->state = PlayerState::Moving;
+        this->state = PlayerState::Moving;
         flip = SDL_FLIP_HORIZONTAL;
         x -= speed;
     }
     if (keyState[SDL_SCANCODE_D])
     {
         this->state = PlayerState::Moving;
+        this->state = PlayerState::Moving;
         x += speed;
     }
+
 
     if (keyState[SDL_SCANCODE_W])
     {
         this->state = PlayerState::Moving;
+        this->state = PlayerState::Moving;
         y -= speed;
+
 
     }
 
+
     if (keyState[SDL_SCANCODE_S])
     {
+        this->state = PlayerState::Moving;
         this->state = PlayerState::Moving;
         y += speed;
     }
@@ -147,6 +157,7 @@ void Player::move(int x, int y)
         this->asset.x += x;
         this->asset.y += y;
     }
+    updatePlayerAnimation(animationSpeed);
     updatePlayerAnimation(animationSpeed);
 }
 
@@ -222,6 +233,11 @@ void Player::setState(PlayerState newState)
     this->state = newState;
 }
 
+void Player::setState(PlayerState newState)
+{
+    this->state = newState;
+}
+
 void Player::setNearArena(bool newNearArena)
 {
     this->nearArena = newNearArena;
@@ -235,6 +251,11 @@ void Player::setNearLadder(bool newNearLadder)
 SDL_RendererFlip Player::getFlip()
 {
     return this->flip;
+}
+
+void Player::setFlip(SDL_RendererFlip newFlip)
+{
+    this->flip = newFlip;
 }
 
 void Player::setFlip(SDL_RendererFlip newFlip)

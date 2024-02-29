@@ -113,6 +113,10 @@ void Enemy::setBounds()
     this->bounds[1] = this->asset.x + boundRange; // x right
     this->bounds[2] = this->asset.y - boundRange; // y left
     this->bounds[3] = this->asset.y + boundRange; // y right
+    this->bounds[0] = this->asset.x - boundRange; // x left
+    this->bounds[1] = this->asset.x + boundRange; // x right
+    this->bounds[2] = this->asset.y - boundRange; // y left
+    this->bounds[3] = this->asset.y + boundRange; // y right
 }
 
 void Enemy::updateEnemyAI(Player& player, float detectionDistance, int animationSpeed)
@@ -226,6 +230,7 @@ void Enemy::moveChasing(SDL_Rect playerAsset)
         dy /= distance;
     }
     
+    float speed = 2.15;
     float speed = 2.15;
 
     if (dx < 0)
