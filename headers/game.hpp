@@ -316,6 +316,8 @@ bool Game::isOpen()
 
 void Game::restart()
 {
+    srand(time(NULL));
+
     Data::isPlayerAlive = true;
 
     grid.clear();
