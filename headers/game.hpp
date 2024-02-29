@@ -21,7 +21,6 @@
 
 using namespace std;
 
-
 const int arenaWidth = 83, arenaHeight = 83;
 const int playerWidth = 117, playerHeight = 140;
 const int enemyWidth = 98, enemyHeight = 166;
