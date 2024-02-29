@@ -140,7 +140,7 @@ void Enemy::updateEnemyAI(Player& player, float detectionDistance, int animation
             setSrcRect(0, 126, 73, 126, 6, animationSpeed);
             moveChasing(player.getAsset());
             // if enemy chased for x time, goes to attacked
-            if (elapsedTime >= chrono::milliseconds(5000) && isPlayerInView(player, detectionDistance))
+            if (elapsedTime >= chrono::milliseconds(2000) && isPlayerInView(player, detectionDistance))
             {
                 setState(EnemyState::Attacked);
                 attackStartTime = chrono::steady_clock::now();
@@ -230,7 +230,6 @@ void Enemy::moveChasing(SDL_Rect playerAsset)
         dy /= distance;
     }
     
-    float speed = 2.15;
     float speed = 2.15;
 
     if (dx < 0)

@@ -23,7 +23,6 @@ class Window
 
     public:
         Window();
-        Window();
         Window(const string &title, int width, int height);
         ~Window(); //destructor
         void init();
@@ -62,12 +61,10 @@ Window::Window(const string &title, int WIDTH, int HEIGHT)
 {
     SDL_Init(SDL_INIT_EVERYTHING);
 
-    // SDL_Window *window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_ALLOW_HIGHDPI);
-    // SDL_Window *window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_ALLOW_HIGHDPI);
     if (window == NULL)
         cout << "Could not create window: " << SDL_GetError() << "\n";
 
-    renderer = SDL_CreateRenderer(window, -1,  SDL_RENDERER_ACCELERATED);// | SDL_RENDERER_PRESENTVSYNC);
+    renderer = SDL_CreateRenderer(window, -1,  SDL_RENDERER_ACCELERATED);
     if (renderer == NULL)
         cout << "Could not create renderer: " << SDL_GetError() << "\n";
 
@@ -133,9 +130,6 @@ void Window::draw(SDL_Renderer *renderer, SDL_Rect destRect, SDL_Texture *imgTex
         cout << "Cannot create texture\n";
 
     SDL_RenderCopy(renderer, imgTexture, NULL, &destRect);
-    
-    // SDL_DestroyTexture(imgTexture);
-    // SDL_FreeSurface(imgSurface);
 }
 
 void Window::drawAnimation(SDL_Renderer *renderer, SDL_Rect srcRect, SDL_Rect destRect, SDL_Texture *imgTexture, SDL_RendererFlip flip)

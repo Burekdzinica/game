@@ -15,10 +15,7 @@ int main(int argc, char *argv[])
 
     Game game;
     game.setup();
-    Game game;
-    game.setup();
 
-    while (game.isOpen())
     while (game.isOpen())
     {
        frameStart = SDL_GetTicks();
