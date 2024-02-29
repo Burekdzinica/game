@@ -29,7 +29,7 @@ const int ladderWidth = 98, ladderHeight = 98;
 const int animationSpeed = 200;
 
 const int sightRange = 200;
-const int enemyRange = 350;
+const int enemyRange = 500;
 const int interactionRangeArena = sightRange + arenaWidth - 150;
 const int interactionRangeLadder = sightRange + ladderWidth - 50;
 

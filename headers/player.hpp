@@ -149,7 +149,6 @@ void Player::move(int x, int y)
         this->asset.y += y;
     }
     updatePlayerAnimation(animationSpeed);
-    updatePlayerAnimation(animationSpeed);
 }
 
 SDL_Rect Player::getAsset() const

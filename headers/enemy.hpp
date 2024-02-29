@@ -113,10 +113,6 @@ void Enemy::setBounds()
     this->bounds[1] = this->asset.x + boundRange; // x right
     this->bounds[2] = this->asset.y - boundRange; // y left
     this->bounds[3] = this->asset.y + boundRange; // y right
-    this->bounds[0] = this->asset.x - boundRange; // x left
-    this->bounds[1] = this->asset.x + boundRange; // x right
-    this->bounds[2] = this->asset.y - boundRange; // y left
-    this->bounds[3] = this->asset.y + boundRange; // y right
 }
 
 void Enemy::updateEnemyAI(Player& player, float detectionDistance, int animationSpeed)
@@ -140,7 +136,7 @@ void Enemy::updateEnemyAI(Player& player, float detectionDistance, int animation
             setSrcRect(0, 126, 73, 126, 6, animationSpeed);
             moveChasing(player.getAsset());
             // if enemy chased for x time, goes to attacked
-            if (elapsedTime >= chrono::milliseconds(2000) && isPlayerInView(player, detectionDistance))
+            if (elapsedTime >= chrono::milliseconds(5000) && isPlayerInView(player, detectionDistance))
             {
                 setState(EnemyState::Attacked);
                 attackStartTime = chrono::steady_clock::now();
@@ -182,7 +178,7 @@ void Enemy::updateEnemyAI(Player& player, float detectionDistance, int animation
             auto elapsedTime = chrono::duration_cast <chrono::milliseconds> (currentTime - attackStartTime);
 
             // waits for x time, then goes to idle
-            if (elapsedTime >= chrono::milliseconds(3000))
+            if (elapsedTime >= chrono::milliseconds(2000))
             {
                 setState(EnemyState::Idle);
                 setBounds();
@@ -230,7 +226,7 @@ void Enemy::moveChasing(SDL_Rect playerAsset)
         dy /= distance;
     }
     
-    float speed = 2.15;
+    float speed = 3.5;
 
     if (dx < 0)
         this->flip = SDL_FLIP_HORIZONTAL;
@@ -245,6 +241,7 @@ void Enemy::moveChasing(SDL_Rect playerAsset)
 void Enemy::moveIdle()
 {
     const float speed = 2.5;
+    flip = SDL_FLIP_NONE;
 
     // bounces of corner
     if (asset.x + this->direction * speed * this->xMovement > GameSettings::WIDTH - asset.w|| asset.x + this->direction * speed * this->xMovement < 0) 
