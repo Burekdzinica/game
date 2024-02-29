@@ -151,7 +151,8 @@ void Enemy::updateEnemyAI(Player& player, float detectionDistance, int animation
             else if (isPlayerTouching(player.getAsset()))
             {
                 setState(EnemyState::Attacked);
-
+                
+                //moves enemy a bit / depends on pos
                 if (player.getAsset().x > asset.x)
                     setX(max((asset.x - 50), 0));
 
@@ -177,7 +178,7 @@ void Enemy::updateEnemyAI(Player& player, float detectionDistance, int animation
             auto elapsedTime = chrono::duration_cast <chrono::milliseconds> (currentTime - attackStartTime);
 
             // waits for x time, then goes to idle
-            if (elapsedTime >= chrono::milliseconds(5000))
+            if (elapsedTime >= chrono::milliseconds(3000))
             {
                 setState(EnemyState::Idle);
                 setBounds();
@@ -239,7 +240,7 @@ void Enemy::moveChasing(SDL_Rect playerAsset)
 
 void Enemy::moveIdle()
 {
-    const float speed = 1.5;
+    const float speed = 2.5;
 
     // bounces of corner
     if (asset.x + this->direction * speed * this->xMovement > GameSettings::WIDTH - asset.w|| asset.x + this->direction * speed * this->xMovement < 0) 
@@ -249,7 +250,7 @@ void Enemy::moveIdle()
     }
 
     setX(asset.x + this->direction * speed * this->xMovement);
-    if (asset.x > this->bounds[1] || (asset.x < this->bounds[0]))//&& asset.x > 1700 - asset.w)
+    if (asset.x > this->bounds[1] || (asset.x < this->bounds[0]))
     {
         this->direction *= -1;
         flip = (this->direction == -1) ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
@@ -259,7 +260,7 @@ void Enemy::moveIdle()
         this->direction *= -1;
 
     setY(asset.y + this->direction * speed * this->yMovement);
-    if (asset.y > this->bounds[3] || (asset.y < this->bounds[2])) // && asset.y > 820 - asset.h)
+    if (asset.y > this->bounds[3] || (asset.y < this->bounds[2]))
         this->direction *= -1;
 }
 

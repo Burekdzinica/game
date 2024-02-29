@@ -8,7 +8,7 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-    const int fps = 120;
+    const int fps = 60;
     int frameDelay = 1000 / fps;
     Uint32 frameStart;
     int frameTime;
@@ -20,9 +20,25 @@ int main(int argc, char *argv[])
     {
        frameStart = SDL_GetTicks();
 
-        game.update();
-        game.render();
+        if (Data::isPlayerAlive)
+            game.update();
 
+        else
+        {
+            const Uint8* keystate = SDL_GetKeyboardState(nullptr);
+
+            SDL_Event event;
+            if (SDL_PollEvent(&event))
+            {
+                if (event.type == SDL_QUIT)
+                    return EXIT_SUCCESS;
+    
+                if (keystate[SDL_SCANCODE_R])
+                    game.restart();
+            }
+        }
+
+        game.render();
 
         frameTime = SDL_GetTicks() - frameStart;
         if (frameDelay > frameTime)

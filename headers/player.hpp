@@ -19,7 +19,6 @@ class Player
     private:
         int health;
         SDL_Rect asset; // stores position
-        bool isPlayerAlive;
         SDL_Rect srcRect;
         PlayerState state;
         bool isMoving;
@@ -30,13 +29,12 @@ class Player
     public:
         Player() = default;
         Player(int health, SDL_Rect asset);
+        void setHealth(int newHealth);
         int getHealth();
         void changeHealth(int healthDiff);
         void movePlayer();
         void move(int x, int y);
         SDL_Rect getAsset() const;
-        bool getIsPlayerAlive();
-        void setIsPlayerAlive(bool newAlive);
         bool isNearby(const SDL_Rect player, SDL_Rect arena, int range) const;
         void setX(int newX);
         void setY(int newY);
@@ -60,13 +58,18 @@ Player::Player(int health, SDL_Rect asset)
 {
     this->health = health;
     this->asset = asset;
-    this->isPlayerAlive = health > 0;
+    Data::isPlayerAlive = health > 0;
     this->srcRect = {0, 0, 120, 116};
     this->isMoving = false;
     this->flip = SDL_FLIP_NONE;
     this->state = PlayerState::Idle;
     this->nearArena = false;
     this->nearLadder = false;
+}
+
+void Player::setHealth(int newHealth)
+{
+    this->health = newHealth;
 }
 
 int Player::getHealth()
@@ -77,7 +80,8 @@ int Player::getHealth()
 void Player::changeHealth(int healthDiff)
 {
     this->health += healthDiff;
-    this->isPlayerAlive = !(this->health <= 0);
+
+    Data::isPlayerAlive = !(this->health <= 0);
 }
 
 void Player::movePlayer()
@@ -85,7 +89,7 @@ void Player::movePlayer()
     const Uint8 *keyState = SDL_GetKeyboardState(nullptr);
     float x = 0;
     float y = 0;
-    float speed = 5;
+    float speed = 8;
 
     if (keyState[SDL_SCANCODE_A])
     {
@@ -149,16 +153,6 @@ void Player::move(int x, int y)
 SDL_Rect Player::getAsset() const
 {
     return this->asset;
-}
-
-bool Player::getIsPlayerAlive() 
-{
-    return this->isPlayerAlive;
-}
-
-void Player::setIsPlayerAlive(bool newAlive)
-{
-    this->isPlayerAlive = newAlive;
 }
 
 bool Player::isNearby(const SDL_Rect sourceRect, SDL_Rect destRect, int range) const
@@ -256,7 +250,7 @@ SDL_Rect Player::getSrcRect()
 void Player::reset(int health, SDL_Rect newAsset)
 {
     this->health = health;
-    this->isPlayerAlive = health > 0;
+    Data::isPlayerAlive = health > 0;
     this->srcRect = {0, 0, 120, 116};
     this->isMoving = false;
     this->asset = newAsset;

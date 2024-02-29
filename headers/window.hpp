@@ -50,7 +50,7 @@ Window::Window()
 
     this->healthRect = {1, 1, 279, 66};
 
-    GameSettings::window = window;
+    Data::window = window;
 
     init();
 }

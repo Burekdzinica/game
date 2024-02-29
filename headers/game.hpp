@@ -22,16 +22,17 @@
 using namespace std;
 
 
-const int arenaWidth = 128, arenaHeight = 128;
-const int playerWidth = 180, playerHeight = 216;
-const int enemyWidth = 149, enemyHeight = 256;
-const int ladderWidth = 150, ladderHeight = 150;
+const int arenaWidth = 83, arenaHeight = 83;
+const int playerWidth = 117, playerHeight = 140;
+const int enemyWidth = 98, enemyHeight = 166;
+const int ladderWidth = 98, ladderHeight = 98;
 
 const int animationSpeed = 200;
 
-const int sightRange = 350;
-const int enemyRange = 500;
-const int interactionRange = sightRange - 150;
+const int sightRange = 200;
+const int enemyRange = 350;
+const int interactionRangeArena = sightRange + arenaWidth - 150;
+const int interactionRangeLadder = sightRange + ladderWidth - 50;
 
 const int minDistanceBetweenArenas = 10;
 const int minDistanceBetweenPlayerAndEnemy = 50;
@@ -66,6 +67,7 @@ class Game
         void update();
         void render();
         bool isOpen();
+        void restart();
 };
 
 Game::Game()
@@ -179,9 +181,6 @@ void Game::setup()
 
 void Game::update()
 {
-    if (!player.getIsPlayerAlive())
-        this->open = false;
-
     player.setNearArena(false);
     player.setNearLadder(false);
 
@@ -224,7 +223,7 @@ void Game::update()
         if (currentArena.getVisible() || currentArena.isForcedVisible())
             window.draw(window.getRenderer(), currentArena.getAsset(), arenaTexture);
         
-        if (player.isNearby(player.getAsset(), currentArena.getAsset(), sightRange - interactionRange))
+        if (player.isNearby(player.getAsset(), currentArena.getAsset(), interactionRangeArena))
             player.setNearArena(true);
     }
 
@@ -259,7 +258,7 @@ void Game::update()
     {
         window.draw(window.getRenderer(), ladder.getAsset(), ladderTexture);
 
-        if (player.isNearby(player.getAsset(), ladder.getAsset(), interactionRange))
+        if (player.isNearby(player.getAsset(), ladder.getAsset(), interactionRangeLadder))
         {
             player.setNearLadder(true);
             if (event.type == SDL_KEYDOWN)
@@ -287,7 +286,7 @@ void Game::render()
     if (player.isNearArena())
         text.createText(window.getRenderer(), "Save bull [E]", (GameSettings::WIDTH / 2) + 100, GameSettings::HEIGHT - 50);
 
-    if (player.isNearby(player.getAsset(), ladder.getAsset(), sightRange - 200) && player.isNearLadder())
+    if (player.isNearLadder())
         text.createText(window.getRenderer(), ("Next level [F]"), (GameSettings::WIDTH / 2) + 100, GameSettings::HEIGHT - 50);
 
     text.createText(window.getRenderer(), ("Level: " + to_string(level.getLevel())).c_str(), GameSettings::WIDTH / 2, 0);
@@ -295,16 +294,16 @@ void Game::render()
 
     window.drawPlayerHealth(player.getHealth(), hearts_1Texture, hearts_2Texture, hearts_3Texture);
 
-    if (!(player.getIsPlayerAlive()))
+    // game over screen
+    if (!(Data::isPlayerAlive))
     {
+        SDL_RenderClear(window.getRenderer());     
         SDL_SetRenderDrawColor(window.getRenderer(), 0, 0, 0, 0);
-        SDL_RenderClear(window.getRenderer());
 
         text.createText(window.getRenderer(), "Game over", GameSettings::WIDTH / 2, GameSettings::HEIGHT / 2);
+        text.createText(window.getRenderer(), "Press [R] to restart", GameSettings::WIDTH / 2, GameSettings::HEIGHT / 2 + 200);
 
         window.present();
-
-        SDL_Delay(1000);
     }
 
     window.present();  
@@ -315,6 +314,93 @@ bool Game::isOpen()
 {
     return this->open;
 }
+
+void Game::restart()
+{
+    Data::isPlayerAlive = true;
+
+    grid.clear();
+    // makes grid for spawns
+    for (int i = 0; i < GameSettings::WIDTH / enemyWidth; i++)
+        for (int j = 0; j < GameSettings::HEIGHT / enemyHeight; j++)
+            grid.insert({(make_pair(i,j)), false});
+
+    player.setX(max((rand() % GameSettings::WIDTH - playerWidth), 0));
+    player.setY(max((rand() % GameSettings::HEIGHT - playerHeight), 0));
+    player.setHealth(3);
+
+    arenaList.clear();
+
+    level.setArenaCounter(2 + rand() % 2);
+    level.resetLevel();
+
+    int xArena, yArena;
+    for (int i=0; i < level.getArenaCounter(); i++)
+    {
+        do
+        {
+            auto it = begin(grid);
+            advance(it, rand() % grid.size());
+            pair<int, int> randomCell = it->first;
+
+            xArena = randomCell.first * arenaWidth;
+            yArena = randomCell.second * arenaHeight;
+
+            bool tooCloseToExistingArena = false;
+            for (const auto& entry : arenaList)
+            {
+                int distanceX = abs(xArena - entry.second.getAsset().x);
+                int distanceY = abs(yArena - entry.second.getAsset().y);
+
+                if (distanceX < minDistanceBetweenArenas || distanceY < minDistanceBetweenArenas)
+                {
+                    tooCloseToExistingArena = true;
+                    break;
+                }
+            }
+
+            if (grid[randomCell] || arenaList.count(i) > 0 || tooCloseToExistingArena)
+                continue;
+
+            break;
+
+        } while (true);
+
+        arenaList.insert({i, Arena({xArena, yArena, arenaWidth, arenaHeight})});
+        grid[{xArena / arenaWidth, yArena / arenaHeight}] = true;
+    }   
+
+    
+    enemyList.clear();
+    int xEnemy, yEnemy;
+    do
+    {
+        auto it = begin(grid);
+        advance(it, rand() % grid.size());
+        pair<int, int> randomCell = it->first;
+
+        xEnemy = randomCell.first * enemyWidth;
+        yEnemy = randomCell.second * enemyHeight;
+
+        bool tooCloseToPlayer = (abs(xEnemy - player.getX()) < playerWidth + minDistanceBetweenPlayerAndEnemy) || (abs(yEnemy - player.getY()) < playerHeight + minDistanceBetweenPlayerAndEnemy);
+        if (!grid[randomCell] && !tooCloseToPlayer)
+        {
+            grid[randomCell] = true;
+            break;
+        }
+
+    } while(true);
+    
+    Enemy newEnemy({xEnemy, yEnemy, enemyWidth, enemyHeight});
+    enemyList.push_back(newEnemy);
+
+    ladder.setX(max((rand() % GameSettings::WIDTH - ladderWidth), 0));
+    ladder.setY(max((rand() % GameSettings::HEIGHT - ladderHeight), 0));
+
+
+    points = 0;
+}
+
 
 
 #endif

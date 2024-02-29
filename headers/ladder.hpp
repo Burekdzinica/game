@@ -51,6 +51,7 @@ void Ladder::setY(int y)
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+// pairs the hash // doesnt work without this
 struct PairHash
 {
     template <class T1, class T2>
@@ -74,6 +75,7 @@ class Level
         Level();
         void resetGame(Player &player, vector <Enemy> &enemyList, unordered_map <int, Arena>& arenaList, Ladder& ladder, int& isCloseTo, int health);
         void setLevel();
+        void resetLevel();
         void setArenaCounter(int arenaCounter);
         int getLevel();
         int getArenaCounter();
@@ -180,6 +182,11 @@ void Level::resetGame(Player &player, vector <Enemy> &enemyList, unordered_map <
 void Level::setLevel()
 {
     this->lvl++;
+}
+
+void Level::resetLevel()
+{
+    this->lvl = 1;
 }
 
 void Level::setArenaCounter(int arenaCounter)

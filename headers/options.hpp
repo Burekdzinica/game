@@ -138,19 +138,19 @@ void Options::handleMouseClick(SDL_Renderer *renderer)
         {
             GameSettings::WIDTH = 1920;
             GameSettings::HEIGHT = 1080;
-            SDL_SetWindowSize(GameSettings::window, GameSettings::WIDTH, GameSettings::HEIGHT);
+            SDL_SetWindowSize(Data::window, GameSettings::WIDTH, GameSettings::HEIGHT);
         }
         else if (mouseX >= resolution_1280x720_button.x && mouseX <= resolution_1280x720_button.x + resolution_1280x720_button.w && mouseY >= resolution_1280x720_button.y && mouseY <= resolution_1280x720_button.y + resolution_1280x720_button.h)
         {
             GameSettings::WIDTH = 1280;
             GameSettings::HEIGHT = 720;
-            SDL_SetWindowSize(GameSettings::window, GameSettings::WIDTH, GameSettings::HEIGHT);
+            SDL_SetWindowSize(Data::window, GameSettings::WIDTH, GameSettings::HEIGHT);
         }
         else if (mouseX >= resolution_800x600_button.x && mouseX <= resolution_800x600_button.x + resolution_800x600_button.w && mouseY >= resolution_800x600_button.y && mouseY <= resolution_800x600_button.y + resolution_800x600_button.h)
         {
             GameSettings::WIDTH = 800;
             GameSettings::HEIGHT = 600;
-            SDL_SetWindowSize(GameSettings::window, GameSettings::WIDTH, GameSettings::HEIGHT);
+            SDL_SetWindowSize(Data::window, GameSettings::WIDTH, GameSettings::HEIGHT);
         }
         else if (mouseX >= exitButton.x && mouseX <= exitButton.x + exitButton.w && mouseY >= exitButton.y && mouseY <= exitButton.y + exitButton.h)
         {
@@ -162,12 +162,12 @@ void Options::handleMouseClick(SDL_Renderer *renderer)
         {
             if (!this->inFullscreen)
             {
-                SDL_SetWindowFullscreen(GameSettings::window, SDL_WINDOW_FULLSCREEN);
+                SDL_SetWindowFullscreen(Data::window, SDL_WINDOW_FULLSCREEN_DESKTOP);
                 this->inFullscreen = true;
             }
             else
             {
-                SDL_SetWindowFullscreen(GameSettings::window, 0);
+                SDL_SetWindowFullscreen(Data::window, 0);
                 this->inFullscreen = false;
             }
         }
@@ -226,6 +226,7 @@ void Options::open(SDL_Renderer *renderer)
             SDL_RenderClear(renderer);
             createText(renderer, "Exit", exitButton);
             createText(renderer, "Resolution", resolutionButton);
+            
 
             SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
             SDL_RenderPresent(renderer);
@@ -233,6 +234,7 @@ void Options::open(SDL_Renderer *renderer)
             backInOptions = false;
         }
     }
+
     this->counter = 1;
 
     return START_SCREEN_HPP;

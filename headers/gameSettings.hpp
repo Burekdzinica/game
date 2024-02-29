@@ -5,7 +5,12 @@ namespace GameSettings
 {
     int WIDTH = 1720;
     int HEIGHT = 820;
+}
+
+namespace Data
+{
     SDL_Window* window = nullptr;
+    bool isPlayerAlive = true;
 }
 
 #endif

@@ -13,11 +13,6 @@ using namespace std;
 const int nameWidth = 200, nameHeight = 100;
 const int gameNameWidth = 1000, gameNameHeight = 100;
 
-// struct TextSize
-// {
-//     int width, height;
-// };
-
 class StartScreen
 {
     private:
@@ -45,7 +40,6 @@ class StartScreen
         void handleMouseClick(SDL_Renderer *renderer);
         void createPlayerName(SDL_Renderer *renderer);
         void renderUI(SDL_Renderer* renderer);
-        // void openOptions(SDL_Renderer* renderer);
         void run(SDL_Renderer *renderer);
 };
 
@@ -57,12 +51,11 @@ StartScreen::StartScreen(SDL_Renderer *renderer)
     this->font = TTF_OpenFont("fonts/test.ttf", 50);
     this->textColor = {255, 255, 255};
 
-    this->screenRect = {0, 0, GameSettings::WIDTH, GameSettings::HEIGHT};
     this->playButton = {GameSettings::WIDTH / 2 - nameWidth / 2, (GameSettings::HEIGHT / 2), nameWidth, nameHeight};
     this->gameName = {(GameSettings::WIDTH - gameNameWidth) / 2, 0, gameNameWidth, gameNameHeight};
     this->inputNameRect = {GameSettings::WIDTH / 2 - nameWidth / 2, (GameSettings::HEIGHT / 2) - nameHeight, nameWidth, nameHeight};
     this->playerNameRect = {GameSettings::WIDTH / 2 - nameWidth / 2, (GameSettings::HEIGHT / 2), nameWidth, nameHeight};
-    this->optionsButton = {GameSettings::WIDTH / 2 - nameWidth / 2, (GameSettings::HEIGHT) - nameHeight, nameWidth, nameHeight};
+    this->optionsButton = {GameSettings::WIDTH / 2 - nameWidth / 2, (GameSettings::HEIGHT) - nameHeight - 200, nameWidth, nameHeight};
 
 }
 
@@ -108,7 +101,7 @@ void StartScreen::createText(SDL_Renderer *renderer, const char* textString, SDL
 void StartScreen::createUI(SDL_Renderer *renderer)
 {
     SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, imgTexture, NULL, &this->screenRect);
+    SDL_RenderCopy(renderer, imgTexture, NULL, NULL);
 
     createText(renderer, "Resevanje bikca Ferdinda", gameName);
 
@@ -171,7 +164,7 @@ void StartScreen::createPlayerName(SDL_Renderer* renderer)
         SDL_RenderPresent(renderer);
     }
     SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, imgTexture, NULL, &screenRect);
+    SDL_RenderCopy(renderer, imgTexture, NULL, NULL);
     createText(renderer, "Resevanje bikca Ferdinanda", gameName);
 
 }
@@ -180,7 +173,7 @@ void StartScreen::renderUI(SDL_Renderer* renderer)
 {
     SDL_RenderClear(renderer);
     
-    SDL_RenderCopy(renderer, imgTexture, NULL, &this->screenRect);
+    SDL_RenderCopy(renderer, imgTexture, NULL, NULL);
     createText(renderer, "Resevanje bikca Ferdinda", gameName);
     createText(renderer, "Enter name: ", inputNameRect);
 
@@ -209,14 +202,10 @@ void StartScreen::run(SDL_Renderer *renderer)
             playerName.clear();
 
             createUI(renderer);
-            SDL_RenderPresent(renderer);
-
             options.setCounter(0);
+
+            SDL_RenderPresent(renderer);
         }
-        
-
-
-
     }
 }
 
