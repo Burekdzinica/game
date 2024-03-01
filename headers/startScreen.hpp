@@ -7,6 +7,7 @@
 
 #include "options.hpp"
 #include "gameSettings.hpp"
+#include "highscores.hpp"
 
 using namespace std;
 
@@ -19,6 +20,7 @@ class StartScreen
         bool quit;
         bool exitedOptions;
         Options options;
+        Highscores highscores;
         unordered_map<string, TextSize> textCache;
         string playerName;
         SDL_Texture *imgTexture;
@@ -30,7 +32,7 @@ class StartScreen
         SDL_Rect inputNameRect;
         SDL_Rect playerNameRect;
         SDL_Rect optionsButton;
-
+        SDL_Rect highscoresButton;
 
     public:
         StartScreen(SDL_Renderer *renderer);
@@ -48,7 +50,7 @@ StartScreen::StartScreen(SDL_Renderer *renderer)
     this->quit = false;
     this->exitedOptions = false;
     this->imgTexture = IMG_LoadTexture(renderer, "assets/startScreen.png");
-    this->font = TTF_OpenFont("fonts/test.ttf", 50);
+    this->font = TTF_OpenFont("fonts/pixel.ttf", 30);
     this->textColor = {255, 255, 255};
 
     this->playButton = {GameSettings::WIDTH / 2 - nameWidth / 2, (GameSettings::HEIGHT / 2), nameWidth, nameHeight};
@@ -56,7 +58,7 @@ StartScreen::StartScreen(SDL_Renderer *renderer)
     this->inputNameRect = {GameSettings::WIDTH / 2 - nameWidth / 2, (GameSettings::HEIGHT / 2) - nameHeight, nameWidth, nameHeight};
     this->playerNameRect = {GameSettings::WIDTH / 2 - nameWidth / 2, (GameSettings::HEIGHT / 2), nameWidth, nameHeight};
     this->optionsButton = {GameSettings::WIDTH / 2 - nameWidth / 2, (GameSettings::HEIGHT) - nameHeight - 200, nameWidth, nameHeight};
-
+    this->highscoresButton = {GameSettings::WIDTH / 2 - nameWidth / 2, (GameSettings::HEIGHT) - nameHeight - 260, nameWidth, nameHeight};
 }
 
 StartScreen::~StartScreen()
@@ -109,6 +111,7 @@ void StartScreen::createUI(SDL_Renderer *renderer)
     createPlayerName(renderer);
 
     createText(renderer, "Play", playButton);
+    createText(renderer, "Scores", highscoresButton);
 
     playerNameRect.x = inputNameRect.x + inputNameRect.w - playerNameRect.w;
     playerNameRect.y = GameSettings::HEIGHT / 4;
@@ -128,6 +131,9 @@ void StartScreen::handleMouseClick(SDL_Renderer *renderer)
 
     if (mouseX >= playButton.x && mouseX <= playButton.x + playButton.w && mouseY >= playButton.y && mouseY <= playButton.y + playButton.h)
         this->quit = true;
+
+    else if (mouseX >= highscoresButton.x && mouseX <= highscoresButton.x + highscoresButton.w && mouseY >= highscoresButton.y && mouseY <= highscoresButton.y + highscoresButton.h)
+        highscores.open(renderer);
 
     else if (mouseX >= optionsButton.x && mouseX <= optionsButton.x + optionsButton.w && mouseY >= optionsButton.y && mouseY <= optionsButton.y + optionsButton.h)
         options.open(renderer);
@@ -197,18 +203,29 @@ void StartScreen::run(SDL_Renderer *renderer)
                 handleMouseClick(renderer);
         }
 
-        if (!options.isOpen() && options.getCounter() == 1)
+        if (!options.isOpen())
         {
             playerName.clear();
 
             createUI(renderer);
-            options.setCounter(0);
+
+            options.setOpen(true);
 
             SDL_RenderPresent(renderer);
         }
+        if (!highscores.isOpen())
+        {
+            createUI(renderer);
+
+            highscores.setOpen(true);
+
+            SDL_RenderPresent(renderer);
+        }
+        
     }
+    Data::playerName = playerName;
 }
 
 
 
-#endif
+#endif 

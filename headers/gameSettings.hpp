@@ -11,6 +11,12 @@ namespace Data
 {
     SDL_Window* window = nullptr;
     bool isPlayerAlive = true;
+    std::string playerName;
 }
+
+struct TextSize
+{
+    int width, height;
+};
 
 #endif

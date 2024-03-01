@@ -11,10 +11,10 @@ const extern int nameWidth, nameHeight;
 
 using namespace std;
 
-struct TextSize
-{
-    int width, height;
-};
+// struct TextSize
+// {
+//     int width, height;
+// };
 
 class Options
 {
@@ -39,8 +39,7 @@ class Options
     public:
         Options();
         bool isOpen() const;
-        int getCounter();
-        void setCounter(int newCounter);
+        void setOpen(bool newOpen);
         void createText(SDL_Renderer *renderer, const char* textString, SDL_Rect &destRect);
         void handleMouseClick(SDL_Renderer *renderer);
         void openResolutionOptions(SDL_Renderer *renderer);
@@ -49,7 +48,7 @@ class Options
 
 Options::Options()
 {
-    this->font = TTF_OpenFont("fonts/test.ttf", 50);
+    this->font = TTF_OpenFont("fonts/pixel.ttf", 30);
     this->textColor = {255, 255, 255};
     this->inOptions = true;
     this->inFullscreen = false;
@@ -58,7 +57,7 @@ Options::Options()
     this->resolutionOptionsOpen = false;
     this->backInOptions = false;
     this->resolutionButton = {GameSettings::WIDTH / 2 - nameWidth / 2, (GameSettings::HEIGHT / 2) - nameHeight, nameWidth, nameHeight};
-    this->exitButton = {GameSettings::WIDTH/ 2 - nameWidth / 2, (GameSettings::HEIGHT / 2) - nameHeight + 200, nameWidth, nameHeight};; 
+    this->exitButton = {GameSettings::WIDTH/ 2 - nameWidth / 2, (GameSettings::HEIGHT / 2) - nameHeight + 200, nameWidth, nameHeight};
     this->resolution_1920x1080_button = {GameSettings::WIDTH / 2 - nameWidth / 2, (GameSettings::HEIGHT / 2) - nameHeight, nameWidth, nameHeight};
     this->resolution_1280x720_button = {GameSettings::WIDTH / 2 - nameWidth / 2, (GameSettings::HEIGHT / 2) - nameHeight - 100, nameWidth, nameHeight};
     this->resolution_800x600_button = {GameSettings::WIDTH/ 2 - nameWidth / 2, (GameSettings::HEIGHT / 2) - nameHeight - 200, nameWidth, nameHeight};
@@ -70,14 +69,9 @@ bool Options::isOpen() const
     return this->inOptions;
 }
 
-int Options::getCounter()
+void Options::setOpen(bool newOpen)
 {
-    return this->counter;
-}
-
-void Options::setCounter(int newCounter)
-{
-    this->counter = newCounter;
+    this->inOptions = newOpen;
 }
 
 void Options::createText(SDL_Renderer *renderer, const char* textString, SDL_Rect &destRect)

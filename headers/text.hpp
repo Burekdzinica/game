@@ -18,7 +18,7 @@ class Text
 
 Text::Text()
 {
-    this->font = TTF_OpenFont("fonts/test.ttf", 50);
+    this->font = TTF_OpenFont("fonts/pixel.ttf", 30);
     if (!font)
         cout << "Font initilization failed " << TTF_GetError() << "\n"; 
 }

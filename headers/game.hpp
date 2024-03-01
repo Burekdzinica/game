@@ -2,6 +2,9 @@
 #define GAME_CPP
 
 #include <iostream>
+#include <iomanip>
+#include <algorithm>
+#include <fstream>
 #include <unordered_map>
 #include <time.h>
 #include <chrono>
@@ -39,6 +42,7 @@ const int minDistanceBetweenPlayerAndEnemy = 50;
 class Game
 {
     private:
+        ofstream highscoresData;
         SDL_Texture *playerTexture;
         SDL_Texture *enemyTexture;
         SDL_Texture *arenaTexture;
@@ -67,6 +71,7 @@ class Game
         void render();
         bool isOpen();
         void restart();
+        void updateHighscores();
 };
 
 Game::Game()
@@ -96,6 +101,8 @@ void Game::setup()
 
     StartScreen startScreen(window.getRenderer());
     startScreen.run(window.getRenderer());
+
+    highscoresData.open("highscores.txt", ios::app);
     
     playerTexture = LOAD_TEXTURE(window.getRenderer(), "assets/player_remastared.png");
     enemyTexture = LOAD_TEXTURE(window.getRenderer(), "assets/enemy_reloaded.png");
@@ -175,7 +182,7 @@ void Game::setup()
 
     this->ladder = Ladder({max((rand() % GameSettings::WIDTH - ladderWidth), 0), max((rand() % GameSettings::HEIGHT - ladderHeight), 0), ladderWidth, ladderHeight});
 
-    Text text("fonts/test.ttf", 50);
+    Text text("fonts/pixel.ttf", 50);
 }
 
 void Game::update()
@@ -303,6 +310,8 @@ void Game::render()
         text.createText(window.getRenderer(), "Press [R] to restart", GameSettings::WIDTH / 2, GameSettings::HEIGHT / 2 + 200);
 
         window.present();
+
+        updateHighscores();
     }
 
     window.present();  
@@ -402,6 +411,50 @@ void Game::restart()
     points = 0;
 }
 
+void Game::updateHighscores()
+{
+    vector<pair<string,int>> highscores;
+    
+    ifstream highscoresInput("highscores.txt");
+    string line;
+
+    while(getline(highscoresInput, line))
+    {
+        if (!line.empty())
+        {
+            size_t tabPos = line.find_first_of(" \t");
+            if (tabPos != string::npos)
+            {
+                string playerName = line.substr(0, tabPos);
+                int score = stoi(line.substr(tabPos + 1));
+                highscores.push_back({playerName, score});
+            }
+        }
+    }
+    highscoresInput.close();
+
+    auto playerIterator = find_if(highscores.begin(), highscores.end(), [this](const auto &entry) {
+        return entry.first == Data::playerName;
+    });
+
+    if (playerIterator != highscores.end())
+        playerIterator->second = max(playerIterator->second, points);
+    else
+        highscores.push_back({Data::playerName, points});
+
+    sort(highscores.begin(), highscores.end(), [](const auto &a, const auto &b) -> bool 
+    {
+        return a.second > b.second;
+    });
+
+    highscoresData.open("highscores.txt", ios::trunc);
+    highscores.resize(min(5, (int)highscores.size()));
+
+    for (const auto &entry : highscores)
+        highscoresData << left << setw(20) << entry.first << setw(5)<< entry.second << "\n";
+
+    highscoresData.close();
+}
 
 
 #endif
