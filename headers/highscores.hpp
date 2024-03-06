@@ -9,17 +9,15 @@
 
 #include "gameSettings.hpp"
 
-const extern int nameWidth, nameHeight;
+const extern int NAME_WIDTH, NAME_HEIGHT;
 
 using namespace std;
 
-class Highscores
+class Highscores : public Menu
 {
     private:
-        TTF_Font *font;
-        SDL_Color textColor;
-        unordered_map<string, TextSize> textCache;
         bool inHighscores;
+
         SDL_Rect exitButton;
         SDL_Rect highscoresName;
 
@@ -28,19 +26,16 @@ class Highscores
         ~Highscores();
         bool isOpen() const;
         void setOpen(bool newOpen);
-        void createText(SDL_Renderer *renderer, const char* textString, SDL_Rect &destRect);
-        void handleMouseClick(SDL_Renderer* renderer);
+        void handleMouseClick(SDL_Renderer* renderer) override;
         void drawHighscores(SDL_Renderer* renderer);
         void open(SDL_Renderer* renderer);
 };
 
 Highscores::Highscores()
 {
-    this->font = TTF_OpenFont("fonts/pixel.ttf", 30);
-    this->textColor = {255, 255, 255};
     this->inHighscores = true;
-    this->exitButton = {GameSettings::WIDTH/ 2 - nameWidth / 2, (GameSettings::HEIGHT / 2) - nameHeight + 200, nameWidth, nameHeight};
-    this->highscoresName = {(GameSettings::WIDTH - nameWidth) / 2, 0, nameHeight, nameHeight};
+    this->exitButton = {GameSettings::WIDTH/ 2 - NAME_WIDTH / 2, (GameSettings::HEIGHT / 2) - NAME_HEIGHT + 200, NAME_WIDTH, NAME_HEIGHT};
+    this->highscoresName = {(GameSettings::WIDTH - NAME_WIDTH) / 2, 0, NAME_HEIGHT, NAME_HEIGHT};
 }
 
 Highscores::~Highscores()
@@ -56,40 +51,6 @@ bool Highscores::isOpen() const
 void Highscores::setOpen(bool newOpen)
 {
     this->inHighscores = newOpen;
-}
-
-void Highscores::createText(SDL_Renderer *renderer, const char* textString, SDL_Rect &destRect)
-{
-    SDL_Surface* textSurface = TTF_RenderText_Solid(this->font, textString, textColor);
-    if (textSurface == NULL) 
-        cout << "Initialization textSurface failed \n";
-
-    SDL_Texture *textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
-    if (textTexture == NULL)
-        cout << "Initialization textTexture failed \n";
-
-    TextSize textSize;
-
-    auto cacheIt = textCache.find(textString);
-    if(cacheIt == textCache.end())
-    {
-        TTF_SizeText(this->font, textString, &textSize.width, &textSize.height);
-        textCache[textString] = textSize;
-    }
-    else
-        textSize = cacheIt->second;
-        
-    // TTF_SizeText(this->font, textString, &textWidth, &textHeight);
-
-    destRect.w = textSize.width;
-    destRect.h = textSize.height;
-
-    destRect.x = (GameSettings::WIDTH - destRect.w) / 2;
-
-    SDL_RenderCopy(renderer, textTexture, NULL, &destRect);
-
-    SDL_FreeSurface(textSurface);
-    SDL_DestroyTexture(textTexture);
 }
 
 void Highscores::handleMouseClick(SDL_Renderer *renderer)

@@ -5,10 +5,9 @@
 
 using namespace std;
 
-class Arena 
+class Arena : public Entity
 {
     private:
-        SDL_Rect asset;
         bool isLvlDone;
         bool didArenaSpawn;
         bool isVisible;
@@ -27,9 +26,6 @@ class Arena
         void setForcedVisibility(bool newForcedVisibility);
         void setArenaSpawn();
         void setVisible(bool newVisible);
-        void setX(int newX);
-        void setY(int newY);
-
 };
 
 Arena::Arena()
@@ -92,18 +88,5 @@ void Arena::setVisible(bool newVisible)
 {
     this->isVisible = newVisible;
 }
-
-void Arena::setX(int newX)
-{
-    this->asset.x = newX;
-}
-
-void Arena::setY(int newY)
-{
-    this->asset.y = newY;
-}
-
-
-
 
 #endif

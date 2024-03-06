@@ -9,11 +9,11 @@
 
 using namespace std;
 
-extern const int enemyWidth, enemyHeight;
-extern const int arenaWidth, arenaHeight;
-extern const int playerWidth, playerHeight;
+extern const int ENEMY_WIDTH, ENEMY_HEIGHT;
+extern const int ARENA_WIDTH, ARENA_HEIGHT;
+extern const int PLAYER_WIDTH, PLAYER_HEIGHT;
 
-extern const int minDistanceBetweenArenas;
+extern const int MIN_DISTANCE_BETWEEN_ARENAS;
 
 class Ladder 
 {
@@ -91,8 +91,8 @@ void Level::resetGame(Player &player, vector <Enemy> &enemyList, unordered_map <
     player.reset(health, {max((rand() % GameSettings::WIDTH - player.getAsset().w), 0), max((rand() % GameSettings::HEIGHT - player.getAsset().h), 0), player.getAsset().w, player.getAsset().h});
 
     unordered_map <pair<int, int>, bool, PairHash> grid;
-    for (int i = 0; i < GameSettings::WIDTH / enemyWidth; i++)
-        for (int j = 0; j < GameSettings::HEIGHT / enemyHeight; j++)
+    for (int i = 0; i < GameSettings::WIDTH / ENEMY_WIDTH; i++)
+        for (int j = 0; j < GameSettings::HEIGHT / ENEMY_HEIGHT; j++)
             grid.insert({(make_pair(i,j)), false});
 
     static int levelCounter = 1;
@@ -111,10 +111,10 @@ void Level::resetGame(Player &player, vector <Enemy> &enemyList, unordered_map <
             advance(it, rand() % grid.size());
             pair<int, int> randomCell = it->first;
 
-            xEnemy = randomCell.first * enemyWidth;
-            yEnemy = randomCell.second * enemyHeight;
+            xEnemy = randomCell.first * ENEMY_WIDTH;
+            yEnemy = randomCell.second * ENEMY_HEIGHT;
 
-            bool tooCloseToPlayer = (abs(xEnemy - player.getX()) < playerWidth + 50) && (abs(yEnemy - player.getY()) < playerHeight + 50);
+            bool tooCloseToPlayer = (abs(xEnemy - player.getAsset().x) < PLAYER_WIDTH + 50) && (abs(yEnemy - player.getAsset().y) < PLAYER_HEIGHT + 50);
             if (!grid[randomCell] && !tooCloseToPlayer)
             {
                 grid[randomCell] = true;
@@ -123,7 +123,7 @@ void Level::resetGame(Player &player, vector <Enemy> &enemyList, unordered_map <
            
         } while (true);
         
-        Enemy newEnemy({xEnemy, yEnemy, enemyWidth, enemyHeight});
+        Enemy newEnemy({xEnemy, yEnemy, ENEMY_WIDTH, ENEMY_HEIGHT});
         newEnemy.setBounds();
         enemyList.push_back(newEnemy);
     }
@@ -141,8 +141,8 @@ void Level::resetGame(Player &player, vector <Enemy> &enemyList, unordered_map <
             advance(it, rand() % grid.size());
             pair<int, int> randomCell = it->first;
 
-            xArena = randomCell.first * arenaWidth;
-            yArena = randomCell.second * arenaHeight;
+            xArena = randomCell.first * ARENA_WIDTH;
+            yArena = randomCell.second * ARENA_HEIGHT;
 
             bool tooCloseToExistingArena = false;
             for (const auto& entry : arenaList)
@@ -150,7 +150,7 @@ void Level::resetGame(Player &player, vector <Enemy> &enemyList, unordered_map <
                 int distanceX = abs(xArena - entry.second.getAsset().x);
                 int distanceY = abs(yArena - entry.second.getAsset().y);
 
-                if (distanceX < minDistanceBetweenArenas || distanceY < minDistanceBetweenArenas)
+                if (distanceX < MIN_DISTANCE_BETWEEN_ARENAS || distanceY < MIN_DISTANCE_BETWEEN_ARENAS)
                 {
                     tooCloseToExistingArena = true;
                     break;
@@ -169,8 +169,8 @@ void Level::resetGame(Player &player, vector <Enemy> &enemyList, unordered_map <
 
         } while (true);
 
-        arenaList.insert({i, Arena({xArena, yArena, arenaWidth, arenaHeight})});
-        grid[{xArena / arenaWidth, yArena / arenaHeight}] = true;
+        arenaList.insert({i, Arena({xArena, yArena, ARENA_WIDTH, ARENA_HEIGHT})});
+        grid[{xArena / ARENA_WIDTH, yArena / ARENA_HEIGHT}] = true;
     }
 
     ladder.setX(max((rand() % GameSettings::WIDTH - ladder.getAsset().w), 0));
