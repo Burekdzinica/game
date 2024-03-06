@@ -142,13 +142,6 @@ void Highscores::open(SDL_Renderer* renderer)
 
         }
     }
-
 }
-
-
-
-
-
-
 
 #endif 

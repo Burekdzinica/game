@@ -163,12 +163,12 @@ bool Player::isNearby(const SDL_Rect sourceRect, SDL_Rect destRect, int range) c
 
 void Player::setX(int newX)
 {
-    this->asset.x += newX;
+    this->asset.x = newX;
 }
 
 void Player::setY(int newY)
 {
-    this->asset.y += newY;
+    this->asset.y = newY;
 }
 
 int Player::getX()

@@ -215,6 +215,8 @@ void StartScreen::run(SDL_Renderer *renderer)
         }
         if (!highscores.isOpen())
         {
+            playerName.clear();
+            
             createUI(renderer);
 
             highscores.setOpen(true);

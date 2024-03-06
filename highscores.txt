@@ -1,5 +1,5 @@
+srsa                700  
 gasper              300  
 urh                 200  
-srsa                100  
 gorazd              100  
 horvatic            0    
