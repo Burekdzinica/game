@@ -7,27 +7,20 @@
 
 #include "gameSettings.hpp"
 
-const extern int nameWidth, nameHeight;
+const extern int NAME_WIDTH, NAME_HEIGHT;
 
 using namespace std;
 
-// struct TextSize
-// {
-//     int width, height;
-// };
-
-class Options
+class Options : public Menu
 {
     private:
         bool inOptions;
         bool inFullscreen;
         int counter;
-        TTF_Font *font;
-        SDL_Color textColor;
-        unordered_map<string, TextSize> textCache;
         bool inResolutionOptions;
         bool resolutionOptionsOpen;
         bool backInOptions;
+
         SDL_Rect resolutionButton;
         SDL_Rect exitButton;
         SDL_Rect resolution_1920x1080_button;
@@ -40,28 +33,26 @@ class Options
         Options();
         bool isOpen() const;
         void setOpen(bool newOpen);
-        void createText(SDL_Renderer *renderer, const char* textString, SDL_Rect &destRect);
-        void handleMouseClick(SDL_Renderer *renderer);
+        void handleMouseClick(SDL_Renderer *renderer) override;
         void openResolutionOptions(SDL_Renderer *renderer);
         void open(SDL_Renderer *renderer);
 };
 
 Options::Options()
 {
-    this->font = TTF_OpenFont("fonts/pixel.ttf", 30);
-    this->textColor = {255, 255, 255};
     this->inOptions = true;
     this->inFullscreen = false;
     this->counter = 0;
     this->inResolutionOptions = true;
     this->resolutionOptionsOpen = false;
     this->backInOptions = false;
-    this->resolutionButton = {GameSettings::WIDTH / 2 - nameWidth / 2, (GameSettings::HEIGHT / 2) - nameHeight, nameWidth, nameHeight};
-    this->exitButton = {GameSettings::WIDTH/ 2 - nameWidth / 2, (GameSettings::HEIGHT / 2) - nameHeight + 200, nameWidth, nameHeight};
-    this->resolution_1920x1080_button = {GameSettings::WIDTH / 2 - nameWidth / 2, (GameSettings::HEIGHT / 2) - nameHeight, nameWidth, nameHeight};
-    this->resolution_1280x720_button = {GameSettings::WIDTH / 2 - nameWidth / 2, (GameSettings::HEIGHT / 2) - nameHeight - 100, nameWidth, nameHeight};
-    this->resolution_800x600_button = {GameSettings::WIDTH/ 2 - nameWidth / 2, (GameSettings::HEIGHT / 2) - nameHeight - 200, nameWidth, nameHeight};
-    this->fullscreenButton = {(GameSettings::WIDTH - nameWidth) / 2, 0, nameWidth, nameHeight};
+
+    this->resolutionButton = {GameSettings::WIDTH / 2 - NAME_WIDTH / 2, (GameSettings::HEIGHT / 2) - NAME_HEIGHT, NAME_WIDTH, NAME_HEIGHT};
+    this->exitButton = {GameSettings::WIDTH/ 2 - NAME_WIDTH / 2, (GameSettings::HEIGHT / 2) - NAME_HEIGHT + 200, NAME_WIDTH, NAME_HEIGHT};
+    this->resolution_1920x1080_button = {GameSettings::WIDTH / 2 - NAME_WIDTH / 2, (GameSettings::HEIGHT / 2) - NAME_HEIGHT, NAME_WIDTH, NAME_HEIGHT};
+    this->resolution_1280x720_button = {GameSettings::WIDTH / 2 - NAME_WIDTH / 2, (GameSettings::HEIGHT / 2) - NAME_HEIGHT - 100, NAME_WIDTH, NAME_HEIGHT};
+    this->resolution_800x600_button = {GameSettings::WIDTH/ 2 - NAME_WIDTH / 2, (GameSettings::HEIGHT / 2) - NAME_HEIGHT - 200, NAME_WIDTH, NAME_HEIGHT};
+    this->fullscreenButton = {(GameSettings::WIDTH - NAME_WIDTH) / 2, 0, NAME_WIDTH, NAME_HEIGHT};
 }
 
 bool Options::isOpen() const
@@ -72,40 +63,6 @@ bool Options::isOpen() const
 void Options::setOpen(bool newOpen)
 {
     this->inOptions = newOpen;
-}
-
-void Options::createText(SDL_Renderer *renderer, const char* textString, SDL_Rect &destRect)
-{
-    SDL_Surface* textSurface = TTF_RenderText_Solid(this->font, textString, textColor);
-    if (textSurface == NULL) 
-        cout << "Initialization textSurface failed \n";
-
-    SDL_Texture *textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
-    if (textTexture == NULL)
-        cout << "Initialization textTexture failed \n";
-
-    TextSize textSize;
-
-    auto cacheIt = textCache.find(textString);
-    if(cacheIt == textCache.end())
-    {
-        TTF_SizeText(this->font, textString, &textSize.width, &textSize.height);
-        textCache[textString] = textSize;
-    }
-    else
-        textSize = cacheIt->second;
-        
-    // TTF_SizeText(this->font, textString, &textSize.width, &textSize.height);
-
-    destRect.w = textSize.width;
-    destRect.h = textSize.height;
-
-    destRect.x = (GameSettings::WIDTH - destRect.w) / 2;
-
-    SDL_RenderCopy(renderer, textTexture, NULL, &destRect);
-
-    SDL_FreeSurface(textSurface);
-    SDL_DestroyTexture(textTexture);
 }
 
 void Options::handleMouseClick(SDL_Renderer *renderer)
@@ -184,7 +141,6 @@ void Options::openResolutionOptions(SDL_Renderer *renderer)
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
         createText(renderer, "Exit", exitButton);
-
         createText(renderer, "Fullscreen", fullscreenButton);
         createText(renderer, "1920x1080", resolution_1920x1080_button);
         createText(renderer, "1280x720", resolution_1280x720_button);

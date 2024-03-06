@@ -5,8 +5,9 @@
 #include <SDL2/SDL.h>
 
 #include "gameSettings.hpp"
+#include "entity.hpp"
 
-extern const int animationSpeed;
+extern const int ANIMATION_SPEED;
 
 enum class PlayerState
 {
@@ -14,15 +15,12 @@ enum class PlayerState
     Moving,
 };
 
-class Player
+class Player : public EntityAnimation
 {
     private:
         int health;
-        SDL_Rect asset; // stores position
-        SDL_Rect srcRect;
         PlayerState state;
         bool isMoving;
-        SDL_RendererFlip flip;
         bool nearLadder;
         bool nearArena;
 
@@ -34,23 +32,14 @@ class Player
         void changeHealth(int healthDiff);
         void movePlayer();
         void move(int x, int y);
-        SDL_Rect getAsset() const;
         bool isNearby(const SDL_Rect player, SDL_Rect arena, int range) const;
-        void setX(int newX);
-        void setY(int newY);
-        int getX();
-        int getY();
         bool isNearLadder();
         bool isNearArena();
         void updatePlayerAnimation(int speed);
-        void setSrcRect(int x, int y, int w, int h, int frame, int speed);
         PlayerState getState();
         void setNearArena(bool newNearArena);
         void setNearLadder(bool newNearLadder);
         void setState(PlayerState newState);
-        SDL_RendererFlip getFlip();
-        void setFlip(SDL_RendererFlip newflip);
-        SDL_Rect getSrcRect();
         void reset(int health, SDL_Rect newAsset);
 };
 
@@ -148,37 +137,12 @@ void Player::move(int x, int y)
         this->asset.x += x;
         this->asset.y += y;
     }
-    updatePlayerAnimation(animationSpeed);
-}
-
-SDL_Rect Player::getAsset() const
-{
-    return this->asset;
+    updatePlayerAnimation(ANIMATION_SPEED);
 }
 
 bool Player::isNearby(const SDL_Rect sourceRect, SDL_Rect destRect, int range) const
 {
     return (abs(sourceRect.x - destRect.x) < range && abs(sourceRect.y - destRect.y) < range);  
-}
-
-void Player::setX(int newX)
-{
-    this->asset.x = newX;
-}
-
-void Player::setY(int newY)
-{
-    this->asset.y = newY;
-}
-
-int Player::getX()
-{
-    return this->asset.x;
-}
-
-int Player::getY()
-{
-    return this->asset.y;
 }
 
 bool Player::isNearArena()
@@ -205,14 +169,6 @@ void Player::updatePlayerAnimation(int speed)
     }
 }
 
-void Player::setSrcRect(int x, int y, int w, int h, int frames, int speed)
-{
-    this->srcRect.y = y;
-    this->srcRect.w = w;
-    this->srcRect.h = h;
-    this->srcRect.x = srcRect.w * (static_cast<int> ((SDL_GetTicks() / speed) % frames));
-}
-
 PlayerState Player::getState()
 {
     return this->state;
@@ -231,21 +187,6 @@ void Player::setNearArena(bool newNearArena)
 void Player::setNearLadder(bool newNearLadder)
 {
     this->nearLadder = newNearLadder;
-}
-
-SDL_RendererFlip Player::getFlip()
-{
-    return this->flip;
-}
-
-void Player::setFlip(SDL_RendererFlip newFlip)
-{
-    this->flip = newFlip;
-}
-
-SDL_Rect Player::getSrcRect()
-{
-    return this->srcRect;
 }
 
 void Player::reset(int health, SDL_Rect newAsset)

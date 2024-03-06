@@ -8,10 +8,11 @@
 
 #include "player.hpp"
 #include "gameSettings.hpp"
+#include "entity.hpp"
 
 using namespace std;
 
-const int boundRange = 900;
+const int BOUND_RANGE = 900;
 
 enum class EnemyState
 {
@@ -20,10 +21,9 @@ enum class EnemyState
     Attacked,
 };
 
-class Enemy
+class Enemy : public EntityAnimation
 {
     private:
-        SDL_Rect asset;
         EnemyState state;
         chrono::steady_clock::time_point chaseStartTime;
         chrono::steady_clock::time_point attackStartTime;
@@ -31,18 +31,11 @@ class Enemy
         int yMovement;
         int direction;
         int bounds[4];
-        SDL_Rect srcRect;
-        SDL_RendererFlip flip;
 
     
     public:
         Enemy(SDL_Rect asset);
-        SDL_Rect getAsset();
-        void setX(int x);
-        void setY(int y);
         EnemyState getState();
-        SDL_RendererFlip getFlip();
-        SDL_Rect getSrcRect();
         void setState(EnemyState state);
         void setBounds();
         bool isPlayerTouching(const SDL_Rect& player);
@@ -50,7 +43,6 @@ class Enemy
         bool isPlayerInView(Player& player, float detectionDistance);
         void moveChasing(SDL_Rect playerAsset);
         void moveIdle();
-        void setSrcRect(int x, int y, int w, int h, int frames, int speed);
 };
 
 Enemy::Enemy(SDL_Rect asset)
@@ -67,21 +59,6 @@ Enemy::Enemy(SDL_Rect asset)
     setBounds();
 }
 
-SDL_Rect Enemy::getAsset()
-{
-    return this->asset;
-}
-
-void Enemy::setX(int newX)
-{
-    this->asset.x = newX;
-}
-
-void Enemy::setY(int newY)
-{
-    this->asset.y = newY;
-}
-
 bool Enemy::isPlayerTouching(const SDL_Rect& player)
 {
     return SDL_HasIntersection(&player, &asset) == SDL_TRUE;
@@ -92,16 +69,6 @@ EnemyState Enemy::getState()
     return this->state;
 }
 
-SDL_RendererFlip Enemy::getFlip()
-{
-    return this->flip;
-}
-
-SDL_Rect Enemy::getSrcRect()
-{
-    return this->srcRect;
-}
-
 void Enemy::setState(EnemyState newState)
 {
     this->state = newState;
@@ -109,10 +76,10 @@ void Enemy::setState(EnemyState newState)
 
 void Enemy::setBounds()
 {
-    this->bounds[0] = this->asset.x - boundRange; // x left
-    this->bounds[1] = this->asset.x + boundRange; // x right
-    this->bounds[2] = this->asset.y - boundRange; // y left
-    this->bounds[3] = this->asset.y + boundRange; // y right
+    this->bounds[0] = this->asset.x - BOUND_RANGE; // x left
+    this->bounds[1] = this->asset.x + BOUND_RANGE; // x right
+    this->bounds[2] = this->asset.y - BOUND_RANGE; // y left
+    this->bounds[3] = this->asset.y + BOUND_RANGE; // y right
 }
 
 void Enemy::updateEnemyAI(Player& player, float detectionDistance, int animationSpeed)
@@ -263,14 +230,6 @@ void Enemy::moveIdle()
     setY(asset.y + this->direction * speed * this->yMovement);
     if (asset.y > this->bounds[3] || (asset.y < this->bounds[2]))
         this->direction *= -1;
-}
-
-void Enemy::setSrcRect(int x, int y, int w, int h, int frames, int speed)
-{
-    this->srcRect.y = y;
-    this->srcRect.w = w;
-    this->srcRect.h = h;
-    this->srcRect.x = srcRect.w * (static_cast<int> ((SDL_GetTicks() / speed) % frames));
 }
 
 #endif

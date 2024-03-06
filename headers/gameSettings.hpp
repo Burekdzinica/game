@@ -10,8 +10,10 @@ namespace GameSettings
 namespace Data
 {
     SDL_Window* window = nullptr;
+    SDL_Renderer* renderer = nullptr;
     bool isPlayerAlive = true;
     std::string playerName;
+    bool inStartScreen = true;
 }
 
 struct TextSize

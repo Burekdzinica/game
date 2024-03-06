@@ -2,6 +2,7 @@
 #define WINDOW_HPP
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include <unordered_map>
 
 #include "arena.hpp"
@@ -15,6 +16,7 @@ const extern int WIDTH, HEIGHT;
 class Window
 {
     private:  
+        TTF_Font* font;
         SDL_Window *window;
         SDL_Renderer *renderer;
         SDL_Texture *texture;
@@ -23,9 +25,10 @@ class Window
 
     public:
         Window();
-        Window(const string &title, int width, int height);
+        Window(const string &title, int WIDTH, int HEIGHT, const char* fontName, int fontSize);
         ~Window(); //destructor
         void init();
+        void createText(SDL_Renderer *renderer, const char* textString, int x, int y);
         void clear();
         void present();
         SDL_Renderer* getRenderer();
@@ -36,6 +39,7 @@ class Window
 
 Window::Window()
 {
+    init();
     SDL_Init(SDL_INIT_EVERYTHING);
 
     SDL_Window *window = SDL_CreateWindow("Reševanje bikca Ferdinanda", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, GameSettings::WIDTH, GameSettings::HEIGHT, SDL_WINDOW_ALLOW_HIGHDPI);
@@ -50,15 +54,21 @@ Window::Window()
     if (imgTexture == NULL)
         cout << "Cannot load image";
 
+    this->font = TTF_OpenFont("fonts/pixel.ttf", 30);
+    if (!font)
+        cout << "Font initilization failed " << TTF_GetError() << "\n"; 
+
     this->healthRect = {1, 1, 279, 66};
 
     Data::window = window;
+    Data::renderer = renderer;
 
     init();
 }
 
-Window::Window(const string &title, int WIDTH, int HEIGHT)
+Window::Window(const string &title, int WIDTH, int HEIGHT, const char* fontName, int fontSize)
 {
+    init();
     SDL_Init(SDL_INIT_EVERYTHING);
 
     if (window == NULL)
@@ -72,14 +82,17 @@ Window::Window(const string &title, int WIDTH, int HEIGHT)
     if (imgTexture == NULL)
         cout << "Cannot load image";
 
+    this->font = TTF_OpenFont(fontName, fontSize);
+    if (!font)
+        cout << "Font initilization failed " << TTF_GetError() << "\n"; 
+
     this->healthRect = {1, 1, 279, 66};
-
-
 }
 
 //deletes the window/renderer
 Window::~Window() 
 {  
+    TTF_CloseFont(font);
     SDL_DestroyTexture(imgTexture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -94,11 +107,30 @@ void Window::init()
         cout << "SDL initialization failed: " << SDL_GetError() << "\n";
 
     if(TTF_Init() == -1)
-    if(TTF_Init() == -1)
         cout << "TTF initilization failed: " << TTF_GetError() << "\n";
 
     if(IMG_Init(IMG_INIT_PNG) == 0)
         cout << "IMG initialization failed: " << IMG_GetError() << "\n";
+}
+
+void Window::createText(SDL_Renderer *renderer, const char* textString, int x, int y)
+{
+    SDL_Color color = {230, 230, 230};
+
+    SDL_Surface* textSurface = TTF_RenderText_Solid(this->font, textString, color);
+    if (!textSurface)
+        cout << "Text surface initilization failed: " << TTF_GetError() << "\n";
+    
+    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+    SDL_FreeSurface(textSurface);
+
+    int textWidth, textHeight;
+
+    TTF_SizeText(font, textString, &textWidth, &textHeight);
+
+    SDL_Rect textRect = {abs(x - textWidth), y , textWidth, textHeight};
+    SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+
 }
 
 // //clears the screen // used for moving assets

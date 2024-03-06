@@ -17,27 +17,26 @@
 #include "window.hpp"
 #include "arena.hpp"
 #include "enemy.hpp"
-#include "text.hpp"
 #include "ladder.hpp"
 #include "startScreen.hpp"
 #include "gameSettings.hpp"
 
 using namespace std;
 
-const int arenaWidth = 83, arenaHeight = 83;
-const int playerWidth = 117, playerHeight = 140;
-const int enemyWidth = 98, enemyHeight = 166;
-const int ladderWidth = 98, ladderHeight = 98;
+const int ARENA_WIDTH = 83, ARENA_HEIGHT = 83;
+const int PLAYER_WIDTH = 117, PLAYER_HEIGHT = 140;
+const int ENEMY_WIDTH = 98, ENEMY_HEIGHT = 166;
+const int LADDER_WIDTH = 98, LADDER_HEIGHT = 98;
 
-const int animationSpeed = 200;
+const int ANIMATION_SPEED = 200;
 
-const int sightRange = 200;
-const int enemyRange = 500;
-const int interactionRangeArena = sightRange + arenaWidth - 150;
-const int interactionRangeLadder = sightRange + ladderWidth - 50;
+const int SIGHT_RANGE = 200;
+const int ENEMY_RANGE = 500;
+const int INTERACTION_RANGE_ARENA = SIGHT_RANGE + ARENA_WIDTH - 150;
+const int INTERACTION_RANGE_LADDER = SIGHT_RANGE + LADDER_WIDTH - 50;
 
-const int minDistanceBetweenArenas = 10;
-const int minDistanceBetweenPlayerAndEnemy = 50;
+const int MIN_DISTANCE_BETWEEN_ARENAS = 10;
+const int MIN_DISTANCE_BETWEEN_PLAYER_AND_ENEMY = 50;
 
 class Game
 {
@@ -58,7 +57,6 @@ class Game
         vector <Enemy> enemyList;
         unordered_map <pair<int, int>, bool, PairHash> grid;
         unordered_map <int, Arena> arenaList;
-        Text text;
         int points;
         int isCloseTo;
         bool open;
@@ -97,10 +95,10 @@ void Game::setup()
     srand(time(NULL));
     #define LOAD_TEXTURE(renderer, imgPath) SDL_CreateTextureFromSurface(renderer, IMG_Load(imgPath))
 
-    window.init();
+    // window.init();
 
-    StartScreen startScreen(window.getRenderer());
-    startScreen.run(window.getRenderer());
+    // StartScreen startScreen(window.getRenderer());
+    // startScreen.run(window.getRenderer());
 
     highscoresData.open("highscores.txt", ios::app);
     
@@ -114,8 +112,8 @@ void Game::setup()
 
 
     // makes grid for spawns
-    for (int i = 0; i < GameSettings::WIDTH / enemyWidth; i++)
-        for (int j = 0; j < GameSettings::HEIGHT / enemyHeight; j++)
+    for (int i = 0; i < GameSettings::WIDTH / ENEMY_WIDTH; i++)
+        for (int j = 0; j < GameSettings::HEIGHT / ENEMY_HEIGHT; j++)
             grid.insert({(make_pair(i,j)), false});
 
     level.setArenaCounter(2 + rand() % 2);
@@ -129,8 +127,8 @@ void Game::setup()
             advance(it, rand() % grid.size());
             pair<int, int> randomCell = it->first;
 
-            xArena = randomCell.first * arenaWidth;
-            yArena = randomCell.second * arenaHeight;
+            xArena = randomCell.first * ARENA_WIDTH;
+            yArena = randomCell.second * ARENA_HEIGHT;
 
             bool tooCloseToExistingArena = false;
             for (const auto& entry : arenaList)
@@ -138,7 +136,7 @@ void Game::setup()
                 int distanceX = abs(xArena - entry.second.getAsset().x);
                 int distanceY = abs(yArena - entry.second.getAsset().y);
 
-                if (distanceX < minDistanceBetweenArenas || distanceY < minDistanceBetweenArenas)
+                if (distanceX < MIN_DISTANCE_BETWEEN_ARENAS || distanceY < MIN_DISTANCE_BETWEEN_ARENAS)
                 {
                     tooCloseToExistingArena = true;
                     break;
@@ -152,11 +150,11 @@ void Game::setup()
 
         } while (true);
 
-        arenaList.insert({i, Arena({xArena, yArena, arenaWidth, arenaHeight})});
-        grid[{xArena / arenaWidth, yArena / arenaHeight}] = true;
+        arenaList.insert({i, Arena({xArena, yArena, ARENA_WIDTH, ARENA_HEIGHT})});
+        grid[{xArena / ARENA_WIDTH, yArena / ARENA_HEIGHT}] = true;
     }   
 
-    this->player = Player(3, {max((rand() % GameSettings::WIDTH - playerWidth), 0), max((rand() % GameSettings::HEIGHT - playerHeight), 0), playerWidth, playerHeight});
+    this->player = Player(3, {max((rand() % GameSettings::WIDTH - PLAYER_WIDTH), 0), max((rand() % GameSettings::HEIGHT - PLAYER_HEIGHT), 0), PLAYER_WIDTH, PLAYER_HEIGHT});
     
     int xEnemy, yEnemy;
     do
@@ -165,10 +163,10 @@ void Game::setup()
         advance(it, rand() % grid.size());
         pair<int, int> randomCell = it->first;
 
-        xEnemy = randomCell.first * enemyWidth;
-        yEnemy = randomCell.second * enemyHeight;
+        xEnemy = randomCell.first * ENEMY_WIDTH;
+        yEnemy = randomCell.second * ENEMY_HEIGHT;
 
-        bool tooCloseToPlayer = (abs(xEnemy - player.getX()) < playerWidth + minDistanceBetweenPlayerAndEnemy) || (abs(yEnemy - player.getY()) < playerHeight + minDistanceBetweenPlayerAndEnemy);
+        bool tooCloseToPlayer = (abs(xEnemy - player.getAsset().x) < PLAYER_WIDTH + MIN_DISTANCE_BETWEEN_PLAYER_AND_ENEMY) || (abs(yEnemy - player.getAsset().y) < PLAYER_HEIGHT + MIN_DISTANCE_BETWEEN_PLAYER_AND_ENEMY);
         if (!grid[randomCell] && !tooCloseToPlayer)
         {
             grid[randomCell] = true;
@@ -177,12 +175,10 @@ void Game::setup()
 
     } while(true);
     
-    Enemy newEnemy({xEnemy, yEnemy, enemyWidth, enemyHeight});
+    Enemy newEnemy({xEnemy, yEnemy, ENEMY_WIDTH, ENEMY_HEIGHT});
     enemyList.push_back(newEnemy);
 
-    this->ladder = Ladder({max((rand() % GameSettings::WIDTH - ladderWidth), 0), max((rand() % GameSettings::HEIGHT - ladderHeight), 0), ladderWidth, ladderHeight});
-
-    Text text("fonts/pixel.ttf", 50);
+    this->ladder = Ladder({max((rand() % GameSettings::WIDTH - LADDER_WIDTH), 0), max((rand() % GameSettings::HEIGHT - LADDER_HEIGHT), 0), LADDER_WIDTH, LADDER_HEIGHT});
 }
 
 void Game::update()
@@ -211,7 +207,7 @@ void Game::update()
     {
         Arena& currentArena = entry.second;
 
-        if (player.isNearby(player.getAsset(), currentArena.getAsset(), sightRange))
+        if (player.isNearby(player.getAsset(), currentArena.getAsset(), SIGHT_RANGE))
         {
             currentArena.setVisible(true);
 
@@ -229,7 +225,7 @@ void Game::update()
         if (currentArena.getVisible() || currentArena.isForcedVisible())
             window.draw(window.getRenderer(), currentArena.getAsset(), arenaTexture);
         
-        if (player.isNearby(player.getAsset(), currentArena.getAsset(), interactionRangeArena))
+        if (player.isNearby(player.getAsset(), currentArena.getAsset(), INTERACTION_RANGE_ARENA))
             player.setNearArena(true);
     }
 
@@ -255,16 +251,16 @@ void Game::update()
         } 
     }
     if (player.getState() == PlayerState::Idle)
-        player.updatePlayerAnimation(animationSpeed);
+        player.updatePlayerAnimation(ANIMATION_SPEED);
     for (auto& currentEnemy : enemyList)
-        currentEnemy.updateEnemyAI(player, enemyRange, animationSpeed);
+        currentEnemy.updateEnemyAI(player, ENEMY_RANGE, ANIMATION_SPEED);
 
     //spawns door for next lvl 
     if (arenaList.empty())
     {
         window.draw(window.getRenderer(), ladder.getAsset(), ladderTexture);
 
-        if (player.isNearby(player.getAsset(), ladder.getAsset(), interactionRangeLadder))
+        if (player.isNearby(player.getAsset(), ladder.getAsset(), INTERACTION_RANGE_LADDER))
         {
             player.setNearLadder(true);
             if (event.type == SDL_KEYDOWN)
@@ -287,16 +283,16 @@ void Game::render()
         window.drawAnimation(window.getRenderer(),currentEnemy.getSrcRect(), currentEnemy.getAsset(), enemyTexture, currentEnemy.getFlip());
         
     if (arenaList.size() < level.getArenaCounter())
-        text.createText(window.getRenderer(), ("Remaining arenas: " + to_string(arenaList.size())).c_str(), GameSettings::WIDTH, 50);
+        window.createText(window.getRenderer(), ("Remaining arenas: " + to_string(arenaList.size())).c_str(), GameSettings::WIDTH, 50);
 
     if (player.isNearArena())
-        text.createText(window.getRenderer(), "Save bull [E]", (GameSettings::WIDTH / 2) + 100, GameSettings::HEIGHT - 50);
+        window.createText(window.getRenderer(), "Save bull [E]", (GameSettings::WIDTH / 2) + 100, GameSettings::HEIGHT - 50);
 
     if (player.isNearLadder())
-        text.createText(window.getRenderer(), ("Next level [F]"), (GameSettings::WIDTH / 2) + 100, GameSettings::HEIGHT - 50);
+        window.createText(window.getRenderer(), ("Next level [F]"), (GameSettings::WIDTH / 2) + 100, GameSettings::HEIGHT - 50);
 
-    text.createText(window.getRenderer(), ("Level: " + to_string(level.getLevel())).c_str(), GameSettings::WIDTH / 2, 0);
-    text.createText(window.getRenderer(), ("Points: " + to_string(points)).c_str(), GameSettings::WIDTH, 0);
+    window.createText(window.getRenderer(), ("Level: " + to_string(level.getLevel())).c_str(), GameSettings::WIDTH / 2, 0);
+    window.createText(window.getRenderer(), ("Points: " + to_string(points)).c_str(), GameSettings::WIDTH, 0);
 
     window.drawPlayerHealth(player.getHealth(), hearts_1Texture, hearts_2Texture, hearts_3Texture);
 
@@ -306,8 +302,8 @@ void Game::render()
         SDL_RenderClear(window.getRenderer());     
         SDL_SetRenderDrawColor(window.getRenderer(), 0, 0, 0, 0);
 
-        text.createText(window.getRenderer(), "Game over", GameSettings::WIDTH / 2, GameSettings::HEIGHT / 2);
-        text.createText(window.getRenderer(), "Press [R] to restart", GameSettings::WIDTH / 2, GameSettings::HEIGHT / 2 + 200);
+        window.createText(window.getRenderer(), "Game over", GameSettings::WIDTH / 2, GameSettings::HEIGHT / 2);
+        window.createText(window.getRenderer(), "Press [R] to restart", GameSettings::WIDTH / 2, GameSettings::HEIGHT / 2 + 200);
 
         window.present();
 
@@ -331,12 +327,12 @@ void Game::restart()
 
     grid.clear();
     // makes grid for spawns
-    for (int i = 0; i < GameSettings::WIDTH / enemyWidth; i++)
-        for (int j = 0; j < GameSettings::HEIGHT / enemyHeight; j++)
+    for (int i = 0; i < GameSettings::WIDTH / ENEMY_WIDTH; i++)
+        for (int j = 0; j < GameSettings::HEIGHT / ENEMY_HEIGHT; j++)
             grid.insert({(make_pair(i,j)), false});
 
-    player.setX(max((rand() % GameSettings::WIDTH - playerWidth), 0));
-    player.setY(max((rand() % GameSettings::HEIGHT - playerHeight), 0));
+    player.setX(max((rand() % (GameSettings::WIDTH - PLAYER_WIDTH)), 0));
+    player.setY(max((rand() % (GameSettings::HEIGHT - PLAYER_HEIGHT)), 0));
     player.setHealth(3);
 
     arenaList.clear();
@@ -353,8 +349,8 @@ void Game::restart()
             advance(it, rand() % grid.size());
             pair<int, int> randomCell = it->first;
 
-            xArena = randomCell.first * arenaWidth;
-            yArena = randomCell.second * arenaHeight;
+            xArena = randomCell.first * ARENA_WIDTH;
+            yArena = randomCell.second * ARENA_HEIGHT;
 
             bool tooCloseToExistingArena = false;
             for (const auto& entry : arenaList)
@@ -362,7 +358,7 @@ void Game::restart()
                 int distanceX = abs(xArena - entry.second.getAsset().x);
                 int distanceY = abs(yArena - entry.second.getAsset().y);
 
-                if (distanceX < minDistanceBetweenArenas || distanceY < minDistanceBetweenArenas)
+                if (distanceX < MIN_DISTANCE_BETWEEN_ARENAS || distanceY < MIN_DISTANCE_BETWEEN_ARENAS)
                 {
                     tooCloseToExistingArena = true;
                     break;
@@ -376,8 +372,8 @@ void Game::restart()
 
         } while (true);
 
-        arenaList.insert({i, Arena({xArena, yArena, arenaWidth, arenaHeight})});
-        grid[{xArena / arenaWidth, yArena / arenaHeight}] = true;
+        arenaList.insert({i, Arena({xArena, yArena, ARENA_WIDTH, ARENA_HEIGHT})});
+        grid[{xArena / ARENA_WIDTH, yArena / ARENA_HEIGHT}] = true;
     }   
 
     
@@ -389,10 +385,10 @@ void Game::restart()
         advance(it, rand() % grid.size());
         pair<int, int> randomCell = it->first;
 
-        xEnemy = randomCell.first * enemyWidth;
-        yEnemy = randomCell.second * enemyHeight;
+        xEnemy = randomCell.first * ENEMY_WIDTH;
+        yEnemy = randomCell.second * ENEMY_HEIGHT;
 
-        bool tooCloseToPlayer = (abs(xEnemy - player.getX()) < playerWidth + minDistanceBetweenPlayerAndEnemy) || (abs(yEnemy - player.getY()) < playerHeight + minDistanceBetweenPlayerAndEnemy);
+        bool tooCloseToPlayer = (abs(xEnemy - player.getAsset().x) < PLAYER_WIDTH + MIN_DISTANCE_BETWEEN_PLAYER_AND_ENEMY) || (abs(yEnemy - player.getAsset().y) < PLAYER_HEIGHT + MIN_DISTANCE_BETWEEN_PLAYER_AND_ENEMY);
         if (!grid[randomCell] && !tooCloseToPlayer)
         {
             grid[randomCell] = true;
@@ -401,11 +397,11 @@ void Game::restart()
 
     } while(true);
     
-    Enemy newEnemy({xEnemy, yEnemy, enemyWidth, enemyHeight});
+    Enemy newEnemy({xEnemy, yEnemy, ENEMY_WIDTH, ENEMY_HEIGHT});
     enemyList.push_back(newEnemy);
 
-    ladder.setX(max((rand() % GameSettings::WIDTH - ladderWidth), 0));
-    ladder.setY(max((rand() % GameSettings::HEIGHT - ladderHeight), 0));
+    ladder.setX(max((rand() % GameSettings::WIDTH - LADDER_WIDTH), 0));
+    ladder.setY(max((rand() % GameSettings::HEIGHT - LADDER_HEIGHT), 0));
 
 
     points = 0;
