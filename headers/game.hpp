@@ -42,6 +42,7 @@ class Game
 {
     private:
         ofstream highscoresData;
+        ofstream saveFile;
         SDL_Texture *playerTexture;
         SDL_Texture *enemyTexture;
         SDL_Texture *arenaTexture;
@@ -183,6 +184,10 @@ void Game::setup()
 
 void Game::update()
 {
+    saveFile.open("saveFile.txt");
+
+    saveFile << "Name: " << Data::playerName << "\n"; 
+
     player.setNearArena(false);
     player.setNearLadder(false);
 
@@ -199,8 +204,11 @@ void Game::update()
             player.setFlip(SDL_FLIP_NONE);
             player.setState(PlayerState::Idle);
         }   
+        if (event.key.keysym.sym == SDLK_ESCAPE)
+            Data::inPauseScreen = true;
     }
     player.movePlayer();
+    saveFile << "Player: " << player.getAsset().x << "\t" <<  player.getAsset().y << "\n";
 
     // arena visibility
     for (auto& entry : arenaList)
@@ -215,6 +223,8 @@ void Game::update()
         }
         else
             currentArena.setVisible(false);
+
+        saveFile << "Arena: " << currentArena.getAsset().x << "\t" << currentArena.getAsset().y << "\n";
     }
 
     // renders arena
@@ -250,10 +260,20 @@ void Game::update()
             isCloseTo = -1;
         } 
     }
+
     if (player.getState() == PlayerState::Idle)
         player.updatePlayerAnimation(ANIMATION_SPEED);
+
     for (auto& currentEnemy : enemyList)
+    {
         currentEnemy.updateEnemyAI(player, ENEMY_RANGE, ANIMATION_SPEED);
+
+        if (enemyList.size()==2)
+            cout << enemyList.size();
+
+        saveFile << "Enemy: " <<  currentEnemy.getAsset().x << "\t" << currentEnemy.getAsset().y <<  "\n";
+    }
+    
 
     //spawns door for next lvl 
     if (arenaList.empty())
@@ -308,6 +328,7 @@ void Game::render()
         window.present();
 
         updateHighscores();
+        saveFile.close();
     }
 
     window.present();  

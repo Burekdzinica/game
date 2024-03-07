@@ -11,7 +11,7 @@ const extern int NAME_WIDTH, NAME_HEIGHT;
 
 using namespace std;
 
-class Options : public Menu
+class Options : public Menu 
 {
     private:
         bool inOptions;
@@ -27,7 +27,6 @@ class Options : public Menu
         SDL_Rect resolution_1280x720_button;
         SDL_Rect resolution_800x600_button;
         SDL_Rect fullscreenButton;
-
 
     public:
         Options();

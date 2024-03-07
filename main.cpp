@@ -3,6 +3,7 @@
 
 #include "headers/game.hpp"
 #include "headers/startScreen.hpp"
+#include "headers/pauseScreen.hpp"
 
 
 using namespace std;
@@ -18,6 +19,7 @@ int main(int argc, char *argv[])
     game.setup();
 
     StartScreen startscreen(Data::renderer);
+    PauseScreen pausescreen;
 
     while (game.isOpen())
     {
@@ -25,6 +27,9 @@ int main(int argc, char *argv[])
 
         if (Data::inStartScreen)
             startscreen.run(Data::renderer);
+        
+        else if (Data::inPauseScreen)
+            pausescreen.run(Data::renderer);
     
         else
         {

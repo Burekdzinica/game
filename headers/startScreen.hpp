@@ -18,8 +18,9 @@ const int GAME_NAME_WIDTH = 1000, GAME_NAME_HEIGHT = 100;
 class StartScreen : public Menu
 {
     private:
-        bool quit;
+        bool uiCreated;
         bool exitedOptions;
+        int count;
         Options options;
         Highscores highscores;
         string playerName;
@@ -32,6 +33,7 @@ class StartScreen : public Menu
         SDL_Rect playerNameRect;
         SDL_Rect optionsButton;
         SDL_Rect highscoresButton;
+        SDL_Rect resetNameButton;
 
     public:
         StartScreen(SDL_Renderer *renderer);
@@ -40,14 +42,16 @@ class StartScreen : public Menu
         void handleMouseClick(SDL_Renderer *renderer) override;
         void createPlayerName(SDL_Renderer *renderer);
         void renderUI(SDL_Renderer* renderer);
+        void resetPlayerName();
         void run(SDL_Renderer *renderer);
 };
 
 StartScreen::StartScreen(SDL_Renderer *renderer)
 {
-    this->quit = false;
+    this->uiCreated = false;
     this->exitedOptions = false;
     this->imgTexture = IMG_LoadTexture(renderer, "assets/startScreen.png");
+    this->count = 0;
 
     this->playButton = {GameSettings::WIDTH / 2 - NAME_WIDTH / 2, (GameSettings::HEIGHT / 2), NAME_WIDTH, NAME_HEIGHT};
     this->gameName = {(GameSettings::WIDTH - GAME_NAME_WIDTH) / 2, 0, GAME_NAME_WIDTH, GAME_NAME_HEIGHT};
@@ -55,8 +59,7 @@ StartScreen::StartScreen(SDL_Renderer *renderer)
     this->playerNameRect = {GameSettings::WIDTH / 2 - NAME_WIDTH / 2, (GameSettings::HEIGHT / 2), NAME_WIDTH, NAME_HEIGHT};
     this->optionsButton = {GameSettings::WIDTH / 2 - NAME_WIDTH / 2, (GameSettings::HEIGHT) - NAME_HEIGHT - 200, NAME_WIDTH, NAME_HEIGHT};
     this->highscoresButton = {GameSettings::WIDTH / 2 - NAME_WIDTH / 2, (GameSettings::HEIGHT) - NAME_HEIGHT - 260, NAME_WIDTH, NAME_HEIGHT};
-
-    createUI(renderer);
+    this->resetNameButton = {GameSettings::WIDTH / 2 - NAME_WIDTH / 2 - 300, (GameSettings::HEIGHT / 2) - 300, NAME_WIDTH, NAME_HEIGHT};
 }
 
 StartScreen::~StartScreen()
@@ -72,8 +75,15 @@ void StartScreen::createUI(SDL_Renderer *renderer)
     createText(renderer, "Resevanje bikca Ferdinda", gameName);
 
     SDL_RenderPresent(renderer);
-    createPlayerName(renderer);
 
+    if (count == 0)
+    {
+        createPlayerName(renderer);
+        count++;
+    }
+    
+
+    createText(renderer, "Reset name", resetNameButton);
     createText(renderer, "Play", playButton);
     createText(renderer, "Scores", highscoresButton);
 
@@ -94,13 +104,23 @@ void StartScreen::handleMouseClick(SDL_Renderer *renderer)
     SDL_GetMouseState(&mouseX, &mouseY);
 
     if (mouseX >= playButton.x && mouseX <= playButton.x + playButton.w && mouseY >= playButton.y && mouseY <= playButton.y + playButton.h)
+    {
         Data::inStartScreen = false;
+        this->uiCreated = false;
+    }
 
     else if (mouseX >= highscoresButton.x && mouseX <= highscoresButton.x + highscoresButton.w && mouseY >= highscoresButton.y && mouseY <= highscoresButton.y + highscoresButton.h)
         highscores.open(renderer);
 
     else if (mouseX >= optionsButton.x && mouseX <= optionsButton.x + optionsButton.w && mouseY >= optionsButton.y && mouseY <= optionsButton.y + optionsButton.h)
         options.open(renderer);
+        
+    else if (mouseX >= resetNameButton.x && mouseX <= resetNameButton.x + resetNameButton.w && mouseY >= resetNameButton.y && mouseY <= resetNameButton.y + resetNameButton.h)
+    {
+        resetPlayerName();
+        this->count = 0;
+        createUI(renderer);
+    }
 }
 
 void StartScreen::createPlayerName(SDL_Renderer* renderer)
@@ -153,8 +173,20 @@ void StartScreen::renderUI(SDL_Renderer* renderer)
 
 }
 
+void StartScreen::resetPlayerName()
+{
+    this->playerName.clear();
+}
+
 void StartScreen::run(SDL_Renderer *renderer)
 {
+    if (!uiCreated)
+    {
+        createUI(renderer);
+        uiCreated = true;
+        // resetPlayerName();
+    }
+
     SDL_Event event;
     if (SDL_PollEvent(&event))
     {
@@ -166,8 +198,6 @@ void StartScreen::run(SDL_Renderer *renderer)
 
     if (!options.isOpen())
     {
-        playerName.clear();
-
         createUI(renderer);
 
         options.setOpen(true);
@@ -175,9 +205,7 @@ void StartScreen::run(SDL_Renderer *renderer)
         SDL_RenderPresent(renderer);
     }
     if (!highscores.isOpen())
-    {
-        playerName.clear();
-        
+    {  
         createUI(renderer);
 
         highscores.setOpen(true);

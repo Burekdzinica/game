@@ -202,7 +202,6 @@ void Enemy::moveChasing(SDL_Rect playerAsset)
 
     setX(asset.x + static_cast <int> (dx * speed));
     setY(asset.y + static_cast <int> (dy * speed));
-
 }
 
 void Enemy::moveIdle()

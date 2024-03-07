@@ -14,6 +14,7 @@ namespace Data
     bool isPlayerAlive = true;
     std::string playerName;
     bool inStartScreen = true;
+    bool inPauseScreen = false;
 }
 
 struct TextSize
