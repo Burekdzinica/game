@@ -66,10 +66,7 @@ int main(int argc, char *argv[])
                         return EXIT_SUCCESS;
             
                     if (keystate[SDL_SCANCODE_R])
-                    {
-                        Data::isReplayFileOpen = false;
                         game.restart();
-                    }
                 }
             }
             game.render();

@@ -1,0 +1,7 @@
+Name: Player: 841	138
+Player: 897	426
+Arena: 332	249
+Arena: 996	166
+Arena: 747	0
+Ladder: 880	290
+Level: 1

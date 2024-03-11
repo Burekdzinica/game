@@ -183,16 +183,14 @@ void Game::setup()
 
 void Game::update()
 {
-    saveFile.open("saveFile.txt");
+    if (!saveFile.is_open())
+        saveFile.open("saveFile.txt");
 
-    if (!Data::isReplayFileOpen)
-    {
+    if (!replayFile.is_open())
         replayFile.open("replayFile.txt");
-        Data::isReplayFileOpen = true;
-    }
 
     // only writes in file if there is a change
-    static string tmpName = "";
+    static string tmpName = "31dwqd"; // random becuse i dont type name 
     if (tmpName != Data::playerName)
     {
         saveFile << "Name: " << Data::playerName << "\n"; 
@@ -219,7 +217,7 @@ void Game::update()
         if (event.key.keysym.sym == SDLK_ESCAPE)
         {
             Data::inPauseScreen = true;
-            replayFile.close();
+            saveFile.close();
         }
     }
     player.movePlayer();
@@ -358,7 +356,7 @@ void Game::update()
         tmpPoints = points;
     }
 
-    saveFile.close();
+    // saveFile.close();
     // replayFile.close();
 }
 
@@ -627,3 +625,13 @@ void Game::closeReplayFile()
 }
 
 #endif
+
+
+
+
+
+
+
+// writes in saveFile replay stuff ??
+// sometimes crash?
+// enemy replay saving

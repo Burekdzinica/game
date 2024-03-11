@@ -33,10 +33,7 @@ void PauseScreen::handleMouseClick(SDL_Renderer* renderer)
     SDL_GetMouseState(&mouseX, &mouseY);
 
     if (mouseX >= continueButton.x && mouseX <= continueButton.x + continueButton.w && mouseY >= continueButton.y && mouseY <= continueButton.y + continueButton.h)
-    {
-        Data::isReplayFileOpen = false;
         Data::inPauseScreen = false;
-    }
 
     else if (mouseX >= exitButton.x && mouseX <= exitButton.x + exitButton.w && mouseY >= exitButton.y && mouseY <= exitButton.y + exitButton.h)
     {
