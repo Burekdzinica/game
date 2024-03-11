@@ -1,0 +1,45 @@
+Player: 198	462
+Arena: 1328	166
+Arena: 1079	0
+Arena: 996	249
+Ladder: 932	436
+Level: 1
+Player: 206	462
+Player: 214	462
+Player: 222	462
+Player: 230	462
+Points: 100
+Points: 200
+Points: 300
+Ladder: 737	256
+Level: 2
+Player: 1307	353
+Arena: 415	166
+Arena: 166	83
+Arena: 664	0
+Points: 400
+Points: 500
+Points: 600
+Points: 700
+Ladder: 3	170
+Level: 3
+Player: 64	547
+Arena: 581	0
+Arena: 166	249
+Arena: 332	83
+Arena: 1328	166
+Arena: 83	0
+Points: 800
+Points: 900
+Points: 1000
+Points: 1100
+Points: 1200
+Ladder: 1136	666
+Level: 4
+Player: 496	0
+Arena: 996	0
+Arena: 83	83
+Arena: 996	249
+Arena: 1079	83
+Arena: 830	0
+Arena: 664	166

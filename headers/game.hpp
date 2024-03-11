@@ -2,6 +2,7 @@
 #define GAME_CPP
 
 #include <iostream>
+#include <string>
 #include <iomanip>
 #include <algorithm>
 #include <fstream>
@@ -30,7 +31,7 @@ const int LADDER_WIDTH = 98, LADDER_HEIGHT = 98;
 
 const int ANIMATION_SPEED = 200;
 
-const int SIGHT_RANGE = 200;
+const int SIGHT_RANGE = 2000;
 const int ENEMY_RANGE = 500;
 const int INTERACTION_RANGE_ARENA = SIGHT_RANGE + ARENA_WIDTH - 150;
 const int INTERACTION_RANGE_LADDER = SIGHT_RANGE + LADDER_WIDTH - 50;
@@ -43,6 +44,7 @@ class Game
     private:
         ofstream highscoresData;
         ofstream saveFile;
+        ofstream replayFile;
         SDL_Texture *playerTexture;
         SDL_Texture *enemyTexture;
         SDL_Texture *arenaTexture;
@@ -71,6 +73,9 @@ class Game
         bool isOpen();
         void restart();
         void updateHighscores();
+        void continueGame();
+        void closeSaveFile();
+        void closeReplayFile();
 };
 
 Game::Game()
@@ -96,11 +101,6 @@ void Game::setup()
     srand(time(NULL));
     #define LOAD_TEXTURE(renderer, imgPath) SDL_CreateTextureFromSurface(renderer, IMG_Load(imgPath))
 
-    // window.init();
-
-    // StartScreen startScreen(window.getRenderer());
-    // startScreen.run(window.getRenderer());
-
     highscoresData.open("highscores.txt", ios::app);
     
     playerTexture = LOAD_TEXTURE(window.getRenderer(), "assets/player_remastared.png");
@@ -110,7 +110,6 @@ void Game::setup()
     hearts_1Texture = LOAD_TEXTURE(window.getRenderer(), "assets/3_hearts_reloaded.png");
     hearts_2Texture = LOAD_TEXTURE(window.getRenderer(), "assets/2_hearts_reloaded.png");
     hearts_3Texture = LOAD_TEXTURE(window.getRenderer(), "assets/1_hearts_reloaded.png");
-
 
     // makes grid for spawns
     for (int i = 0; i < GameSettings::WIDTH / ENEMY_WIDTH; i++)
@@ -186,7 +185,20 @@ void Game::update()
 {
     saveFile.open("saveFile.txt");
 
-    saveFile << "Name: " << Data::playerName << "\n"; 
+    if (!Data::isReplayFileOpen)
+    {
+        replayFile.open("replayFile.txt");
+        Data::isReplayFileOpen = true;
+    }
+
+    // only writes in file if there is a change
+    static string tmpName = "";
+    if (tmpName != Data::playerName)
+    {
+        saveFile << "Name: " << Data::playerName << "\n"; 
+
+        tmpName = Data::playerName;
+    }
 
     player.setNearArena(false);
     player.setNearLadder(false);
@@ -205,10 +217,22 @@ void Game::update()
             player.setState(PlayerState::Idle);
         }   
         if (event.key.keysym.sym == SDLK_ESCAPE)
+        {
             Data::inPauseScreen = true;
+            replayFile.close();
+        }
     }
     player.movePlayer();
-    saveFile << "Player: " << player.getAsset().x << "\t" <<  player.getAsset().y << "\n";
+
+    static int tmpPlayerX = 0, tmpPlayerY = 0;
+    if (tmpPlayerX != player.getAsset().x || tmpPlayerY != player.getAsset().y)
+    {
+        saveFile << "Player: " << player.getAsset().x << "\t" <<  player.getAsset().y << "\n";
+        replayFile << "Player: " << player.getAsset().x << "\t" << player.getAsset().y << "\n";
+
+        tmpPlayerX = player.getAsset().x;
+        tmpPlayerY = player.getAsset().y;
+    }
 
     // arena visibility
     for (auto& entry : arenaList)
@@ -224,7 +248,15 @@ void Game::update()
         else
             currentArena.setVisible(false);
 
-        saveFile << "Arena: " << currentArena.getAsset().x << "\t" << currentArena.getAsset().y << "\n";
+        static vector<int> tmpArenaX(2, 0), tmpArenaY(2, 0);
+        if (tmpArenaX[entry.first] != currentArena.getAsset().x || tmpArenaY[entry.first] != currentArena.getAsset().y)
+        {
+            saveFile << "Arena: " << currentArena.getAsset().x << "\t" << currentArena.getAsset().y << "\n";
+            replayFile << "Arena: " << currentArena.getAsset().x << "\t" << currentArena.getAsset().y << "\n";
+
+            tmpArenaX[entry.first] = currentArena.getAsset().x;
+            tmpArenaY[entry.first] = currentArena.getAsset().y;
+        }
     }
 
     // renders arena
@@ -268,10 +300,15 @@ void Game::update()
     {
         currentEnemy.updateEnemyAI(player, ENEMY_RANGE, ANIMATION_SPEED);
 
-        if (enemyList.size()==2)
-            cout << enemyList.size();
+        // vector<int> tmpEnemyX, tmpEnemyY;
+        // if (tmpEnemyX[currentEnemy] != currentEnemy.getAsset().x || tmpEnemyY != currentEnemy.getAsset().y)
+        // {
+        //     saveFile << "Enemy: " <<  currentEnemy.getAsset().x << "\t" << currentEnemy.getAsset().y <<  "\n";
+        //     replayFile << "Enemy: " <<  currentEnemy.getAsset().x << "\t" << currentEnemy.getAsset().y <<  "\n";
 
-        saveFile << "Enemy: " <<  currentEnemy.getAsset().x << "\t" << currentEnemy.getAsset().y <<  "\n";
+        //     tmpEnemyX = currentEnemy.getAsset().x;
+        //     tmpEnemyY = currentEnemy.getAsset().y;
+        // }
     }
     
 
@@ -293,7 +330,36 @@ void Game::update()
             }
         }
     }
+    static int tmpLadderX = 0, tmpLadderY = 0;
+    if (tmpLadderX != ladder.getAsset().x || tmpLadderY != ladder.getAsset().y)
+    {
+        saveFile << "Ladder: " << ladder.getAsset().x << "\t" << ladder.getAsset().y << "\n";
+        replayFile << "Ladder: " << ladder.getAsset().x << "\t" << ladder.getAsset().y << "\n";
 
+        tmpLadderX = ladder.getAsset().x;
+        tmpLadderY = ladder.getAsset().y;
+    }
+
+    static int tmpLevel = 0;
+    if (tmpLevel != level.getLevel())
+    {
+        saveFile << "Level: " << level.getLevel() << "\n";
+        replayFile << "Level: " << level.getLevel() << "\n";
+
+        tmpLevel = level.getLevel();
+    }
+
+    static int tmpPoints = 0;
+    if (tmpPoints != points)
+    {
+        saveFile << "Points: " << points << "\n";
+        replayFile << "Points: " << points << "\n";
+
+        tmpPoints = points;
+    }
+
+    saveFile.close();
+    // replayFile.close();
 }
 
 void Game::render()
@@ -319,6 +385,8 @@ void Game::render()
     // game over screen
     if (!(Data::isPlayerAlive))
     {
+        replayFile.close();
+
         SDL_RenderClear(window.getRenderer());     
         SDL_SetRenderDrawColor(window.getRenderer(), 0, 0, 0, 0);
 
@@ -328,7 +396,6 @@ void Game::render()
         window.present();
 
         updateHighscores();
-        saveFile.close();
     }
 
     window.present();  
@@ -424,7 +491,6 @@ void Game::restart()
     ladder.setX(max((rand() % GameSettings::WIDTH - LADDER_WIDTH), 0));
     ladder.setY(max((rand() % GameSettings::HEIGHT - LADDER_HEIGHT), 0));
 
-
     points = 0;
 }
 
@@ -473,5 +539,91 @@ void Game::updateHighscores()
     highscoresData.close();
 }
 
+void Game::continueGame()
+{
+    ifstream readSaveFile;
+    readSaveFile.open("saveFile.txt");
+
+    string line;
+
+    int enemyCounter = 1;
+    while (getline(readSaveFile, line))
+    {
+        istringstream iss(line);
+        string key, value;
+        int value1, value2;
+
+
+        while (iss >> key)
+        {
+            if (key == "Name:")
+            {
+                iss >> value;
+                Data::playerName = value;
+            }
+
+            else if (key == "Player:")
+            {
+                iss >> value1 >> value2;
+                player.setX(value1);
+                player.setY(value2);
+            }
+            else if (key == "Arena:")
+            {
+                iss >> value1 >> value2;
+
+                static int arenaCounter = 1;
+
+                if (!arenaList.empty())
+                {
+                    Arena& currentArena = arenaList[arenaCounter % arenaList.size()];
+                    currentArena.setX(value1);
+                    currentArena.setY(value2);
+
+                }
+                
+                arenaCounter++;
+            }
+            else if (key == "Enemy:")
+            {
+                iss >> value1 >> value2;
+
+                if (enemyCounter == 1)
+                {
+                    enemyList.clear();
+                    level.setEnemyCounter(1);
+                }
+
+                Enemy newEnemy({value1, value2, ENEMY_WIDTH, ENEMY_HEIGHT});
+                newEnemy.setBounds();
+                enemyList.push_back(newEnemy);
+
+                level.setEnemyCounter(enemyCounter);
+
+                enemyCounter++;
+            }
+            else if (key == "Points:")
+            {
+                iss >> value1;
+                points = value1;
+            }
+            else if (key == "Level:")
+            {
+                iss >> value1;
+                level.setLevel(value1);
+            }
+        }
+    }
+}
+
+void Game::closeSaveFile()
+{
+    saveFile.close();
+}
+
+void Game::closeReplayFile()
+{
+    replayFile.close();
+}
 
 #endif

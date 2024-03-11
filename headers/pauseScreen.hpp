@@ -24,7 +24,7 @@ class PauseScreen : public Menu
 PauseScreen::PauseScreen()
 {
     this->continueButton = {GameSettings::WIDTH / 2 - NAME_WIDTH / 2, (GameSettings::HEIGHT / 2) - NAME_HEIGHT, NAME_WIDTH, NAME_HEIGHT};
-    this->exitButton = {GameSettings::WIDTH/ 2 - NAME_WIDTH / 2, (GameSettings::HEIGHT / 2) - NAME_HEIGHT + 200, NAME_WIDTH, NAME_HEIGHT};
+    this->exitButton = {GameSettings::WIDTH / 2 - NAME_WIDTH / 2, (GameSettings::HEIGHT / 2), NAME_WIDTH, NAME_HEIGHT};
 }
 
 void PauseScreen::handleMouseClick(SDL_Renderer* renderer)
@@ -33,13 +33,17 @@ void PauseScreen::handleMouseClick(SDL_Renderer* renderer)
     SDL_GetMouseState(&mouseX, &mouseY);
 
     if (mouseX >= continueButton.x && mouseX <= continueButton.x + continueButton.w && mouseY >= continueButton.y && mouseY <= continueButton.y + continueButton.h)
+    {
+        Data::isReplayFileOpen = false;
         Data::inPauseScreen = false;
+    }
 
     else if (mouseX >= exitButton.x && mouseX <= exitButton.x + exitButton.w && mouseY >= exitButton.y && mouseY <= exitButton.y + exitButton.h)
     {
         Data::inStartScreen = true;
         Data::inPauseScreen = false;
-        Data::playerName.clear();
+        // Data::playerName.clear();   
+        Data::inContinueScreen = true;
     }
 }   
 

@@ -20,6 +20,7 @@ class Highscores : public Menu
 
         SDL_Rect exitButton;
         SDL_Rect highscoresName;
+        SDL_Rect replayButton;
 
     public:
         Highscores();
@@ -29,6 +30,7 @@ class Highscores : public Menu
         void handleMouseClick(SDL_Renderer* renderer) override;
         void drawHighscores(SDL_Renderer* renderer);
         void open(SDL_Renderer* renderer);
+        void replay(SDL_Renderer* renderer);
 };
 
 Highscores::Highscores()
@@ -36,6 +38,7 @@ Highscores::Highscores()
     this->inHighscores = true;
     this->exitButton = {GameSettings::WIDTH/ 2 - NAME_WIDTH / 2, (GameSettings::HEIGHT / 2) - NAME_HEIGHT + 200, NAME_WIDTH, NAME_HEIGHT};
     this->highscoresName = {(GameSettings::WIDTH - NAME_WIDTH) / 2, 0, NAME_HEIGHT, NAME_HEIGHT};
+    this->replayButton = {(GameSettings::WIDTH / 2) + 250, GameSettings::HEIGHT / 2, NAME_WIDTH, NAME_HEIGHT};
 }
 
 Highscores::~Highscores()
@@ -60,6 +63,9 @@ void Highscores::handleMouseClick(SDL_Renderer *renderer)
 
     if (mouseX >= exitButton.x && mouseX <= exitButton.x + exitButton.w && mouseY >= exitButton.y && mouseY <= exitButton.y + exitButton.h)
         this->inHighscores = false;
+    
+    else if (mouseX >= replayButton.x && mouseX <= replayButton.x + replayButton.w && mouseY >= replayButton.y && mouseY <= replayButton.y + replayButton.h)
+        replay(renderer);
 
 }
 
@@ -87,6 +93,7 @@ void Highscores::open(SDL_Renderer* renderer)
     SDL_RenderClear(renderer);
 
     createText(renderer, "Exit", exitButton);
+    createText(renderer, "Replay", replayButton);
     createText(renderer, "Highscores", highscoresName);
 
     drawHighscores(renderer);
@@ -103,6 +110,11 @@ void Highscores::open(SDL_Renderer* renderer)
 
         }
     }
+}
+
+void Highscores::replay(SDL_Renderer* renderer)
+{
+
 }
 
 #endif 
