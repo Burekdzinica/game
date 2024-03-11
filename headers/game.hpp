@@ -1,6 +1,5 @@
 #ifndef GAME_CPP
 #define GAME_CPP
-nigger haha
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
