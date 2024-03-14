@@ -65,7 +65,10 @@ void Highscores::handleMouseClick(SDL_Renderer *renderer)
         this->inHighscores = false;
     
     else if (mouseX >= replayButton.x && mouseX <= replayButton.x + replayButton.w && mouseY >= replayButton.y && mouseY <= replayButton.y + replayButton.h)
-        replay(renderer);
+    {
+        Data::replay = true;
+        this->inHighscores = false;
+    }
 
 }
 

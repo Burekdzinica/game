@@ -31,10 +31,16 @@ int main(int argc, char *argv[])
             Data::resetGame = false;
             Data::inContinueScreen = false;
         }
+
+        else if (Data::replay)
+        {
+            game.replay();
+            startscreen.setUiCreated();
+            Data::replay = false;
+        }
         
         else if (Data::continueGame)
         {
-            // game.restart();
             game.continueGame();
             Data::continueGame = false;
             Data::inContinueScreen = false;
@@ -48,7 +54,7 @@ int main(int argc, char *argv[])
             startscreen.run(Data::renderer);
         
         else if (Data::inPauseScreen)
-            pausescreen.run(Data::renderer);
+            pausescreen.run(Data::renderer, &game);
   
         else
         {
@@ -76,8 +82,7 @@ int main(int argc, char *argv[])
         if (frameDelay > frameTime)
             SDL_Delay(frameDelay - frameTime);
     }
-    game.closeSaveFile();
-    game.closeReplayFile();
+   
 
     return EXIT_SUCCESS;
 }

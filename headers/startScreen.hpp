@@ -47,6 +47,7 @@ class StartScreen : public Menu
         void resetPlayerName();
         void run(SDL_Renderer *renderer);
         void run(SDL_Renderer *renderer, bool continueGame);
+        void setUiCreated();
 };
 
 StartScreen::StartScreen(SDL_Renderer *renderer)
@@ -262,6 +263,9 @@ void StartScreen::run(SDL_Renderer *renderer, bool continueGame)
    SDL_RenderPresent(renderer);
 }
 
-
+void StartScreen::setUiCreated()
+{
+    this->uiCreated = false;
+}
 
 #endif 

@@ -18,6 +18,7 @@ namespace Data
     bool inContinueScreen = true;
     bool resetGame = false;
     bool continueGame = false;
+    bool replay = false;
 }
 
 struct TextSize
