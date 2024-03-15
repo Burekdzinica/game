@@ -2,6 +2,7 @@
 #define GAME_CPP
 
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <iomanip>
 #include <algorithm>
@@ -357,6 +358,7 @@ void Game::restart()
 
     player.setX(max((rand() % (GameSettings::WIDTH - PLAYER_WIDTH)), 0));
     player.setY(max((rand() % (GameSettings::HEIGHT - PLAYER_HEIGHT)), 0));
+
     player.setHealth(3);
 
     arenaList.clear();

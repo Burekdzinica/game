@@ -38,15 +38,15 @@ class StartScreen : public Menu
         SDL_Rect continueButton;
 
     public:
-        StartScreen(SDL_Renderer *renderer);
+        StartScreen(SDL_Renderer* renderer);
         ~StartScreen();
-        void createUI(SDL_Renderer *renderer);
-        void handleMouseClick(SDL_Renderer *renderer) override;
-        void createPlayerName(SDL_Renderer *renderer);
+        void createUI(SDL_Renderer* renderer);
+        void handleMouseClick(SDL_Renderer* renderer) override;
+        void createPlayerName(SDL_Renderer* renderer);
         void renderUI(SDL_Renderer* renderer);
         void resetPlayerName();
-        void run(SDL_Renderer *renderer);
-        void run(SDL_Renderer *renderer, bool continueGame);
+        void run(SDL_Renderer* renderer);
+        void run(SDL_Renderer* renderer, bool continueGame);
         void setUiCreated();
 };
 

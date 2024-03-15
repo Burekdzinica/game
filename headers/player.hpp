@@ -26,13 +26,13 @@ class Player : public EntityAnimation
 
     public:
         Player() = default;
-        Player(int health, SDL_Rect asset);
+        Player(int health, const SDL_Rect& asset);
         void setHealth(int newHealth);
         int getHealth();
         void changeHealth(int healthDiff);
         void movePlayer();
         void move(int x, int y);
-        bool isNearby(const SDL_Rect player, SDL_Rect arena, int range) const;
+        bool isNearby(const SDL_Rect& player, const SDL_Rect& arena, int range) const;
         bool isNearLadder();
         bool isNearArena();
         void updatePlayerAnimation(int speed);
@@ -43,7 +43,7 @@ class Player : public EntityAnimation
         void reset(int health, SDL_Rect newAsset);
 };
 
-Player::Player(int health, SDL_Rect asset)
+Player::Player(int health, const SDL_Rect& asset)
 {
     this->health = health;
     this->asset = asset;
@@ -140,7 +140,7 @@ void Player::move(int x, int y)
     updatePlayerAnimation(ANIMATION_SPEED);
 }
 
-bool Player::isNearby(const SDL_Rect sourceRect, SDL_Rect destRect, int range) const
+bool Player::isNearby(const SDL_Rect& sourceRect, const SDL_Rect& destRect, int range) const
 {
     return (abs(sourceRect.x - destRect.x) < range && abs(sourceRect.y - destRect.y) < range);  
 }
