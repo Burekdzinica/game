@@ -1,6 +1,8 @@
 #ifndef GAME_CPP
 #define GAME_CPP
 #include <iostream>
+#include <sstream>
+#include <string>
 #include <iomanip>
 #include <algorithm>
 #include <fstream>
@@ -29,7 +31,7 @@ const int LADDER_WIDTH = 98, LADDER_HEIGHT = 98;
 
 const int ANIMATION_SPEED = 200;
 
-const int SIGHT_RANGE = 200;
+const int SIGHT_RANGE = 2000;
 const int ENEMY_RANGE = 500;
 const int INTERACTION_RANGE_ARENA = SIGHT_RANGE + ARENA_WIDTH - 150;
 const int INTERACTION_RANGE_LADDER = SIGHT_RANGE + LADDER_WIDTH - 50;
@@ -37,10 +39,17 @@ const int INTERACTION_RANGE_LADDER = SIGHT_RANGE + LADDER_WIDTH - 50;
 const int MIN_DISTANCE_BETWEEN_ARENAS = 10;
 const int MIN_DISTANCE_BETWEEN_PLAYER_AND_ENEMY = 50;
 
+struct PlayerPosition
+{
+    int x, y;
+};
+
 class Game
 {
     private:
         ofstream highscoresData;
+        ofstream saveFile;
+        ofstream replayFile;
         SDL_Texture *playerTexture;
         SDL_Texture *enemyTexture;
         SDL_Texture *arenaTexture;
@@ -69,6 +78,9 @@ class Game
         bool isOpen();
         void restart();
         void updateHighscores();
+        void continueGame();
+        void save();
+        void replay();
 };
 
 Game::Game()
@@ -92,15 +104,11 @@ Game::~Game()
 void Game::setup()
 {
     srand(time(NULL));
+
     #define LOAD_TEXTURE(renderer, imgPath) SDL_CreateTextureFromSurface(renderer, IMG_Load(imgPath))
 
-    // window.init();
-
-    // StartScreen startScreen(window.getRenderer());
-    // startScreen.run(window.getRenderer());
-
     highscoresData.open("highscores.txt", ios::app);
-    
+
     playerTexture = LOAD_TEXTURE(window.getRenderer(), "assets/player_remastared.png");
     enemyTexture = LOAD_TEXTURE(window.getRenderer(), "assets/enemy_reloaded.png");
     arenaTexture = LOAD_TEXTURE(window.getRenderer(), "assets/arena.png");
@@ -108,7 +116,6 @@ void Game::setup()
     hearts_1Texture = LOAD_TEXTURE(window.getRenderer(), "assets/3_hearts_reloaded.png");
     hearts_2Texture = LOAD_TEXTURE(window.getRenderer(), "assets/2_hearts_reloaded.png");
     hearts_3Texture = LOAD_TEXTURE(window.getRenderer(), "assets/1_hearts_reloaded.png");
-
 
     // makes grid for spawns
     for (int i = 0; i < GameSettings::WIDTH / ENEMY_WIDTH; i++)
@@ -182,8 +189,17 @@ void Game::setup()
 
 void Game::update()
 {
+    if (!replayFile.is_open())
+        replayFile.open("replayFile.bin", ios::binary);
+
     player.setNearArena(false);
     player.setNearLadder(false);
+
+    PlayerPosition playerPos;
+    playerPos.x = player.getAsset().x;
+    playerPos.y = player.getAsset().y;
+
+    replayFile.write((char*)&playerPos, sizeof(PlayerPosition));
 
     SDL_Event event;
     if (SDL_PollEvent(&event))
@@ -198,6 +214,11 @@ void Game::update()
             player.setFlip(SDL_FLIP_NONE);
             player.setState(PlayerState::Idle);
         }   
+        if (event.key.keysym.sym == SDLK_ESCAPE)
+        {
+            Data::inPauseScreen = true;
+            replayFile.close();
+        }
     }
     player.movePlayer();
 
@@ -249,8 +270,10 @@ void Game::update()
             isCloseTo = -1;
         } 
     }
+
     if (player.getState() == PlayerState::Idle)
         player.updatePlayerAnimation(ANIMATION_SPEED);
+
     for (auto& currentEnemy : enemyList)
         currentEnemy.updateEnemyAI(player, ENEMY_RANGE, ANIMATION_SPEED);
 
@@ -272,7 +295,6 @@ void Game::update()
             }
         }
     }
-
 }
 
 void Game::render()
@@ -298,6 +320,8 @@ void Game::render()
     // game over screen
     if (!(Data::isPlayerAlive))
     {
+        replayFile.close();
+
         SDL_RenderClear(window.getRenderer());     
         SDL_SetRenderDrawColor(window.getRenderer(), 0, 0, 0, 0);
 
@@ -306,6 +330,7 @@ void Game::render()
 
         window.present();
 
+        replayFile.close();
         updateHighscores();
     }
 
@@ -332,6 +357,7 @@ void Game::restart()
 
     player.setX(max((rand() % (GameSettings::WIDTH - PLAYER_WIDTH)), 0));
     player.setY(max((rand() % (GameSettings::HEIGHT - PLAYER_HEIGHT)), 0));
+
     player.setHealth(3);
 
     arenaList.clear();
@@ -402,7 +428,6 @@ void Game::restart()
     ladder.setX(max((rand() % GameSettings::WIDTH - LADDER_WIDTH), 0));
     ladder.setY(max((rand() % GameSettings::HEIGHT - LADDER_HEIGHT), 0));
 
-
     points = 0;
 }
 
@@ -451,5 +476,127 @@ void Game::updateHighscores()
     highscoresData.close();
 }
 
+void Game::continueGame()
+{
+    ifstream readSaveFile;
+    readSaveFile.open("saveFile.txt");
+
+    string line;
+
+    int enemyCounter = 1;
+    while (getline(readSaveFile, line))
+    {
+        istringstream iss(line);
+        string key, value;
+        int value1, value2;
+
+
+        while (iss >> key)
+        {
+            if (key == "Name:")
+            {
+                iss >> value;
+                Data::playerName = value;
+            }
+
+            else if (key == "Player:")
+            {
+                iss >> value1 >> value2;
+                player.setX(value1);
+                player.setY(value2);
+            }
+            else if (key == "Arena:")
+            {
+                iss >> value1 >> value2;
+
+                static int arenaCounter = 1;
+
+                if (!arenaList.empty())
+                {
+                    Arena& currentArena = arenaList[arenaCounter % arenaList.size()];
+                    currentArena.setX(value1);
+                    currentArena.setY(value2);
+
+                }
+                
+                arenaCounter++;
+            }
+            else if (key == "Enemy:")
+            {
+                iss >> value1 >> value2;
+
+                if (enemyCounter == 1)
+                {
+                    enemyList.clear();
+                    level.setEnemyCounter(1);
+                }
+
+                Enemy newEnemy({value1, value2, ENEMY_WIDTH, ENEMY_HEIGHT});
+                newEnemy.setBounds();
+                enemyList.push_back(newEnemy);
+
+                level.setEnemyCounter(enemyCounter);
+
+                enemyCounter++;
+            }
+            else if (key == "Points:")
+            {
+                iss >> value1;
+                points = value1;
+            }
+            else if (key == "Level:")
+            {
+                iss >> value1;
+                level.setLevel(value1);
+            }
+        }
+    }
+}
+
+void Game::save()
+{
+    saveFile.open("saveFile.txt");
+
+    saveFile << "Name: " << Data::playerName << "\n"; 
+    saveFile << "Player: " << player.getAsset().x << "\t" << player.getAsset().y << "\n";
+
+    for (auto entry : arenaList)
+        saveFile << "Arena: " << entry.second.getAsset().x << "\t" << entry.second.getAsset().y << "\n";
+    
+    for (auto currentEnemy : enemyList)
+        saveFile << "Enemy: " << currentEnemy.getAsset().x << "\t" << currentEnemy.getAsset().y << "\n";
+
+    saveFile << "Level: " << level.getLevel() << "\n";
+    saveFile << "Ladder: " << ladder.getAsset().x << "\t" << ladder.getAsset().y << "\n";
+    saveFile << "Points: " << points << "\n";
+
+    saveFile.close();
+}
+
+void Game::replay()
+{
+    PlayerPosition playerPos;
+
+    ifstream readReplayFile;
+    readReplayFile.open("replayFile.bin", ios::binary);
+
+    while (readReplayFile.read((char*) &playerPos, sizeof(PlayerPosition)))
+    {
+        player.setX(playerPos.x);
+        player.setY(playerPos.y);
+
+        render();
+        SDL_Delay(15);
+    }
+
+    SDL_RenderClear(Data::renderer);
+    SDL_SetRenderDrawColor(Data::renderer, 0, 0, 0, 255);
+    window.createText(Data::renderer, "Replay over", GameSettings::WIDTH / 2 + 200, GameSettings::HEIGHT / 2);
+    SDL_RenderPresent(Data::renderer);
+
+    SDL_Delay(3000);
+
+    readReplayFile.close();
+}
 
 #endif

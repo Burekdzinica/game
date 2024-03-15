@@ -41,7 +41,7 @@ class Enemy : public EntityAnimation
         bool isPlayerTouching(const SDL_Rect& player);
         void updateEnemyAI(Player& player, float detectionDistance, int animationSpeed);
         bool isPlayerInView(Player& player, float detectionDistance);
-        void moveChasing(SDL_Rect playerAsset);
+        void moveChasing(const SDL_Rect& playerAsset);
         void moveIdle();
 };
 
@@ -180,7 +180,7 @@ bool Enemy::isPlayerInView(Player& player, float detectionDistance)
     return (distance <= detectionDistance);
 }
 
-void Enemy::moveChasing(SDL_Rect playerAsset)
+void Enemy::moveChasing(const SDL_Rect& playerAsset)
 {
     float dx = static_cast <float> (playerAsset.x + playerAsset.w / 2) - static_cast <float> (asset.x + asset.w / 2);
     float dy = static_cast <float> (playerAsset.y + playerAsset.h / 2) - static_cast <float> (asset.y + asset.h / 2);
@@ -202,7 +202,6 @@ void Enemy::moveChasing(SDL_Rect playerAsset)
 
     setX(asset.x + static_cast <int> (dx * speed));
     setY(asset.y + static_cast <int> (dy * speed));
-
 }
 
 void Enemy::moveIdle()

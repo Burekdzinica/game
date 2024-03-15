@@ -3,6 +3,7 @@
 
 #include "headers/game.hpp"
 #include "headers/startScreen.hpp"
+#include "headers/pauseScreen.hpp"
 
 
 using namespace std;
@@ -18,18 +19,47 @@ int main(int argc, char *argv[])
     game.setup();
 
     StartScreen startscreen(Data::renderer);
+    PauseScreen pausescreen;
 
     while (game.isOpen())
     {
        frameStart = SDL_GetTicks();
 
-        if (Data::inStartScreen)
+        if (Data::resetGame)
+        {
+            game.restart();
+            Data::resetGame = false;
+            Data::inContinueScreen = false;
+        }
+
+        else if (Data::replay)
+        {
+            game.replay();
+            startscreen.setUiCreated();
+            Data::replay = false;
+        }
+        
+        else if (Data::continueGame)
+        {
+            game.continueGame();
+            Data::continueGame = false;
+            Data::inContinueScreen = false;
+            Data::inStartScreen = false;
+        }
+        
+        else if (Data::inContinueScreen)
+            startscreen.run(Data::renderer, true);
+
+        else if (Data::inStartScreen)
             startscreen.run(Data::renderer);
-    
+        
+        else if (Data::inPauseScreen)
+            pausescreen.run(Data::renderer, &game);
+  
         else
         {
             if (Data::isPlayerAlive)
-            game.update();
+                game.update();
 
             else if (!Data::isPlayerAlive)
             {
@@ -40,19 +70,19 @@ int main(int argc, char *argv[])
                 {
                     if (event.type == SDL_QUIT)
                         return EXIT_SUCCESS;
-        
+            
                     if (keystate[SDL_SCANCODE_R])
                         game.restart();
                 }
             }
-
             game.render();
         }
-
+        
         frameTime = SDL_GetTicks() - frameStart;
         if (frameDelay > frameTime)
             SDL_Delay(frameDelay - frameTime);
     }
+   
 
     return EXIT_SUCCESS;
 }

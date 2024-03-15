@@ -22,14 +22,14 @@ class Ladder
 
     public:
         Ladder() = default;
-        Ladder(SDL_Rect asset);
+        Ladder(const SDL_Rect& asset);
         SDL_Rect getAsset();
         void setX(int x);
         void setY(int y);
 
 };
 
-Ladder::Ladder(SDL_Rect asset)
+Ladder::Ladder(const SDL_Rect& asset)
 {
     this->asset = asset;
 }
@@ -69,21 +69,25 @@ class Level
     private:
         int lvl;
         int arenaCounter;
+        int enemyCounter;
 
     public:
         // Level() = default;
         Level();
-        void resetGame(Player &player, vector <Enemy> &enemyList, unordered_map <int, Arena>& arenaList, Ladder& ladder, int& isCloseTo, int health);
+        void resetGame(Player& player, vector <Enemy>& enemyList, unordered_map <int, Arena>& arenaList, Ladder& ladder, int& isCloseTo, int health);
         void setLevel();
+        void setLevel(int x);
         void resetLevel();
         void setArenaCounter(int arenaCounter);
         int getLevel();
         int getArenaCounter();
+        void setEnemyCounter(int x);
 };
 
 Level::Level()
 {
     this->lvl = 1;
+    this->enemyCounter = 1;
 }
 
 void Level::resetGame(Player &player, vector <Enemy> &enemyList, unordered_map <int, Arena>& arenaList, Ladder& ladder, int& isCloseTo, int health)
@@ -95,9 +99,8 @@ void Level::resetGame(Player &player, vector <Enemy> &enemyList, unordered_map <
         for (int j = 0; j < GameSettings::HEIGHT / ENEMY_HEIGHT; j++)
             grid.insert({(make_pair(i,j)), false});
 
-    static int levelCounter = 1;
+    static int levelCounter = lvl;
     levelCounter++;
-    static int enemyCounter = 1;
     if ((levelCounter == 2) || (((levelCounter - 2) % 3 == 0)))
         enemyCounter++;
 
@@ -184,6 +187,11 @@ void Level::setLevel()
     this->lvl++;
 }
 
+void Level::setLevel(int x)
+{
+    this->lvl = x;
+}
+
 void Level::resetLevel()
 {
     this->lvl = 1;
@@ -202,6 +210,11 @@ int Level::getLevel()
 int Level::getArenaCounter()
 {
     return this->arenaCounter;
+}
+
+void Level::setEnemyCounter(int x)
+{
+    this->enemyCounter = x;
 }
 
 #endif 
