@@ -22,14 +22,14 @@ class Ladder
 
     public:
         Ladder() = default;
-        Ladder(SDL_Rect asset);
+        Ladder(const SDL_Rect& asset);
         SDL_Rect getAsset();
         void setX(int x);
         void setY(int y);
 
 };
 
-Ladder::Ladder(SDL_Rect asset)
+Ladder::Ladder(const SDL_Rect& asset)
 {
     this->asset = asset;
 }
@@ -74,7 +74,7 @@ class Level
     public:
         // Level() = default;
         Level();
-        void resetGame(Player &player, vector <Enemy> &enemyList, unordered_map <int, Arena>& arenaList, Ladder& ladder, int& isCloseTo, int health);
+        void resetGame(Player& player, vector <Enemy>& enemyList, unordered_map <int, Arena>& arenaList, Ladder& ladder, int& isCloseTo, int health);
         void setLevel();
         void setLevel(int x);
         void resetLevel();

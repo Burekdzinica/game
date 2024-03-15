@@ -43,7 +43,7 @@ class EntityAnimation : public Entity
     public:
         void setSrcRect(int x, int y, int w, int h, int frame, int speed);
         SDL_Rect getSrcRect();
-        void setFlip(SDL_RendererFlip newflip);
+        void setFlip(const SDL_RendererFlip& newflip);
         SDL_RendererFlip getFlip();
 
 };
@@ -66,7 +66,7 @@ SDL_RendererFlip EntityAnimation::getFlip()
     return this->flip;
 }
 
-void EntityAnimation::setFlip(SDL_RendererFlip newFlip)
+void EntityAnimation::setFlip(const SDL_RendererFlip& newFlip)
 {
     this->flip = newFlip;
 }
@@ -83,7 +83,7 @@ class Menu
     public:
         Menu();
         void createText(SDL_Renderer *renderer, const char* textString, SDL_Rect &destRect);
-        virtual void handleMouseClick(SDL_Renderer *renderer);
+        virtual void handleMouseClick(SDL_Renderer* renderer);
 };
 
 Menu::Menu()

@@ -32,9 +32,9 @@ class Options : public Menu
         Options();
         bool isOpen() const;
         void setOpen(bool newOpen);
-        void handleMouseClick(SDL_Renderer *renderer) override;
-        void openResolutionOptions(SDL_Renderer *renderer);
-        void open(SDL_Renderer *renderer);
+        void handleMouseClick(SDL_Renderer* renderer) override;
+        void openResolutionOptions(SDL_Renderer* renderer);
+        void open(SDL_Renderer* renderer);
 };
 
 Options::Options()

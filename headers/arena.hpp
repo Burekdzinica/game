@@ -15,7 +15,7 @@ class Arena : public Entity
 
     public:
         Arena();
-        Arena(SDL_Rect asset);
+        Arena(const SDL_Rect& asset);
         bool getArenaSpawn() const;
         int getArenaCounter();
         bool getLvlDone();
@@ -36,7 +36,7 @@ Arena::Arena()
     this->isVisible = true;
 }
 
-Arena::Arena(SDL_Rect asset)
+Arena::Arena(const SDL_Rect& asset)
 {
     this->asset = asset;
     this->isLvlDone = false;

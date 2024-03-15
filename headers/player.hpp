@@ -32,15 +32,15 @@ class Player : public EntityAnimation
         void changeHealth(int healthDiff);
         void movePlayer();
         void move(int x, int y);
-        bool isNearby(const SDL_Rect& player, const SDL_Rect& arena, int range) const;
+        bool isNearby(const SDL_Rect& player, const SDL_Rect& arena, int range);
         bool isNearLadder();
         bool isNearArena();
         void updatePlayerAnimation(int speed);
         PlayerState getState();
         void setNearArena(bool newNearArena);
         void setNearLadder(bool newNearLadder);
-        void setState(PlayerState newState);
-        void reset(int health, SDL_Rect newAsset);
+        void setState(const PlayerState& newState);
+        void reset(int health, const SDL_Rect& newAsset);
 };
 
 Player::Player(int health, const SDL_Rect& asset)
@@ -140,7 +140,7 @@ void Player::move(int x, int y)
     updatePlayerAnimation(ANIMATION_SPEED);
 }
 
-bool Player::isNearby(const SDL_Rect& sourceRect, const SDL_Rect& destRect, int range) const
+bool Player::isNearby(const SDL_Rect& sourceRect, const SDL_Rect& destRect, int range)
 {
     return (abs(sourceRect.x - destRect.x) < range && abs(sourceRect.y - destRect.y) < range);  
 }
@@ -174,7 +174,7 @@ PlayerState Player::getState()
     return this->state;
 }
 
-void Player::setState(PlayerState newState)
+void Player::setState(const PlayerState& newState)
 {
     this->state = newState;
 }
@@ -189,7 +189,7 @@ void Player::setNearLadder(bool newNearLadder)
     this->nearLadder = newNearLadder;
 }
 
-void Player::reset(int health, SDL_Rect newAsset)
+void Player::reset(int health, const SDL_Rect& newAsset)
 {
     this->health = health;
     Data::isPlayerAlive = health > 0;

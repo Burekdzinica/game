@@ -25,16 +25,16 @@ class Window
 
     public:
         Window();
-        Window(const string &title, int WIDTH, int HEIGHT, const char* fontName, int fontSize);
+        Window(const string& title, int WIDTH, int HEIGHT, const char* fontName, int fontSize);
         ~Window(); //destructor
         void init();
-        void createText(SDL_Renderer *renderer, const char* textString, int x, int y);
+        void createText(SDL_Renderer* renderer, const char* textString, int x, int y);
         void clear();
         void present();
         SDL_Renderer* getRenderer();
         void draw(SDL_Renderer* renderer, SDL_Rect destRec, SDL_Texture *imgTexture);
-        void drawAnimation(SDL_Renderer *renderer, SDL_Rect srcRect, SDL_Rect destRect, SDL_Texture *imgTexture, SDL_RendererFlip flip);
-        void drawPlayerHealth(int playerHealth, SDL_Texture *hearts_1, SDL_Texture *hearts_2, SDL_Texture *hearts_3);
+        void drawAnimation(SDL_Renderer* renderer, SDL_Rect srcRect, SDL_Rect destRect, SDL_Texture* imgTexture, SDL_RendererFlip flip);
+        void drawPlayerHealth(int playerHealth, SDL_Texture* hearts_1, SDL_Texture* hearts_2, SDL_Texture* hearts_3);
 };
 
 Window::Window()
@@ -66,7 +66,7 @@ Window::Window()
     init();
 }
 
-Window::Window(const string &title, int WIDTH, int HEIGHT, const char* fontName, int fontSize)
+Window::Window(const string& title, int WIDTH, int HEIGHT, const char* fontName, int fontSize)
 {
     init();
     SDL_Init(SDL_INIT_EVERYTHING);
@@ -113,7 +113,7 @@ void Window::init()
         cout << "IMG initialization failed: " << IMG_GetError() << "\n";
 }
 
-void Window::createText(SDL_Renderer *renderer, const char* textString, int x, int y)
+void Window::createText(SDL_Renderer* renderer, const char* textString, int x, int y)
 {
     SDL_Color color = {230, 230, 230};
 
@@ -156,7 +156,7 @@ SDL_Renderer* Window::getRenderer()
     return renderer;
 }
 
-void Window::draw(SDL_Renderer *renderer, SDL_Rect destRect, SDL_Texture *imgTexture)
+void Window::draw(SDL_Renderer* renderer, SDL_Rect destRect, SDL_Texture *imgTexture)
 {
     if (imgTexture == NULL)
         cout << "Cannot create texture\n";

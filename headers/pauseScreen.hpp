@@ -18,7 +18,7 @@ class PauseScreen : public Menu
 
     public:
         PauseScreen();
-        void handleMouseClick(SDL_Renderer *renderer, Game* game); 
+        void handleMouseClick(SDL_Renderer* renderer, Game* game); 
         void run(SDL_Renderer* renderer, Game* game);
 
 };

@@ -80,7 +80,6 @@ class Game
         void restart();
         void updateHighscores();
         void continueGame();
-        void closeReplayFile();
         void save();
         void replay();
 };
@@ -332,6 +331,7 @@ void Game::render()
 
         window.present();
 
+        replayFile.close();
         updateHighscores();
     }
 
@@ -552,11 +552,6 @@ void Game::continueGame()
             }
         }
     }
-}
-
-void Game::closeReplayFile()
-{
-    replayFile.close();
 }
 
 void Game::save()
