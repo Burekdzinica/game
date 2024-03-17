@@ -11,6 +11,7 @@ namespace Data
 {
     SDL_Window* window = nullptr;
     SDL_Renderer* renderer = nullptr;
+    TTF_Font* font = nullptr;
     bool isPlayerAlive = true;
     std::string playerName;
     bool inStartScreen = true;

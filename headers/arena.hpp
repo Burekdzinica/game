@@ -2,6 +2,9 @@
 #define ARENA_HPP
 
 #include <SDL2/SDL.h>
+#include <unordered_map>
+
+#include "ladder.hpp"
 
 using namespace std;
 
@@ -26,6 +29,7 @@ class Arena : public Entity
         void setForcedVisibility(bool newForcedVisibility);
         void setArenaSpawn();
         void setVisible(bool newVisible);
+        static void generateArenaPositions(int counter, unordered_map<pair<int, int>, bool, PairHash> &grid, unordered_map<int, Arena> &arenaList);
 };
 
 Arena::Arena()
@@ -87,6 +91,52 @@ void Arena::setArenaSpawn()
 void Arena::setVisible(bool newVisible)
 {
     this->isVisible = newVisible;
+}
+
+void Arena::generateArenaPositions(int counter, unordered_map<pair<int, int>, bool, PairHash>& grid, unordered_map<int, Arena>& arenaList)
+{
+    int xArena, yArena;
+    for (int i=0; i < counter; i++)
+    {
+        int attempts = 0;
+        do
+        {
+            auto it = begin(grid);
+            advance(it, rand() % grid.size());
+            pair<int, int> randomCell = it->first;
+
+            xArena = randomCell.first * ARENA_WIDTH;
+            yArena = randomCell.second * ARENA_HEIGHT;
+
+            bool tooCloseToExistingArena = false;
+            for (const auto& entry : arenaList)
+            {
+                int distanceX = abs(xArena - entry.second.getAsset().x);
+                int distanceY = abs(yArena - entry.second.getAsset().y);
+
+                if (distanceX < MIN_DISTANCE_BETWEEN_ARENAS || distanceY < MIN_DISTANCE_BETWEEN_ARENAS)
+                {
+                    tooCloseToExistingArena = true;
+                    break;
+                }
+            }
+
+            if (grid[randomCell] || arenaList.count(i) > 0 || tooCloseToExistingArena)
+            {
+                attempts++;
+                if (attempts > 100)
+                    break;
+
+                continue;
+            }
+
+            break;
+
+        } while (true);
+
+        arenaList.insert({i, Arena({xArena, yArena, ARENA_WIDTH, ARENA_HEIGHT})});
+        grid[{xArena / ARENA_WIDTH, yArena / ARENA_HEIGHT}] = true;
+    }   
 }
 
 #endif

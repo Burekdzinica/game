@@ -58,23 +58,9 @@ int main(int argc, char *argv[])
   
         else
         {
-            if (Data::isPlayerAlive)
-                game.update();
+            game.eventHandler();
+            game.update();
 
-            else if (!Data::isPlayerAlive)
-            {
-                const Uint8* keystate = SDL_GetKeyboardState(nullptr);
-
-                SDL_Event event;
-                if (SDL_PollEvent(&event))
-                {
-                    if (event.type == SDL_QUIT)
-                        return EXIT_SUCCESS;
-            
-                    if (keystate[SDL_SCANCODE_R])
-                        game.restart();
-                }
-            }
             game.render();
         }
         

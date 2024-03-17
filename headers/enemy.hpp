@@ -5,12 +5,21 @@
 #include <math.h>
 #include <chrono>
 #include <thread>
+#include <unordered_map>
+#include <vector>
 
 #include "player.hpp"
 #include "gameSettings.hpp"
 #include "entity.hpp"
+#include "ladder.hpp"
+#include "game.hpp"
+
 
 using namespace std;
+
+extern const int PLAYER_WIDTH, PLAYER_HEIGHT ;
+extern const int PLAYER_WIDTH, PLAYER_HEIGHT;
+extern const int MIN_DISTANCE_BETWEEN_PLAYER_AND_ENEMY;
 
 const int BOUND_RANGE = 900;
 
@@ -34,18 +43,20 @@ class Enemy : public EntityAnimation
 
     
     public:
-        Enemy(SDL_Rect asset);
+        Enemy(const SDL_Rect& asset);
         EnemyState getState();
-        void setState(EnemyState state);
+        void setState(const EnemyState& state);
         void setBounds();
         bool isPlayerTouching(const SDL_Rect& player);
         void updateEnemyAI(Player& player, float detectionDistance, int animationSpeed);
         bool isPlayerInView(Player& player, float detectionDistance);
         void moveChasing(const SDL_Rect& playerAsset);
         void moveIdle();
+        void setAttackTimer();
+        // static void generateEnemyPositions(unordered_map<pair<int, int>, bool, PairHash>& grid, Player& player, vector <Enemy>& enemyList);
 };
 
-Enemy::Enemy(SDL_Rect asset)
+Enemy::Enemy(const SDL_Rect& asset)
 {
     this->asset = asset;
     this->state = EnemyState::Attacked;
@@ -69,7 +80,7 @@ EnemyState Enemy::getState()
     return this->state;
 }
 
-void Enemy::setState(EnemyState newState)
+void Enemy::setState(const EnemyState& newState)
 {
     this->state = newState;
 }
@@ -102,6 +113,7 @@ void Enemy::updateEnemyAI(Player& player, float detectionDistance, int animation
         case EnemyState::Chasing:
             setSrcRect(0, 126, 73, 126, 6, animationSpeed);
             moveChasing(player.getAsset());
+            
             // if enemy chased for x time, goes to attacked
             if (elapsedTime >= chrono::milliseconds(5000) && isPlayerInView(player, detectionDistance))
             {
@@ -113,28 +125,6 @@ void Enemy::updateEnemyAI(Player& player, float detectionDistance, int animation
             {
                 setState(EnemyState::Idle);
                 setBounds();
-            }
-            
-            else if (isPlayerTouching(player.getAsset()))
-            {
-                setState(EnemyState::Attacked);
-                
-                //moves enemy a bit / depends on pos
-                if (player.getAsset().x > asset.x)
-                    setX(max((asset.x - 50), 0));
-
-                else if (player.getAsset().x < asset.x)
-                    setX(max((asset.x + 50), 0));
-                
-                if (player.getAsset().y > asset.y)
-                    setY(max((asset.y - 50), 0));
-                
-                else if (player.getAsset().y < asset.y)
-                    setY(max((asset.y + 50), 0));
-
-                player.changeHealth(-1);
-
-                attackStartTime = chrono::steady_clock::now();
             }
             break;
 
@@ -149,22 +139,6 @@ void Enemy::updateEnemyAI(Player& player, float detectionDistance, int animation
             {
                 setState(EnemyState::Idle);
                 setBounds();
-            }
-            if (isPlayerTouching(player.getAsset()))
-            {
-                if (player.getAsset().x > asset.x)
-                    setX(max((asset.x - 50), 0));
-
-                else if (player.getAsset().x < asset.x)
-                    setX(max((asset.x + 50), 0));
-                
-                if (player.getAsset().y > asset.y)
-                    setY(max((asset.y - 50), 0));
-                
-                else if (player.getAsset().y < asset.y)
-                    setY(max((asset.y + 50), 0));
-
-                player.changeHealth(-1);
             }
             break;
     }
@@ -230,5 +204,35 @@ void Enemy::moveIdle()
     if (asset.y > this->bounds[3] || (asset.y < this->bounds[2]))
         this->direction *= -1;
 }
+
+void Enemy::setAttackTimer()
+{
+    attackStartTime = chrono::steady_clock::now();
+}
+
+// void Enemy::generateEnemyPositions(unordered_map<pair<int, int>, bool, PairHash>& grid, Player& player, vector <Enemy>& enemyList)
+// {
+//     int xEnemy, yEnemy;
+//     do
+//     {
+//         auto it = begin(grid);
+//         advance(it, rand() % grid.size());
+//         pair<int, int> randomCell = it->first;
+
+//         xEnemy = randomCell.first * ENEMY_WIDTH;
+//         yEnemy = randomCell.second * ENEMY_HEIGHT;
+
+//         bool tooCloseToPlayer = (abs(xEnemy - player.getAsset().x) < PLAYER_WIDTH + MIN_DISTANCE_BETWEEN_PLAYER_AND_ENEMY) || (abs(yEnemy - player.getAsset().y) < PLAYER_HEIGHT + MIN_DISTANCE_BETWEEN_PLAYER_AND_ENEMY);
+//         if (!grid[randomCell] && !tooCloseToPlayer)
+//         {
+//             grid[randomCell] = true;
+//             break;
+//         }
+
+//     } while(true);
+    
+//     Enemy newEnemy({xEnemy, yEnemy, ENEMY_WIDTH, ENEMY_HEIGHT});
+//     enemyList.push_back(newEnemy);
+// }
 
 #endif

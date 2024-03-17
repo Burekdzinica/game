@@ -164,7 +164,10 @@ void StartScreen::createPlayerName(SDL_Renderer* renderer)
                     playerName.pop_back();
                     renderUI(renderer);
                 }
-                if (event.key.keysym.scancode == SDL_SCANCODE_RETURN || event.key.keysym.scancode == SDL_SCANCODE_KP_ENTER)  
+                if ((event.key.keysym.scancode == SDL_SCANCODE_RETURN || event.key.keysym.scancode == SDL_SCANCODE_KP_ENTER) && playerName.empty()) 
+                    cout << "Name can't be empty\n";
+
+                else if (event.key.keysym.scancode == SDL_SCANCODE_RETURN || event.key.keysym.scancode == SDL_SCANCODE_KP_ENTER)  
                     nameTyped = true;
             }
         }

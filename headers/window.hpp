@@ -20,22 +20,25 @@ class Window
         SDL_Window *window;
         SDL_Renderer *renderer;
         SDL_Texture *texture;
-        SDL_Texture *imgTexture;
-        SDL_Rect healthRect;
+        static SDL_Rect healthRect;
 
     public:
         Window();
         Window(const string& title, int WIDTH, int HEIGHT, const char* fontName, int fontSize);
         ~Window(); //destructor
         void init();
-        void createText(SDL_Renderer* renderer, const char* textString, int x, int y);
+        static void createText(const char* textString, int x, int y);
         void clear();
         void present();
         SDL_Renderer* getRenderer();
         void draw(SDL_Renderer* renderer, SDL_Rect destRec, SDL_Texture *imgTexture);
+        static void draw(SDL_Texture* tex, SDL_Rect src, SDL_Rect dest);
+        static void draw(SDL_Texture* tex, SDL_Rect dest); // if no srcRect
         void drawAnimation(SDL_Renderer* renderer, SDL_Rect srcRect, SDL_Rect destRect, SDL_Texture* imgTexture, SDL_RendererFlip flip);
-        void drawPlayerHealth(int playerHealth, SDL_Texture* hearts_1, SDL_Texture* hearts_2, SDL_Texture* hearts_3);
+        static void drawPlayerHealth(int playerHealth, SDL_Texture* hearts_1, SDL_Texture* hearts_2, SDL_Texture* hearts_3);
 };
+
+SDL_Rect Window::healthRect = {1, 1, 279, 66};
 
 Window::Window()
 {
@@ -50,18 +53,13 @@ Window::Window()
     if (renderer == NULL)
         cout << "Could not create renderer: " << SDL_GetError() << "\n";
 
-    imgTexture = IMG_LoadTexture(renderer, "assets/map_second.png");
-    if (imgTexture == NULL)
-        cout << "Cannot load image";
-
     this->font = TTF_OpenFont("fonts/pixel.ttf", 30);
     if (!font)
         cout << "Font initilization failed " << TTF_GetError() << "\n"; 
 
-    this->healthRect = {1, 1, 279, 66};
-
     Data::window = window;
     Data::renderer = renderer;
+    Data::font = this->font;
 
     init();
 }
@@ -78,22 +76,16 @@ Window::Window(const string& title, int WIDTH, int HEIGHT, const char* fontName,
     if (renderer == NULL)
         cout << "Could not create renderer: " << SDL_GetError() << "\n";
 
-    imgTexture = IMG_LoadTexture(renderer, "assets/map_second.png");
-    if (imgTexture == NULL)
-        cout << "Cannot load image";
-
     this->font = TTF_OpenFont(fontName, fontSize);
     if (!font)
         cout << "Font initilization failed " << TTF_GetError() << "\n"; 
 
-    this->healthRect = {1, 1, 279, 66};
 }
 
 //deletes the window/renderer
 Window::~Window() 
 {  
     TTF_CloseFont(font);
-    SDL_DestroyTexture(imgTexture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     IMG_Quit();
@@ -113,37 +105,30 @@ void Window::init()
         cout << "IMG initialization failed: " << IMG_GetError() << "\n";
 }
 
-void Window::createText(SDL_Renderer* renderer, const char* textString, int x, int y)
+void Window::createText(const char* textString, int x, int y)
 {
     SDL_Color color = {230, 230, 230};
 
-    SDL_Surface* textSurface = TTF_RenderText_Solid(this->font, textString, color);
+    SDL_Surface* textSurface = TTF_RenderText_Solid(Data::font, textString, color);
     if (!textSurface)
         cout << "Text surface initilization failed: " << TTF_GetError() << "\n";
     
-    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(Data::renderer, textSurface);
     SDL_FreeSurface(textSurface);
 
     int textWidth, textHeight;
 
-    TTF_SizeText(font, textString, &textWidth, &textHeight);
+    TTF_SizeText(Data::font, textString, &textWidth, &textHeight);
 
     SDL_Rect textRect = {abs(x - textWidth), y , textWidth, textHeight};
-    SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+    SDL_RenderCopy(Data::renderer, textTexture, NULL, &textRect);
 
 }
-
-// //clears the screen // used for moving assets
-// void Window::clear() 
-// {
-//     SDL_SetRenderDrawColor(renderer, 204, 144, 64, 255);
-//     SDL_RenderClear(renderer);
-// }
 
 void Window::clear()
 {
     SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, imgTexture, NULL, NULL);
+    // SDL_RenderCopy(renderer, imgTexture, NULL, NULL);
 }
 
 void Window::present()
@@ -164,6 +149,15 @@ void Window::draw(SDL_Renderer* renderer, SDL_Rect destRect, SDL_Texture *imgTex
     SDL_RenderCopy(renderer, imgTexture, NULL, &destRect);
 }
 
+void Window::draw(SDL_Texture* tex, SDL_Rect src, SDL_Rect dest)
+{
+    SDL_RenderCopy(Data::renderer, tex, &src, &dest);
+}
+void Window::draw(SDL_Texture* tex, SDL_Rect dest)
+{
+    SDL_RenderCopy(Data::renderer, tex, NULL, &dest);
+}
+
 void Window::drawAnimation(SDL_Renderer *renderer, SDL_Rect srcRect, SDL_Rect destRect, SDL_Texture *imgTexture, SDL_RendererFlip flip)
 {
     if (imgTexture == NULL)
@@ -177,15 +171,17 @@ void Window::drawPlayerHealth(int playerHealth, SDL_Texture *hearts_1, SDL_Textu
     switch (playerHealth)
     {
         case 3:
-            draw(renderer, healthRect, hearts_1);
+            Window::draw(hearts_1, healthRect);
             break;
         case 2:
-            draw(renderer, healthRect, hearts_2);
+            Window::draw(hearts_2, healthRect);
             break;
         case 1:
-            draw(renderer, healthRect, hearts_3);
+            Window::draw(hearts_3, healthRect);
             break;
     }
 }
+
+//     SDL_SetRenderDrawColor(renderer, 204, 144, 64, 255);
 
 #endif 

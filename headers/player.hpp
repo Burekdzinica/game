@@ -23,6 +23,7 @@ class Player : public EntityAnimation
         bool isMoving;
         bool nearLadder;
         bool nearArena;
+        int attack;
 
     public:
         Player() = default;
@@ -41,6 +42,11 @@ class Player : public EntityAnimation
         void setNearLadder(bool newNearLadder);
         void setState(const PlayerState& newState);
         void reset(int health, const SDL_Rect& newAsset);
+        void setAttack(int newAttack);
+        void increaseAttack();
+        void decreaseAttack();
+        int getAttack();
+        bool isPlayerTouching (const SDL_Rect& other);
 };
 
 Player::Player(int health, const SDL_Rect& asset)
@@ -54,6 +60,7 @@ Player::Player(int health, const SDL_Rect& asset)
     this->state = PlayerState::Idle;
     this->nearArena = false;
     this->nearLadder = false;
+    this->attack = 0;
 }
 
 void Player::setHealth(int newHealth)
@@ -196,6 +203,32 @@ void Player::reset(int health, const SDL_Rect& newAsset)
     this->srcRect = {0, 0, 120, 116};
     this->isMoving = false;
     this->asset = newAsset;
+}
+
+void Player::setAttack(int newAttack)
+{
+    this->attack = newAttack;
+}
+
+void Player::increaseAttack()
+{
+    this->attack++;
+}
+
+void Player::decreaseAttack()
+{
+    this->attack--;
+}
+
+
+int Player::getAttack()
+{
+    return this->attack;
+}
+
+bool Player::isPlayerTouching(const SDL_Rect& other)
+{
+    return SDL_HasIntersection(&other, &asset) == SDL_TRUE;
 }
 
 #endif

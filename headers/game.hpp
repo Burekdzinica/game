@@ -1,5 +1,6 @@
 #ifndef GAME_CPP
 #define GAME_CPP
+
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -17,22 +18,26 @@
 #include "player.hpp"
 #include "window.hpp"
 #include "arena.hpp"
-#include "enemy.hpp"
 #include "ladder.hpp"
 #include "startScreen.hpp"
 #include "gameSettings.hpp"
+#include "map.hpp"
+#include "enemy.hpp"
+#include "level.hpp"
+#include "spear.hpp"
 
 using namespace std;
 
-const int ARENA_WIDTH = 83, ARENA_HEIGHT = 83;
-const int PLAYER_WIDTH = 117, PLAYER_HEIGHT = 140;
-const int ENEMY_WIDTH = 98, ENEMY_HEIGHT = 166;
-const int LADDER_WIDTH = 98, LADDER_HEIGHT = 98;
+const int ARENA_WIDTH = 62, ARENA_HEIGHT = 62;
+const int PLAYER_WIDTH = 88, PLAYER_HEIGHT = 105;
+const int ENEMY_WIDTH = 74, ENEMY_HEIGHT = 125;
+const int LADDER_WIDTH = 74, LADDER_HEIGHT = 74;
 
 const int ANIMATION_SPEED = 200;
 
-const int SIGHT_RANGE = 2000;
-const int ENEMY_RANGE = 500;
+const int SIGHT_RANGE = 200;
+// const int SIGHT_RANGE = 2000;
+const int ENEMY_RANGE = 450;
 const int INTERACTION_RANGE_ARENA = SIGHT_RANGE + ARENA_WIDTH - 150;
 const int INTERACTION_RANGE_LADDER = SIGHT_RANGE + LADDER_WIDTH - 50;
 
@@ -50,19 +55,24 @@ class Game
         ofstream highscoresData;
         ofstream saveFile;
         ofstream replayFile;
-        SDL_Texture *playerTexture;
+        SDL_Texture *playerSpearTexture;
+        SDL_Texture *playerNoSpearTexture;
         SDL_Texture *enemyTexture;
         SDL_Texture *arenaTexture;
         SDL_Texture *ladderTexture;
         SDL_Texture *hearts_1Texture;
         SDL_Texture *hearts_2Texture;
         SDL_Texture *hearts_3Texture;
+        SDL_Texture* spearTexture;
         
         Window window;
+        Spear* spear = nullptr;
+        Map map;
         Player player;
         Level level;
         Ladder ladder;
         vector <Enemy> enemyList;
+        vector<PlayerPosition> replayList;
         unordered_map <pair<int, int>, bool, PairHash> grid;
         unordered_map <int, Arena> arenaList;
         int points;
@@ -73,6 +83,7 @@ class Game
         Game();
         ~Game();
         void setup();
+        void eventHandler();
         void update();
         void render();
         bool isOpen();
@@ -81,9 +92,12 @@ class Game
         void continueGame();
         void save();
         void replay();
+        void saveReplayToList();
+        void saveReplay();
+        int getLowestScore();
 };
 
-Game::Game()
+Game::Game() : map()
 {
     this->points = 0;
     this-> isCloseTo = -1;
@@ -92,7 +106,8 @@ Game::Game()
 
 Game::~Game()
 {
-    SDL_DestroyTexture(playerTexture);
+    SDL_DestroyTexture(playerSpearTexture);
+    SDL_DestroyTexture(playerNoSpearTexture);
     SDL_DestroyTexture(enemyTexture);
     SDL_DestroyTexture(arenaTexture);
     SDL_DestroyTexture(ladderTexture);
@@ -105,102 +120,42 @@ void Game::setup()
 {
     srand(time(NULL));
 
-    #define LOAD_TEXTURE(renderer, imgPath) SDL_CreateTextureFromSurface(renderer, IMG_Load(imgPath))
-
     highscoresData.open("highscores.txt", ios::app);
 
-    playerTexture = LOAD_TEXTURE(window.getRenderer(), "assets/player_remastared.png");
+    spear = new Spear;
+
+    #define LOAD_TEXTURE(renderer, imgPath) SDL_CreateTextureFromSurface(renderer, IMG_Load(imgPath))
+
+    playerSpearTexture = LOAD_TEXTURE(window.getRenderer(), "assets/player_spear.png");
+    playerNoSpearTexture = LOAD_TEXTURE(window.getRenderer(), "assets/player_no_spear.png");
     enemyTexture = LOAD_TEXTURE(window.getRenderer(), "assets/enemy_reloaded.png");
     arenaTexture = LOAD_TEXTURE(window.getRenderer(), "assets/arena.png");
     ladderTexture = LOAD_TEXTURE(window.getRenderer(), "assets/ladder.png");
     hearts_1Texture = LOAD_TEXTURE(window.getRenderer(), "assets/3_hearts_reloaded.png");
     hearts_2Texture = LOAD_TEXTURE(window.getRenderer(), "assets/2_hearts_reloaded.png");
     hearts_3Texture = LOAD_TEXTURE(window.getRenderer(), "assets/1_hearts_reloaded.png");
+    spearTexture = LOAD_TEXTURE(window.getRenderer(), "assets/spear.png");
 
     // makes grid for spawns
     for (int i = 0; i < GameSettings::WIDTH / ENEMY_WIDTH; i++)
         for (int j = 0; j < GameSettings::HEIGHT / ENEMY_HEIGHT; j++)
             grid.insert({(make_pair(i,j)), false});
 
+    spear->spawnSpear(grid);
+
     level.setArenaCounter(2 + rand() % 2);
 
-    int xArena, yArena;
-    for (int i=0; i < level.getArenaCounter(); i++)
-    {
-        do
-        {
-            auto it = begin(grid);
-            advance(it, rand() % grid.size());
-            pair<int, int> randomCell = it->first;
+    Arena::generateArenaPositions(level.getArenaCounter(), grid, arenaList);
 
-            xArena = randomCell.first * ARENA_WIDTH;
-            yArena = randomCell.second * ARENA_HEIGHT;
-
-            bool tooCloseToExistingArena = false;
-            for (const auto& entry : arenaList)
-            {
-                int distanceX = abs(xArena - entry.second.getAsset().x);
-                int distanceY = abs(yArena - entry.second.getAsset().y);
-
-                if (distanceX < MIN_DISTANCE_BETWEEN_ARENAS || distanceY < MIN_DISTANCE_BETWEEN_ARENAS)
-                {
-                    tooCloseToExistingArena = true;
-                    break;
-                }
-            }
-
-            if (grid[randomCell] || arenaList.count(i) > 0 || tooCloseToExistingArena)
-                continue;
-
-            break;
-
-        } while (true);
-
-        arenaList.insert({i, Arena({xArena, yArena, ARENA_WIDTH, ARENA_HEIGHT})});
-        grid[{xArena / ARENA_WIDTH, yArena / ARENA_HEIGHT}] = true;
-    }   
+    level.generateEnemyPositions(grid, player, enemyList);
 
     this->player = Player(3, {max((rand() % GameSettings::WIDTH - PLAYER_WIDTH), 0), max((rand() % GameSettings::HEIGHT - PLAYER_HEIGHT), 0), PLAYER_WIDTH, PLAYER_HEIGHT});
-    
-    int xEnemy, yEnemy;
-    do
-    {
-        auto it = begin(grid);
-        advance(it, rand() % grid.size());
-        pair<int, int> randomCell = it->first;
-
-        xEnemy = randomCell.first * ENEMY_WIDTH;
-        yEnemy = randomCell.second * ENEMY_HEIGHT;
-
-        bool tooCloseToPlayer = (abs(xEnemy - player.getAsset().x) < PLAYER_WIDTH + MIN_DISTANCE_BETWEEN_PLAYER_AND_ENEMY) || (abs(yEnemy - player.getAsset().y) < PLAYER_HEIGHT + MIN_DISTANCE_BETWEEN_PLAYER_AND_ENEMY);
-        if (!grid[randomCell] && !tooCloseToPlayer)
-        {
-            grid[randomCell] = true;
-            break;
-        }
-
-    } while(true);
-    
-    Enemy newEnemy({xEnemy, yEnemy, ENEMY_WIDTH, ENEMY_HEIGHT});
-    enemyList.push_back(newEnemy);
 
     this->ladder = Ladder({max((rand() % GameSettings::WIDTH - LADDER_WIDTH), 0), max((rand() % GameSettings::HEIGHT - LADDER_HEIGHT), 0), LADDER_WIDTH, LADDER_HEIGHT});
 }
 
-void Game::update()
+void Game::eventHandler()
 {
-    if (!replayFile.is_open())
-        replayFile.open("replayFile.bin", ios::binary);
-
-    player.setNearArena(false);
-    player.setNearLadder(false);
-
-    PlayerPosition playerPos;
-    playerPos.x = player.getAsset().x;
-    playerPos.y = player.getAsset().y;
-
-    replayFile.write((char*)&playerPos, sizeof(PlayerPosition));
-
     SDL_Event event;
     if (SDL_PollEvent(&event))
     {
@@ -209,18 +164,145 @@ void Game::update()
             this->open = false;
             return;
         }
-        if (event.type == SDL_KEYUP)
+        if (Data::isPlayerAlive)
         {
-            player.setFlip(SDL_FLIP_NONE);
-            player.setState(PlayerState::Idle);
-        }   
-        if (event.key.keysym.sym == SDLK_ESCAPE)
+            if (event.type == SDL_KEYUP)
+            {
+                player.setFlip(SDL_FLIP_NONE);
+                player.setState(PlayerState::Idle);
+            }   
+            if (event.key.keysym.sym == SDLK_ESCAPE)
+            {
+                Data::inPauseScreen = true;
+                replayFile.close();
+            }
+
+            // deletes arena
+            if (event.type == SDL_KEYDOWN)
+            {
+                if (event.key.keysym.sym == SDLK_e && isCloseTo >= 0 && player.isNearArena())
+                {
+                    arenaList.erase(isCloseTo);
+                    
+                    // 20% chance to see other arena on arena pickup
+                    if (!arenaList.empty() && (rand() % 5 + 1) == 1)
+                    {
+                        auto firstArena = arenaList.begin();
+
+                        firstArena->second.setVisible(true);              
+                        firstArena->second.setForcedVisibility(true);              
+                    }
+
+                    points += 100;
+                    
+                    isCloseTo = -1;
+                } 
+                //spawns door for next lvl 
+                if (arenaList.empty())
+                {
+                    if (player.isNearby(player.getAsset(), ladder.getAsset(), INTERACTION_RANGE_LADDER))
+                    {
+                        player.setNearLadder(true);
+                        if (event.type == SDL_KEYDOWN)
+                        {
+                            if (event.key.keysym.sym == SDLK_f)
+                            {
+                                level.resetGame(player, enemyList, arenaList, ladder, isCloseTo, player.getHealth());
+                                level.setLevel();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        else if (!Data::isPlayerAlive)
         {
-            Data::inPauseScreen = true;
-            replayFile.close();
+            if (event.key.keysym.sym == SDLK_r)
+                restart();
         }
     }
     player.movePlayer();
+}
+
+void Game::update()
+{
+    saveReplayToList();
+
+    // if you continue from save this makes it so it doesn't spawn spear --> not good solution
+    static bool preventSpear = false;
+    if (player.getAttack() > 0 && preventSpear == false)
+    {
+        delete spear;
+        spear = nullptr;
+    }
+    preventSpear = true;
+
+    player.setNearArena(false);
+    if (!(player.isNearby(player.getAsset(), ladder.getAsset(), INTERACTION_RANGE_LADDER)) && arenaList.empty())
+        player.setNearLadder(false);
+
+    static int previousPoints = 0;
+    if (points >= previousPoints + 1000)
+    {
+        spear = new Spear;
+        spear->spawnSpear(grid);
+
+        previousPoints += 1000;
+    }
+
+    if (spear->isPlayerTouching(player.getAsset()) && !spear->isSpearTouched())
+    {
+        player.increaseAttack();
+        spear->setSpearTouched();
+
+        delete spear;
+        spear = nullptr;
+    }
+ 
+    if (player.getAttack() > 0)
+    {
+        for (auto it = enemyList.begin(); it != enemyList.end();)
+        {
+            if (player.isPlayerTouching(it->getAsset()))
+            {
+                it = enemyList.erase(it);
+                player.decreaseAttack();
+                level.decreaseEnemyCounter();
+
+                points += 200;
+            }
+            else
+                ++it;
+        }
+    }
+    else 
+    {
+        for (auto& currentEnemy : enemyList)
+        {
+            if (currentEnemy.isPlayerTouching(player.getAsset()))
+            {
+                player.changeHealth(-1);
+
+                //moves enemy a bit / depends on pos
+                if (player.getAsset().x > currentEnemy.getAsset().x)
+                    currentEnemy.setX(max((currentEnemy.getAsset().x - 50), 0));
+
+                else if (player.getAsset().x < currentEnemy.getAsset().x)
+                    currentEnemy.setX(max((currentEnemy.getAsset().x + 50), 0));
+                
+                if (player.getAsset().y > currentEnemy.getAsset().y)
+                    currentEnemy.setY(max((currentEnemy.getAsset().y - 50), 0));
+                
+                else if (player.getAsset().y < currentEnemy.getAsset().y)
+                    currentEnemy.setY(max((currentEnemy.getAsset().y + 50), 0));
+
+                currentEnemy.setState(EnemyState::Attacked);
+                currentEnemy.setAttackTimer();
+            }
+        }   
+    }
+    for (auto& currentEnemy : enemyList)
+        currentEnemy.updateEnemyAI(player, ENEMY_RANGE, ANIMATION_SPEED);
 
     // arena visibility
     for (auto& entry : arenaList)
@@ -237,85 +319,58 @@ void Game::update()
             currentArena.setVisible(false);
     }
 
-    // renders arena
     for (auto& entry : arenaList)
     {
         Arena& currentArena = entry.second;
 
-        if (currentArena.getVisible() || currentArena.isForcedVisible())
-            window.draw(window.getRenderer(), currentArena.getAsset(), arenaTexture);
-        
         if (player.isNearby(player.getAsset(), currentArena.getAsset(), INTERACTION_RANGE_ARENA))
             player.setNearArena(true);
-    }
-
-    // deletes arena
-    if (event.type == SDL_KEYDOWN)
-    {
-        if (event.key.keysym.sym == SDLK_e && isCloseTo >= 0 && player.isNearArena())
-        {
-            arenaList.erase(isCloseTo);
-            
-            // 20% chance to see other arena on arena pickup
-            if (!arenaList.empty() && (rand() % 5 + 1) == 1)
-            {
-                auto firstArena = arenaList.begin();
-
-                firstArena->second.setVisible(true);              
-                firstArena->second.setForcedVisibility(true);              
-            }
-
-            points += 100;
-            
-            isCloseTo = -1;
-        } 
     }
 
     if (player.getState() == PlayerState::Idle)
         player.updatePlayerAnimation(ANIMATION_SPEED);
 
-    for (auto& currentEnemy : enemyList)
-        currentEnemy.updateEnemyAI(player, ENEMY_RANGE, ANIMATION_SPEED);
-
-    //spawns door for next lvl 
-    if (arenaList.empty())
-    {
-        window.draw(window.getRenderer(), ladder.getAsset(), ladderTexture);
-
-        if (player.isNearby(player.getAsset(), ladder.getAsset(), INTERACTION_RANGE_LADDER))
-        {
-            player.setNearLadder(true);
-            if (event.type == SDL_KEYDOWN)
-            {
-                if (event.key.keysym.sym == SDLK_f)
-                {
-                    level.resetGame(player, enemyList, arenaList, ladder, isCloseTo, player.getHealth());
-                    level.setLevel();
-                }
-            }
-        }
-    }
 }
 
 void Game::render()
 {
-    window.drawAnimation(window.getRenderer(), player.getSrcRect(), player.getAsset(), playerTexture, player.getFlip());
+    window.clear();
+
+    map.drawMap();
+
+    if (spear != nullptr)
+        Window::draw(spearTexture, spear->getAsset());
+
+    for (auto& currentArena : arenaList)
+        if (currentArena.second.getVisible() || currentArena.second.isForcedVisible())
+            Window::draw(arenaTexture, currentArena.second.getAsset());
+
+    if (arenaList.empty())
+        Window::draw(ladderTexture, ladder.getAsset());
+    
     for (auto& currentEnemy : enemyList)
         window.drawAnimation(window.getRenderer(),currentEnemy.getSrcRect(), currentEnemy.getAsset(), enemyTexture, currentEnemy.getFlip());
-        
+
+    if (player.getAttack() <= 0)
+        window.drawAnimation(window.getRenderer(), player.getSrcRect(), player.getAsset(), playerNoSpearTexture, player.getFlip());
+    else
+        window.drawAnimation(window.getRenderer(), player.getSrcRect(), player.getAsset(), playerSpearTexture, player.getFlip());
+
+    Window::createText(("Attack: " + to_string(player.getAttack())).c_str(), GameSettings::WIDTH, GameSettings::HEIGHT - 35);
+
     if (arenaList.size() < level.getArenaCounter())
-        window.createText(window.getRenderer(), ("Remaining arenas: " + to_string(arenaList.size())).c_str(), GameSettings::WIDTH, 50);
+        Window::createText(("Remaining arenas: " + to_string(arenaList.size())).c_str(), GameSettings::WIDTH, 50);
 
     if (player.isNearArena())
-        window.createText(window.getRenderer(), "Save bull [E]", (GameSettings::WIDTH / 2) + 100, GameSettings::HEIGHT - 50);
+        Window::createText("Save bull [E]", (GameSettings::WIDTH / 2) + 180, GameSettings::HEIGHT - 50);
 
     if (player.isNearLadder())
-        window.createText(window.getRenderer(), ("Next level [F]"), (GameSettings::WIDTH / 2) + 100, GameSettings::HEIGHT - 50);
+        Window::createText(("Next level [F]"), (GameSettings::WIDTH / 2) + 200, GameSettings::HEIGHT - 50);
 
-    window.createText(window.getRenderer(), ("Level: " + to_string(level.getLevel())).c_str(), GameSettings::WIDTH / 2, 0);
-    window.createText(window.getRenderer(), ("Points: " + to_string(points)).c_str(), GameSettings::WIDTH, 0);
+    Window::createText(("Level: " + to_string(level.getLevel())).c_str(), GameSettings::WIDTH / 2 + 100, 0);
+    Window::createText(("Points: " + to_string(points)).c_str(), GameSettings::WIDTH, 0);
 
-    window.drawPlayerHealth(player.getHealth(), hearts_1Texture, hearts_2Texture, hearts_3Texture);
+    Window::drawPlayerHealth(player.getHealth(), hearts_1Texture, hearts_2Texture, hearts_3Texture);
 
     // game over screen
     if (!(Data::isPlayerAlive))
@@ -325,17 +380,17 @@ void Game::render()
         SDL_RenderClear(window.getRenderer());     
         SDL_SetRenderDrawColor(window.getRenderer(), 0, 0, 0, 0);
 
-        window.createText(window.getRenderer(), "Game over", GameSettings::WIDTH / 2, GameSettings::HEIGHT / 2);
-        window.createText(window.getRenderer(), "Press [R] to restart", GameSettings::WIDTH / 2, GameSettings::HEIGHT / 2 + 200);
+        Window::createText("Game over", GameSettings::WIDTH / 2, GameSettings::HEIGHT / 2);
+        Window::createText("Press [R] to restart", GameSettings::WIDTH / 2, GameSettings::HEIGHT / 2 + 200);
 
         window.present();
 
-        replayFile.close();
         updateHighscores();
-    }
+        if (points < getLowestScore() || points == 0)
+            saveReplay();
 
+    }
     window.present();  
-    window.clear();
 }
 
 bool Game::isOpen()
@@ -347,7 +402,12 @@ void Game::restart()
 {
     srand(time(NULL));
 
+    spear = new Spear;
+    spear->spawnSpear(grid);
+
     Data::isPlayerAlive = true;
+
+    replayList.clear();
 
     grid.clear();
     // makes grid for spawns
@@ -357,78 +417,25 @@ void Game::restart()
 
     player.setX(max((rand() % (GameSettings::WIDTH - PLAYER_WIDTH)), 0));
     player.setY(max((rand() % (GameSettings::HEIGHT - PLAYER_HEIGHT)), 0));
-
     player.setHealth(3);
-
-    arenaList.clear();
+    player.setAttack(0);
 
     level.setArenaCounter(2 + rand() % 2);
     level.resetLevel();
 
-    int xArena, yArena;
-    for (int i=0; i < level.getArenaCounter(); i++)
-    {
-        do
-        {
-            auto it = begin(grid);
-            advance(it, rand() % grid.size());
-            pair<int, int> randomCell = it->first;
+    arenaList.clear();
+    Arena::generateArenaPositions(level.getArenaCounter(), grid, arenaList);
 
-            xArena = randomCell.first * ARENA_WIDTH;
-            yArena = randomCell.second * ARENA_HEIGHT;
-
-            bool tooCloseToExistingArena = false;
-            for (const auto& entry : arenaList)
-            {
-                int distanceX = abs(xArena - entry.second.getAsset().x);
-                int distanceY = abs(yArena - entry.second.getAsset().y);
-
-                if (distanceX < MIN_DISTANCE_BETWEEN_ARENAS || distanceY < MIN_DISTANCE_BETWEEN_ARENAS)
-                {
-                    tooCloseToExistingArena = true;
-                    break;
-                }
-            }
-
-            if (grid[randomCell] || arenaList.count(i) > 0 || tooCloseToExistingArena)
-                continue;
-
-            break;
-
-        } while (true);
-
-        arenaList.insert({i, Arena({xArena, yArena, ARENA_WIDTH, ARENA_HEIGHT})});
-        grid[{xArena / ARENA_WIDTH, yArena / ARENA_HEIGHT}] = true;
-    }   
-
-    
+    level.setEnemyCounter(1);
     enemyList.clear();
-    int xEnemy, yEnemy;
-    do
-    {
-        auto it = begin(grid);
-        advance(it, rand() % grid.size());
-        pair<int, int> randomCell = it->first;
-
-        xEnemy = randomCell.first * ENEMY_WIDTH;
-        yEnemy = randomCell.second * ENEMY_HEIGHT;
-
-        bool tooCloseToPlayer = (abs(xEnemy - player.getAsset().x) < PLAYER_WIDTH + MIN_DISTANCE_BETWEEN_PLAYER_AND_ENEMY) || (abs(yEnemy - player.getAsset().y) < PLAYER_HEIGHT + MIN_DISTANCE_BETWEEN_PLAYER_AND_ENEMY);
-        if (!grid[randomCell] && !tooCloseToPlayer)
-        {
-            grid[randomCell] = true;
-            break;
-        }
-
-    } while(true);
-    
-    Enemy newEnemy({xEnemy, yEnemy, ENEMY_WIDTH, ENEMY_HEIGHT});
-    enemyList.push_back(newEnemy);
+    level.generateEnemyPositions(grid, player, enemyList);
 
     ladder.setX(max((rand() % GameSettings::WIDTH - LADDER_WIDTH), 0));
     ladder.setY(max((rand() % GameSettings::HEIGHT - LADDER_HEIGHT), 0));
 
     points = 0;
+
+    player.setNearLadder(false);
 }
 
 void Game::updateHighscores()
@@ -549,6 +556,11 @@ void Game::continueGame()
                 iss >> value1;
                 level.setLevel(value1);
             }
+            else if (key == "Attack:")
+            {
+                iss >> value1;
+                player.setAttack(value1);
+            }
         }
     }
 }
@@ -569,10 +581,12 @@ void Game::save()
     saveFile << "Level: " << level.getLevel() << "\n";
     saveFile << "Ladder: " << ladder.getAsset().x << "\t" << ladder.getAsset().y << "\n";
     saveFile << "Points: " << points << "\n";
+    saveFile << "Attack: " << player.getAttack() << "\n";
 
     saveFile.close();
 }
 
+// lowest score player can replay, not the most recent one (except if he's worst)
 void Game::replay()
 {
     PlayerPosition playerPos;
@@ -591,12 +605,57 @@ void Game::replay()
 
     SDL_RenderClear(Data::renderer);
     SDL_SetRenderDrawColor(Data::renderer, 0, 0, 0, 255);
-    window.createText(Data::renderer, "Replay over", GameSettings::WIDTH / 2 + 200, GameSettings::HEIGHT / 2);
+    Window::createText("Replay over", GameSettings::WIDTH / 2 + 200, GameSettings::HEIGHT / 2);
     SDL_RenderPresent(Data::renderer);
 
     SDL_Delay(3000);
 
     readReplayFile.close();
+}
+
+void Game::saveReplayToList()
+{
+    PlayerPosition playerPos;
+    
+    playerPos.x = player.getAsset().x;
+    playerPos.y = player.getAsset().y;
+
+    replayList.push_back(playerPos);
+}
+
+void Game::saveReplay()
+{
+    if (!replayFile.is_open())
+        replayFile.open("replayFile.bin", ios::binary);
+
+    for (auto entry : replayList)
+        replayFile.write((char*)&entry, sizeof(PlayerPosition));
+
+    replayFile.close();
+}
+
+int Game::getLowestScore()
+{
+    ifstream readHighscoresData;
+    readHighscoresData.open("highscores.txt");
+
+    int lowestScore = INT_MAX;
+
+    string line;
+
+    while(getline(readHighscoresData, line))
+    {
+        istringstream iss(line);
+        string playerName;
+        int score;
+
+        iss >> playerName >> score;
+
+        if (score < lowestScore)
+            lowestScore = score;
+    }
+
+    return lowestScore;
 }
 
 #endif
