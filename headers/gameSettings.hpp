@@ -14,12 +14,6 @@ namespace Data
     TTF_Font* font = nullptr;
     bool isPlayerAlive = true;
     std::string playerName;
-    bool inStartScreen = true;
-    bool inPauseScreen = false;
-    bool inContinueScreen = true;
-    bool resetGame = false;
-    bool continueGame = false;
-    bool replay = false;
 }
 
 struct TextSize

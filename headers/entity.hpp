@@ -17,16 +17,28 @@ class Entity
 
 };
 
+/**
+ * @brief Gets rectangle asset
+ * @returns rectangle asset
+*/
 SDL_Rect Entity::getAsset()
 {
     return this->asset;
 }
 
+/**
+ * @brief Sets the x position
+ * @param newX The new x position
+*/
 void Entity::setX(int newX)
 {
     this->asset.x = newX;
 }
 
+/**
+ * @brief Sets the y position
+ * @param newY The new y position
+*/
 void Entity::setY(int newY)
 {
     this->asset.y = newY;
@@ -48,6 +60,15 @@ class EntityAnimation : public Entity
 
 };
 
+/**
+ * @brief Sets src rect for animations(sprite sheet)
+ * @param x The x position of source rectangle
+ * @param y The y position of source rectangle
+ * @param w The width of source rectangle
+ * @param h The height of the source rectangle
+ * @param frames The frames of specified animation
+ * @param speed The animation speed
+*/
 void EntityAnimation::setSrcRect(int x, int y, int w, int h, int frames, int speed)
 {
     this->srcRect.y = y;
@@ -56,16 +77,28 @@ void EntityAnimation::setSrcRect(int x, int y, int w, int h, int frames, int spe
     this->srcRect.x = srcRect.w * (static_cast<int> ((SDL_GetTicks() / speed) % frames));
 }
 
+/**
+ * @brief Gets source rectangle
+ * @returns Source rectangle
+*/
 SDL_Rect EntityAnimation::getSrcRect()
 {
     return this->srcRect;
 }
 
+/**
+ * @brief Gets flip
+ * @return flip
+*/
 SDL_RendererFlip EntityAnimation::getFlip()
 {
     return this->flip;
 }
 
+/**
+ * @brief Sets the flip
+ * @param newFlip The new flip
+*/
 void EntityAnimation::setFlip(const SDL_RendererFlip& newFlip)
 {
     this->flip = newFlip;
@@ -86,12 +119,18 @@ class Menu
         virtual void handleMouseClick(SDL_Renderer* renderer);
 };
 
+/**
+ * @brief Default constructor for Menu
+*/
 Menu::Menu()
 {
     this->font = TTF_OpenFont("fonts/pixel.ttf", 30);
     this->textColor = {255, 255, 255};
 }
 
+/**
+ * @brief
+*/
 void Menu::createText(SDL_Renderer *renderer, const char* textString, SDL_Rect &destRect)
 {
     SDL_Surface* textSurface = TTF_RenderText_Solid(this->font, textString, textColor);

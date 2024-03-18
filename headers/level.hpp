@@ -21,7 +21,7 @@ class Level
     public:
         // Level() = default;
         Level();
-        void resetGame(Player& player, vector <Enemy>&  enemyList, unordered_map <int, Arena>& arenaList, Ladder& ladder, int isCloseTo, int health);    
+        void nextLevel(Player& player, vector <Enemy>&  enemyList, unordered_map <int, Arena>& arenaList, Ladder& ladder, int isCloseTo, int health);    
         void setLevel();
         void setLevel(int x);
         void resetLevel();
@@ -30,7 +30,6 @@ class Level
         int getArenaCounter();
         void setEnemyCounter(int x);
         void decreaseEnemyCounter();
-        void generateEnemyPositions(unordered_map<pair<int, int>, bool, PairHash>& grid, Player& player, vector <Enemy>& enemyList);
 };
 
 Level::Level()
@@ -39,7 +38,7 @@ Level::Level()
     this->enemyCounter = 1;
 }
 
-void Level::resetGame(Player& player, vector <Enemy>& enemyList, unordered_map <int, Arena>& arenaList, Ladder& ladder, int isCloseTo, int health)
+void Level::nextLevel(Player& player, vector <Enemy>& enemyList, unordered_map <int, Arena>& arenaList, Ladder& ladder, int isCloseTo, int health)
 {
     player.reset(health, {max((rand() % GameSettings::WIDTH - player.getAsset().w), 0), max((rand() % GameSettings::HEIGHT - player.getAsset().h), 0), player.getAsset().w, player.getAsset().h});
 
@@ -54,7 +53,7 @@ void Level::resetGame(Player& player, vector <Enemy>& enemyList, unordered_map <
         enemyCounter++;
 
     enemyList.clear();
-    generateEnemyPositions(grid, player, enemyList);
+    Enemy::generateEnemyPositions(grid, player, enemyList, this->enemyCounter);
 
     arenaCounter += rand() % 2; 
 
@@ -107,35 +106,6 @@ void Level::setEnemyCounter(int x)
 void Level::decreaseEnemyCounter()
 {
     this->enemyCounter--;
-}
-
-
-void Level::generateEnemyPositions(unordered_map<pair<int, int>, bool, PairHash>& grid, Player& player, vector <Enemy>& enemyList)
-{
-    for (int i = 0; i < enemyCounter; i++)
-    {
-        int xEnemy, yEnemy;
-        do
-        {
-            auto it = begin(grid);
-            advance(it, rand() % grid.size());
-            pair<int, int> randomCell = it->first;
-
-            xEnemy = randomCell.first * ENEMY_WIDTH;
-            yEnemy = randomCell.second * ENEMY_HEIGHT;
-
-            bool tooCloseToPlayer = (abs(xEnemy - player.getAsset().x) < PLAYER_WIDTH + MIN_DISTANCE_BETWEEN_PLAYER_AND_ENEMY) || (abs(yEnemy - player.getAsset().y) < PLAYER_HEIGHT + MIN_DISTANCE_BETWEEN_PLAYER_AND_ENEMY);
-            if (!grid[randomCell] && !tooCloseToPlayer)
-            {
-                grid[randomCell] = true;
-                break;
-            }
-
-        } while(true);
-        
-        Enemy newEnemy({xEnemy, yEnemy, ENEMY_WIDTH, ENEMY_HEIGHT});
-        enemyList.push_back(newEnemy);
-    }
 }
 
 #endif 

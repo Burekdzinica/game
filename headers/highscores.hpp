@@ -30,7 +30,6 @@ class Highscores : public Menu
         void handleMouseClick(SDL_Renderer* renderer) override;
         void drawHighscores(SDL_Renderer* renderer);
         void open(SDL_Renderer* renderer);
-        void replay(SDL_Renderer* renderer);
 };
 
 Highscores::Highscores()
@@ -66,7 +65,7 @@ void Highscores::handleMouseClick(SDL_Renderer *renderer)
     
     else if (mouseX >= replayButton.x && mouseX <= replayButton.x + replayButton.w && mouseY >= replayButton.y && mouseY <= replayButton.y + replayButton.h)
     {
-        Data::replay = true;
+        Game::setGameState(GameState::Replay);
         this->inHighscores = false;
     }
 
@@ -74,7 +73,7 @@ void Highscores::handleMouseClick(SDL_Renderer *renderer)
 
 void Highscores::drawHighscores(SDL_Renderer* renderer)
 {
-    ifstream highscoresData("highscores.txt");
+    ifstream highscoresData("files/highscores.txt");
 
     int yPos = GameSettings::HEIGHT / 2 - 300;
 
@@ -113,11 +112,6 @@ void Highscores::open(SDL_Renderer* renderer)
 
         }
     }
-}
-
-void Highscores::replay(SDL_Renderer* renderer)
-{
-
 }
 
 #endif 

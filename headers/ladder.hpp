@@ -8,7 +8,6 @@
 
 #include "player.hpp"
 #include "gameSettings.hpp"
-#include "enemy.hpp"
 #include "arena.hpp"
 
 using namespace std;

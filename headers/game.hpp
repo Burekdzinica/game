@@ -19,7 +19,6 @@
 #include "window.hpp"
 #include "arena.hpp"
 #include "ladder.hpp"
-#include "startScreen.hpp"
 #include "gameSettings.hpp"
 #include "map.hpp"
 #include "enemy.hpp"
@@ -49,6 +48,17 @@ struct PlayerPosition
     int x, y;
 };
 
+enum class GameState
+{
+    Playing,
+    ResetGame,
+    ContinueGame,
+    ContinueScreen,
+    Replay,
+    StartScreen,
+    PauseScreen,
+};
+
 class Game
 {
     private:
@@ -65,6 +75,7 @@ class Game
         SDL_Texture *hearts_3Texture;
         SDL_Texture* spearTexture;
         
+        static GameState gameState;
         Window window;
         Spear* spear = nullptr;
         Map map;
@@ -95,7 +106,11 @@ class Game
         void saveReplayToList();
         void saveReplay();
         int getLowestScore();
+        static void setGameState(GameState newGameState);
+        static GameState getGameState();
 };
+
+GameState Game::gameState = GameState::ContinueScreen;
 
 Game::Game() : map()
 {
@@ -120,7 +135,7 @@ void Game::setup()
 {
     srand(time(NULL));
 
-    highscoresData.open("highscores.txt", ios::app);
+    highscoresData.open("files/highscores.txt", ios::app);
 
     spear = new Spear;
 
@@ -146,10 +161,10 @@ void Game::setup()
     level.setArenaCounter(2 + rand() % 2);
 
     Arena::generateArenaPositions(level.getArenaCounter(), grid, arenaList);
+    Enemy::generateEnemyPositions(grid, player, enemyList, 1); 
 
-    level.generateEnemyPositions(grid, player, enemyList);
-
-    this->player = Player(3, {max((rand() % GameSettings::WIDTH - PLAYER_WIDTH), 0), max((rand() % GameSettings::HEIGHT - PLAYER_HEIGHT), 0), PLAYER_WIDTH, PLAYER_HEIGHT});
+    // this->player = Player(3, {max((rand() % GameSettings::WIDTH - PLAYER_WIDTH), 0), max((rand() % GameSettings::HEIGHT - PLAYER_HEIGHT), 0), PLAYER_WIDTH, PLAYER_HEIGHT});
+    this->player = Player(3, {rand() % (GameSettings::WIDTH - PLAYER_WIDTH) + PLAYER_WIDTH, rand() % (GameSettings::HEIGHT - PLAYER_HEIGHT) + PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT});
 
     this->ladder = Ladder({max((rand() % GameSettings::WIDTH - LADDER_WIDTH), 0), max((rand() % GameSettings::HEIGHT - LADDER_HEIGHT), 0), LADDER_WIDTH, LADDER_HEIGHT});
 }
@@ -173,7 +188,8 @@ void Game::eventHandler()
             }   
             if (event.key.keysym.sym == SDLK_ESCAPE)
             {
-                Data::inPauseScreen = true;
+                // Data::inPauseScreen = true;
+                Game::setGameState(GameState::PauseScreen);
                 replayFile.close();
             }
 
@@ -207,7 +223,7 @@ void Game::eventHandler()
                         {
                             if (event.key.keysym.sym == SDLK_f)
                             {
-                                level.resetGame(player, enemyList, arenaList, ladder, isCloseTo, player.getHealth());
+                                level.nextLevel(player, enemyList, arenaList, ladder, isCloseTo, player.getHealth());
                                 level.setLevel();
                             }
                         }
@@ -235,7 +251,8 @@ void Game::update()
         delete spear;
         spear = nullptr;
     }
-    preventSpear = true;
+    if (preventSpear == false)
+        preventSpear = true;
 
     player.setNearArena(false);
     if (!(player.isNearby(player.getAsset(), ladder.getAsset(), INTERACTION_RANGE_LADDER)) && arenaList.empty())
@@ -267,7 +284,7 @@ void Game::update()
             {
                 it = enemyList.erase(it);
                 player.decreaseAttack();
-                level.decreaseEnemyCounter();
+                // level.decreaseEnemyCounter();
 
                 points += 200;
             }
@@ -332,29 +349,31 @@ void Game::update()
 
 }
 
+/* @brief Renders the changes */
 void Game::render()
 {
     window.clear();
 
     map.drawMap();
 
-    if (spear != nullptr)
-        Window::draw(spearTexture, spear->getAsset());
+    if (arenaList.empty())
+        Window::draw(ladderTexture, ladder.getAsset());
 
     for (auto& currentArena : arenaList)
         if (currentArena.second.getVisible() || currentArena.second.isForcedVisible())
             Window::draw(arenaTexture, currentArena.second.getAsset());
 
-    if (arenaList.empty())
-        Window::draw(ladderTexture, ladder.getAsset());
-    
-    for (auto& currentEnemy : enemyList)
-        window.drawAnimation(window.getRenderer(),currentEnemy.getSrcRect(), currentEnemy.getAsset(), enemyTexture, currentEnemy.getFlip());
+    if (spear != nullptr)
+        Window::draw(spearTexture, spear->getAsset());
 
     if (player.getAttack() <= 0)
         window.drawAnimation(window.getRenderer(), player.getSrcRect(), player.getAsset(), playerNoSpearTexture, player.getFlip());
     else
         window.drawAnimation(window.getRenderer(), player.getSrcRect(), player.getAsset(), playerSpearTexture, player.getFlip());
+
+    for (auto& currentEnemy : enemyList)
+        window.drawAnimation(window.getRenderer(),currentEnemy.getSrcRect(), currentEnemy.getAsset(), enemyTexture, currentEnemy.getFlip());
+
 
     Window::createText(("Attack: " + to_string(player.getAttack())).c_str(), GameSettings::WIDTH, GameSettings::HEIGHT - 35);
 
@@ -371,6 +390,7 @@ void Game::render()
     Window::createText(("Points: " + to_string(points)).c_str(), GameSettings::WIDTH, 0);
 
     Window::drawPlayerHealth(player.getHealth(), hearts_1Texture, hearts_2Texture, hearts_3Texture);
+    // last renders overlay above renders
 
     // game over screen
     if (!(Data::isPlayerAlive))
@@ -428,7 +448,7 @@ void Game::restart()
 
     level.setEnemyCounter(1);
     enemyList.clear();
-    level.generateEnemyPositions(grid, player, enemyList);
+    Enemy::generateEnemyPositions(grid, player, enemyList, 1);
 
     ladder.setX(max((rand() % GameSettings::WIDTH - LADDER_WIDTH), 0));
     ladder.setY(max((rand() % GameSettings::HEIGHT - LADDER_HEIGHT), 0));
@@ -474,7 +494,7 @@ void Game::updateHighscores()
         return a.second > b.second;
     });
 
-    highscoresData.open("highscores.txt", ios::trunc);
+    highscoresData.open("files/highscores.txt", ios::trunc);
     highscores.resize(min(5, (int)highscores.size()));
 
     for (const auto &entry : highscores)
@@ -486,7 +506,7 @@ void Game::updateHighscores()
 void Game::continueGame()
 {
     ifstream readSaveFile;
-    readSaveFile.open("saveFile.txt");
+    readSaveFile.open("files/saveFile.txt");
 
     string line;
 
@@ -563,11 +583,12 @@ void Game::continueGame()
             }
         }
     }
+    Game::setGameState(GameState::Playing);
 }
 
 void Game::save()
 {
-    saveFile.open("saveFile.txt");
+    saveFile.open("files/saveFile.txt");
 
     saveFile << "Name: " << Data::playerName << "\n"; 
     saveFile << "Player: " << player.getAsset().x << "\t" << player.getAsset().y << "\n";
@@ -592,7 +613,7 @@ void Game::replay()
     PlayerPosition playerPos;
 
     ifstream readReplayFile;
-    readReplayFile.open("replayFile.bin", ios::binary);
+    readReplayFile.open("files/replayFile.bin", ios::binary);
 
     while (readReplayFile.read((char*) &playerPos, sizeof(PlayerPosition)))
     {
@@ -600,8 +621,9 @@ void Game::replay()
         player.setY(playerPos.y);
 
         render();
-        SDL_Delay(15);
+        SDL_Delay(15); // very bad --> crashes game
     }
+    readReplayFile.close();
 
     SDL_RenderClear(Data::renderer);
     SDL_SetRenderDrawColor(Data::renderer, 0, 0, 0, 255);
@@ -610,7 +632,6 @@ void Game::replay()
 
     SDL_Delay(3000);
 
-    readReplayFile.close();
 }
 
 void Game::saveReplayToList()
@@ -626,7 +647,7 @@ void Game::saveReplayToList()
 void Game::saveReplay()
 {
     if (!replayFile.is_open())
-        replayFile.open("replayFile.bin", ios::binary);
+        replayFile.open("files/replayFile.bin", ios::binary);
 
     for (auto entry : replayList)
         replayFile.write((char*)&entry, sizeof(PlayerPosition));
@@ -637,7 +658,7 @@ void Game::saveReplay()
 int Game::getLowestScore()
 {
     ifstream readHighscoresData;
-    readHighscoresData.open("highscores.txt");
+    readHighscoresData.open("files/highscores.txt");
 
     int lowestScore = INT_MAX;
 
@@ -656,6 +677,16 @@ int Game::getLowestScore()
     }
 
     return lowestScore;
+}
+
+void Game::setGameState(GameState newGameState)
+{
+    gameState = newGameState;
+}
+
+GameState Game::getGameState()
+{
+    return gameState;
 }
 
 #endif

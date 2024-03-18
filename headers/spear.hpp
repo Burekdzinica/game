@@ -25,17 +25,27 @@ class Spear : public Entity
         bool isSpearTouched();
 };
 
+/**
+ * @brief Default constructor for Spear
+*/
 Spear::Spear()
 {
     this->asset = {0, 0, SPEAR_WIDTH, SPEAR_HIGHT};
     this->spearTouched = false;
 }
 
+/**
+ * @brief Destructor for Spear
+*/
 Spear::~Spear()
 {
 
 }
 
+/**
+ * @brief Spawns the spear
+ * @param grid The grid for spawn
+*/
 void Spear::spawnSpear(unordered_map<pair<int, int>, bool, PairHash>& grid)
 {
     int xSpear, ySpear;
@@ -59,16 +69,28 @@ void Spear::spawnSpear(unordered_map<pair<int, int>, bool, PairHash>& grid)
     this->asset.y = ySpear;
 }
 
+/**
+ * @brief True if player is touching spear
+ * @param player The object for intersection
+ * @return True or false
+*/
 bool Spear::isPlayerTouching(const SDL_Rect& player)
 {
     return SDL_HasIntersection(&player, &asset) == SDL_TRUE;
 }
 
+/**
+ * @brief Sets true if spear was touched
+*/
 void Spear::setSpearTouched()
 {
     this->spearTouched = true;
 }
 
+/**
+ * @brief Returns spearTouched
+ * @returns True or false
+*/
 bool Spear::isSpearTouched()
 {
     return this->spearTouched;

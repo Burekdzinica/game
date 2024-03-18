@@ -9,6 +9,7 @@
 #include "gameSettings.hpp"
 #include "highscores.hpp"
 #include "entity.hpp"
+#include "game.hpp"
 
 using namespace std;
 
@@ -41,7 +42,7 @@ class StartScreen : public Menu
         StartScreen(SDL_Renderer* renderer);
         ~StartScreen();
         void createUI(SDL_Renderer* renderer);
-        void handleMouseClick(SDL_Renderer* renderer) override;
+        void handleMouseClick(SDL_Renderer* renderer);
         void createPlayerName(SDL_Renderer* renderer);
         void renderUI(SDL_Renderer* renderer);
         void resetPlayerName();
@@ -109,22 +110,19 @@ void StartScreen::handleMouseClick(SDL_Renderer *renderer)
     int mouseX, mouseY;
     SDL_GetMouseState(&mouseX, &mouseY);
 
-    if (Data::inContinueScreen)
+    if (Game::getGameState() == GameState::ContinueScreen)
     {
         if (mouseX >= continueButton.x && mouseX <= continueButton.x + continueButton.w && mouseY >= continueButton.y && mouseY <= continueButton.y + continueButton.h)
-            Data::continueGame = true;
+            Game::setGameState(GameState::ContinueGame);
         
         else if (mouseX >= newGameButton.x && mouseX <= newGameButton.x + newGameButton.w && mouseY >= newGameButton.y && mouseY <= newGameButton.y + newGameButton.h)
-            Data::resetGame = true;
+            Game::setGameState(GameState::ResetGame);
     }
-    else if (!Data::inContinueScreen)
+    else if (Game::getGameState() == GameState::StartScreen)
     {
         if (mouseX >= playButton.x && mouseX <= playButton.x + playButton.w && mouseY >= playButton.y && mouseY <= playButton.y + playButton.h)
-        {
-            Data::inStartScreen = false;
-            this->uiCreated = false;
-        }
-
+            Game::setGameState(GameState::Playing);
+   
         else if (mouseX >= highscoresButton.x && mouseX <= highscoresButton.x + highscoresButton.w && mouseY >= highscoresButton.y && mouseY <= highscoresButton.y + highscoresButton.h)
             highscores.open(renderer);
 
@@ -266,6 +264,7 @@ void StartScreen::run(SDL_Renderer *renderer, bool continueGame)
    SDL_RenderPresent(renderer);
 }
 
+/* @brief Next start screen it renders the ui again */
 void StartScreen::setUiCreated()
 {
     this->uiCreated = false;

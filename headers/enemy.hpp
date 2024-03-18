@@ -2,6 +2,7 @@
 #define ENEMY_HPP
 
 #include <SDL2/SDL.h>
+#include <iostream>
 #include <math.h>
 #include <chrono>
 #include <thread>
@@ -12,8 +13,7 @@
 #include "gameSettings.hpp"
 #include "entity.hpp"
 #include "ladder.hpp"
-#include "game.hpp"
-
+// #include "game.hpp"
 
 using namespace std;
 
@@ -53,7 +53,7 @@ class Enemy : public EntityAnimation
         void moveChasing(const SDL_Rect& playerAsset);
         void moveIdle();
         void setAttackTimer();
-        // static void generateEnemyPositions(unordered_map<pair<int, int>, bool, PairHash>& grid, Player& player, vector <Enemy>& enemyList);
+        static void generateEnemyPositions(unordered_map<pair<int, int>, bool, PairHash>& grid, Player& player, vector <Enemy>& enemyList, int enemyCounter);
 };
 
 Enemy::Enemy(const SDL_Rect& asset)
@@ -210,29 +210,32 @@ void Enemy::setAttackTimer()
     attackStartTime = chrono::steady_clock::now();
 }
 
-// void Enemy::generateEnemyPositions(unordered_map<pair<int, int>, bool, PairHash>& grid, Player& player, vector <Enemy>& enemyList)
-// {
-//     int xEnemy, yEnemy;
-//     do
-//     {
-//         auto it = begin(grid);
-//         advance(it, rand() % grid.size());
-//         pair<int, int> randomCell = it->first;
+void Enemy::generateEnemyPositions(unordered_map<pair<int, int>, bool, PairHash>& grid, Player& player, vector <Enemy>& enemyList, int enemyCounter)
+{
+    for (int i = 0; i < enemyCounter; i++)
+    {
+        int xEnemy, yEnemy;
+        do
+        {
+            auto it = begin(grid);
+            advance(it, rand() % grid.size());
+            pair<int, int> randomCell = it->first;
 
-//         xEnemy = randomCell.first * ENEMY_WIDTH;
-//         yEnemy = randomCell.second * ENEMY_HEIGHT;
+            xEnemy = randomCell.first * ENEMY_WIDTH;
+            yEnemy = randomCell.second * ENEMY_HEIGHT;
 
-//         bool tooCloseToPlayer = (abs(xEnemy - player.getAsset().x) < PLAYER_WIDTH + MIN_DISTANCE_BETWEEN_PLAYER_AND_ENEMY) || (abs(yEnemy - player.getAsset().y) < PLAYER_HEIGHT + MIN_DISTANCE_BETWEEN_PLAYER_AND_ENEMY);
-//         if (!grid[randomCell] && !tooCloseToPlayer)
-//         {
-//             grid[randomCell] = true;
-//             break;
-//         }
+            bool tooCloseToPlayer = (abs(xEnemy - player.getAsset().x) < PLAYER_WIDTH + MIN_DISTANCE_BETWEEN_PLAYER_AND_ENEMY) || (abs(yEnemy - player.getAsset().y) < PLAYER_HEIGHT + MIN_DISTANCE_BETWEEN_PLAYER_AND_ENEMY);
+            if (!grid[randomCell] && !tooCloseToPlayer)
+            {
+                grid[randomCell] = true;
+                break;
+            }
 
-//     } while(true);
-    
-//     Enemy newEnemy({xEnemy, yEnemy, ENEMY_WIDTH, ENEMY_HEIGHT});
-//     enemyList.push_back(newEnemy);
-// }
+        } while(true);
+        
+        Enemy newEnemy({xEnemy, yEnemy, ENEMY_WIDTH, ENEMY_HEIGHT});
+        enemyList.push_back(newEnemy);
+    }
+}
 
 #endif

@@ -31,7 +31,6 @@ class Window
         void clear();
         void present();
         SDL_Renderer* getRenderer();
-        void draw(SDL_Renderer* renderer, SDL_Rect destRec, SDL_Texture *imgTexture);
         static void draw(SDL_Texture* tex, SDL_Rect src, SDL_Rect dest);
         static void draw(SDL_Texture* tex, SDL_Rect dest); // if no srcRect
         void drawAnimation(SDL_Renderer* renderer, SDL_Rect srcRect, SDL_Rect destRect, SDL_Texture* imgTexture, SDL_RendererFlip flip);
@@ -40,6 +39,9 @@ class Window
 
 SDL_Rect Window::healthRect = {1, 1, 279, 66};
 
+/**
+ * @brief Default constructor for Window
+*/
 Window::Window()
 {
     init();
@@ -64,6 +66,9 @@ Window::Window()
     init();
 }
 
+/**
+ * @brief Constructor for Window
+*/
 Window::Window(const string& title, int WIDTH, int HEIGHT, const char* fontName, int fontSize)
 {
     init();
@@ -82,7 +87,9 @@ Window::Window(const string& title, int WIDTH, int HEIGHT, const char* fontName,
 
 }
 
-//deletes the window/renderer
+/**
+ * @brief Destructor for Window
+*/
 Window::~Window() 
 {  
     TTF_CloseFont(font);
@@ -92,7 +99,9 @@ Window::~Window()
     SDL_Quit();
 }
 
-//initializes all libraries
+/**
+ * @brief initializes libraries
+*/
 void Window::init()
 {
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -105,6 +114,12 @@ void Window::init()
         cout << "IMG initialization failed: " << IMG_GetError() << "\n";
 }
 
+/** 
+ * @brief Creates text on the screen
+ * @param textString The text to draw
+ * @param x The x position
+ * @param y The y position 
+*/
 void Window::createText(const char* textString, int x, int y)
 {
     SDL_Color color = {230, 230, 230};
@@ -125,40 +140,61 @@ void Window::createText(const char* textString, int x, int y)
 
 }
 
+/**
+ * @brief Clears the screen
+*/
 void Window::clear()
 {
     SDL_RenderClear(renderer);
-    // SDL_RenderCopy(renderer, imgTexture, NULL, NULL);
 }
 
+/**
+ * @brief Applies the renders to the screen
+*/
 void Window::present()
 {
     SDL_RenderPresent(renderer);
 }
 
+/**
+ * @brief Returns window renderer
+ * @return SDL_renderer
+*/
 SDL_Renderer* Window::getRenderer()
 {
     return renderer;
 }
 
-void Window::draw(SDL_Renderer* renderer, SDL_Rect destRect, SDL_Texture *imgTexture)
-{
-    if (imgTexture == NULL)
-        cout << "Cannot create texture\n";
-
-    SDL_RenderCopy(renderer, imgTexture, NULL, &destRect);
-}
-
+/**
+ * @brief Draws object with src rect
+ * @param tex The texture to draw
+ * @param src The source rectangle
+ * @param dest The destination rectangle
+*/
 void Window::draw(SDL_Texture* tex, SDL_Rect src, SDL_Rect dest)
 {
     SDL_RenderCopy(Data::renderer, tex, &src, &dest);
 }
+
+/**
+ * @brief  Draws object without src rect
+ * @param tex The texture to draw
+ * @param dest The destination rectangle
+*/
 void Window::draw(SDL_Texture* tex, SDL_Rect dest)
 {
     SDL_RenderCopy(Data::renderer, tex, NULL, &dest);
 }
 
-void Window::drawAnimation(SDL_Renderer *renderer, SDL_Rect srcRect, SDL_Rect destRect, SDL_Texture *imgTexture, SDL_RendererFlip flip)
+/**
+ * @brief Draws animated objects
+ * @param renderer The renderer
+ * @param srcRect The source rectangle
+ * @param destRect The destination rectangle
+ * @param imgTexture The asset to draw
+ * @param flip Flips the asset   
+*/
+void Window::drawAnimation(SDL_Renderer* renderer, SDL_Rect srcRect, SDL_Rect destRect, SDL_Texture* imgTexture, SDL_RendererFlip flip)
 {
     if (imgTexture == NULL)
         cout << "Cannot create texture\n";
@@ -166,7 +202,14 @@ void Window::drawAnimation(SDL_Renderer *renderer, SDL_Rect srcRect, SDL_Rect de
     SDL_RenderCopyEx(renderer, imgTexture, &srcRect, &destRect, 0, NULL, flip);
 }
 
-void Window::drawPlayerHealth(int playerHealth, SDL_Texture *hearts_1, SDL_Texture *hearts_2, SDL_Texture *hearts_3)
+/**
+ * @brief Draws player health
+ * @param playerHealth The player health
+ * @param hearts_1 The asset for 1 hp
+ * @param hearts_2 The asset for 2 hp
+ * @param hearts_3 The asset for 3 hp
+*/
+void Window::drawPlayerHealth(int playerHealth, SDL_Texture* hearts_1, SDL_Texture* hearts_2, SDL_Texture* hearts_3)
 {
     switch (playerHealth)
     {

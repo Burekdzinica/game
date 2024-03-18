@@ -25,43 +25,50 @@ int main(int argc, char *argv[])
     {
        frameStart = SDL_GetTicks();
 
-        if (Data::resetGame)
+        switch (Game::getGameState())
         {
-            game.restart();
-            Data::resetGame = false;
-            Data::inContinueScreen = false;
-        }
+            case GameState::ContinueScreen:
+                startscreen.run(Data::renderer, true);
 
-        else if (Data::replay)
-        {
-            game.replay();
-            startscreen.setUiCreated();
-            Data::replay = false;
-        }
-        
-        else if (Data::continueGame)
-        {
-            game.continueGame();
-            Data::continueGame = false;
-            Data::inContinueScreen = false;
-            Data::inStartScreen = false;
-        }
-        
-        else if (Data::inContinueScreen)
-            startscreen.run(Data::renderer, true);
+                break;
+            
+            case GameState::ContinueGame:
+                game.continueGame();
 
-        else if (Data::inStartScreen)
-            startscreen.run(Data::renderer);
-        
-        else if (Data::inPauseScreen)
-            pausescreen.run(Data::renderer, &game);
-  
-        else
-        {
-            game.eventHandler();
-            game.update();
+                break;
+            
+            case GameState::StartScreen:
+                startscreen.run(Data::renderer);
 
-            game.render();
+                break;
+
+            case GameState::PauseScreen:
+                startscreen.setUiCreated();
+                pausescreen.run(Data::renderer, &game);
+    
+                break;
+
+            case GameState::Replay:
+                game.replay();
+                startscreen.setUiCreated();
+                Game::setGameState(GameState::StartScreen);
+
+                break;
+
+            case GameState::ResetGame:
+                game.restart();
+                Game::setGameState(GameState::StartScreen);
+
+                break;
+
+            case GameState::Playing:
+                game.eventHandler();
+                game.update();
+
+                game.render();
+
+                break;
+        
         }
         
         frameTime = SDL_GetTicks() - frameStart;
@@ -72,3 +79,6 @@ int main(int argc, char *argv[])
 
     return EXIT_SUCCESS;
 }
+
+
+// BE CAREFUL OF CIRCULAR DEPENDANY !!!!

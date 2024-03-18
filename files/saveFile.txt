@@ -1,0 +1,9 @@
+Name: w
+Player: 1092	414
+Arena: 744	0
+Arena: 1054	248
+Enemy: 592	125
+Level: 1
+Ladder: 0	613
+Points: 0
+Attack: 0

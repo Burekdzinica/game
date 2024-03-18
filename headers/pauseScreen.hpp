@@ -36,14 +36,11 @@ void PauseScreen::handleMouseClick(SDL_Renderer* renderer, Game* game)
     SDL_GetMouseState(&mouseX, &mouseY);
 
     if (mouseX >= continueButton.x && mouseX <= continueButton.x + continueButton.w && mouseY >= continueButton.y && mouseY <= continueButton.y + continueButton.h)
-        Data::inPauseScreen = false;
+        Game::setGameState(GameState::Playing);
 
     else if (mouseX >= exitButton.x && mouseX <= exitButton.x + exitButton.w && mouseY >= exitButton.y && mouseY <= exitButton.y + exitButton.h)
-    {
-        Data::inStartScreen = true;
-        Data::inPauseScreen = false;  
-        Data::inContinueScreen = true;
-    }
+        Game::setGameState(GameState::ResetGame);
+        
     else if (mouseX >= saveQuitButton.x && mouseX <= saveQuitButton.x + saveQuitButton.w && mouseY >= saveQuitButton.y && mouseY <= saveQuitButton.y + saveQuitButton.h)
     {
         game->save();

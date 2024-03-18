@@ -32,6 +32,9 @@ class Arena : public Entity
         static void generateArenaPositions(int counter, unordered_map<pair<int, int>, bool, PairHash> &grid, unordered_map<int, Arena> &arenaList);
 };
 
+/**
+ * @brief Default constructor for Arena
+*/
 Arena::Arena()
 {
     this->asset = {0, 0, 0, 0};  
@@ -40,6 +43,10 @@ Arena::Arena()
     this->isVisible = true;
 }
 
+/**
+ * @brief Copy constructor for Arena
+ * @param asset The other Arena
+*/
 Arena::Arena(const SDL_Rect& asset)
 {
     this->asset = asset;
@@ -48,51 +55,93 @@ Arena::Arena(const SDL_Rect& asset)
     this->forcedVisibilty = false; 
 }
 
+/**
+ * @brief Returns if arena spawned
+ * @return True or False
+*/
 bool Arena::getArenaSpawn() const
 {
     return this->didArenaSpawn;
 }
 
+/**
+ * @brief Returns if level is done
+ * @return True or False
+*/
 bool Arena::getLvlDone()
 {
     return this->isLvlDone;
 }
 
+/**
+ * @brief Gets the asset
+ * @return Asset
+*/
 SDL_Rect Arena::getAsset() const
 {
     return this->asset;
 }
 
+/**
+ * @brief Returns if arena is visible
+ * @return True or False
+*/
 bool Arena::getVisible() const
 {
     return this->isVisible;
 }
 
+/**
+ * @brief Returns if arena is forced visible
+ * @return True or False
+*/
 bool Arena::isForcedVisible()
 {
     return this->forcedVisibilty;
 }
 
+/**
+ * @brief Returns if player is touching arena
+ * @param player The player asset
+ * @return True or False
+*/
 bool Arena::isPlayerTouching(const SDL_Rect& player)
 {
     return SDL_HasIntersection(&player, &asset) == SDL_TRUE;
 }
 
+/**
+ * @brief Sets forced visible
+ * @param newForcedVisibility The new forced visibility
+*/
 void Arena::setForcedVisibility(bool newForcedVisibility)
 {
     this->forcedVisibilty = newForcedVisibility;
 }
 
+/**
+ * @brief Sets if arena spawned
+*/
 void Arena::setArenaSpawn()
 {
     this->didArenaSpawn = true;
 }
 
+/**
+ * @brief Sets visible
+ * @param newVisible The new visible
+*/
 void Arena::setVisible(bool newVisible)
 {
     this->isVisible = newVisible;
 }
 
+/**
+ * @brief Generates arena positions based on grid
+ * @param counter The number of arenas
+ * @param grid The grid for spawns
+ * @param arenaList The arenaList
+*/
 void Arena::generateArenaPositions(int counter, unordered_map<pair<int, int>, bool, PairHash>& grid, unordered_map<int, Arena>& arenaList)
 {
     int xArena, yArena;
