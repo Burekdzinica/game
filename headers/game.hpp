@@ -1,15 +1,11 @@
 #ifndef GAME_CPP
 #define GAME_CPP
 
-#include <iostream>
 #include <sstream>
-#include <string>
 #include <iomanip>
 #include <algorithm>
 #include <fstream>
 #include <unordered_map>
-#include <time.h>
-#include <chrono>
 #include <vector>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -93,6 +89,7 @@ class Game
     public:
         Game();
         ~Game();
+        void loadTextures();
         void setup();
         void eventHandler();
         void update();
@@ -110,8 +107,12 @@ class Game
         static GameState getGameState();
 };
 
+// Default gameState
 GameState Game::gameState = GameState::ContinueScreen;
 
+/**
+ * @brief Default contructor for Game, calling Map constructor
+*/
 Game::Game() : map()
 {
     this->points = 0;
@@ -119,8 +120,12 @@ Game::Game() : map()
     this->open = true;
 }
 
+/**
+ * @brief Destructor for Game
+*/
 Game::~Game()
 {
+    SDL_DestroyTexture(spearTexture);
     SDL_DestroyTexture(playerSpearTexture);
     SDL_DestroyTexture(playerNoSpearTexture);
     SDL_DestroyTexture(enemyTexture);
@@ -131,14 +136,11 @@ Game::~Game()
     SDL_DestroyTexture(hearts_3Texture);
 }
 
-void Game::setup()
+/**
+ * @brief Loads all the textures
+*/
+void Game::loadTextures()
 {
-    srand(time(NULL));
-
-    highscoresData.open("files/highscores.txt", ios::app);
-
-    spear = new Spear;
-
     #define LOAD_TEXTURE(renderer, imgPath) SDL_CreateTextureFromSurface(renderer, IMG_Load(imgPath))
 
     playerSpearTexture = LOAD_TEXTURE(window.getRenderer(), "assets/player_spear.png");
@@ -150,12 +152,26 @@ void Game::setup()
     hearts_2Texture = LOAD_TEXTURE(window.getRenderer(), "assets/2_hearts_reloaded.png");
     hearts_3Texture = LOAD_TEXTURE(window.getRenderer(), "assets/1_hearts_reloaded.png");
     spearTexture = LOAD_TEXTURE(window.getRenderer(), "assets/spear.png");
+}
+
+
+/**
+ * @brief Setup
+*/
+void Game::setup()
+{
+    srand(time(NULL));
+
+    highscoresData.open("files/highscores.txt", ios::app);
+
+    loadTextures();
 
     // makes grid for spawns
     for (int i = 0; i < GameSettings::WIDTH / ENEMY_WIDTH; i++)
         for (int j = 0; j < GameSettings::HEIGHT / ENEMY_HEIGHT; j++)
             grid.insert({(make_pair(i,j)), false});
 
+    spear = new Spear;
     spear->spawnSpear(grid);
 
     level.setArenaCounter(2 + rand() % 2);
@@ -169,6 +185,9 @@ void Game::setup()
     this->ladder = Ladder({max((rand() % GameSettings::WIDTH - LADDER_WIDTH), 0), max((rand() % GameSettings::HEIGHT - LADDER_HEIGHT), 0), LADDER_WIDTH, LADDER_HEIGHT});
 }
 
+/**
+ * @brief Event handler
+*/
 void Game::eventHandler()
 {
     SDL_Event event;
@@ -188,7 +207,6 @@ void Game::eventHandler()
             }   
             if (event.key.keysym.sym == SDLK_ESCAPE)
             {
-                // Data::inPauseScreen = true;
                 Game::setGameState(GameState::PauseScreen);
                 replayFile.close();
             }
@@ -240,6 +258,9 @@ void Game::eventHandler()
     player.movePlayer();
 }
 
+/**
+ * @brief Update objects
+*/
 void Game::update()
 {
     saveReplayToList();
@@ -251,6 +272,7 @@ void Game::update()
         delete spear;
         spear = nullptr;
     }
+    
     if (preventSpear == false)
         preventSpear = true;
 
@@ -349,7 +371,9 @@ void Game::update()
 
 }
 
-/* @brief Renders the changes */
+/**
+ * @brief Renders the changes
+*/
 void Game::render()
 {
     window.clear();
@@ -413,11 +437,18 @@ void Game::render()
     window.present();  
 }
 
+/**
+ * @brief Returns if game is open
+ * @return True or False
+*/
 bool Game::isOpen()
 {
     return this->open;
 }
 
+/**
+ * @brief Restarts game
+*/
 void Game::restart()
 {
     srand(time(NULL));
@@ -458,6 +489,10 @@ void Game::restart()
     player.setNearLadder(false);
 }
 
+/**
+ * @brief Updates highscores.
+ * To container then writes to file.
+*/
 void Game::updateHighscores()
 {
     vector<pair<string,int>> highscores;
@@ -503,6 +538,9 @@ void Game::updateHighscores()
     highscoresData.close();
 }
 
+/**
+ * @brief Contiunues from save file
+*/
 void Game::continueGame()
 {
     ifstream readSaveFile;
@@ -586,6 +624,9 @@ void Game::continueGame()
     Game::setGameState(GameState::Playing);
 }
 
+/**
+ * @brief Saves game
+*/
 void Game::save()
 {
     saveFile.open("files/saveFile.txt");
@@ -607,7 +648,10 @@ void Game::save()
     saveFile.close();
 }
 
-// lowest score player can replay, not the most recent one (except if he's worst)
+/**
+ * @brief Plays replay.
+ * Lowest score player can replay, not the most recent one (except if he's worst).
+*/
 void Game::replay()
 {
     PlayerPosition playerPos;
@@ -634,6 +678,9 @@ void Game::replay()
 
 }
 
+/**
+ * @brief Saves replay to container
+*/
 void Game::saveReplayToList()
 {
     PlayerPosition playerPos;
@@ -644,6 +691,9 @@ void Game::saveReplayToList()
     replayList.push_back(playerPos);
 }
 
+/**
+ * @brief Saves replay to file
+*/
 void Game::saveReplay()
 {
     if (!replayFile.is_open())
@@ -655,6 +705,10 @@ void Game::saveReplay()
     replayFile.close();
 }
 
+/**
+ * @brief Gets lowest score from highscores.txt
+ * @return Lowest score
+*/
 int Game::getLowestScore()
 {
     ifstream readHighscoresData;
@@ -679,11 +733,19 @@ int Game::getLowestScore()
     return lowestScore;
 }
 
+/**
+ * @brief Sets game state
+ * @param newGameState New game state
+*/
 void Game::setGameState(GameState newGameState)
 {
     gameState = newGameState;
 }
 
+/**
+ * @brief Gets game state
+ * @return Game state
+*/
 GameState Game::getGameState()
 {
     return gameState;

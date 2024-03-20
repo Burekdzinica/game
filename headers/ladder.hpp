@@ -1,11 +1,6 @@
 #ifndef LADDER_HPP
 #define LADDER_HPP
 
-#include <SDL2/SDL.h>
-#include <time.h>
-#include <vector>
-#include <unordered_map>
-
 #include "player.hpp"
 #include "gameSettings.hpp"
 #include "arena.hpp"
@@ -44,21 +39,35 @@ class Ladder
 
 };
 
+/**
+ * @brief Contrustor for Ladder
+ * @param asset The ladder asset
+*/
 Ladder::Ladder(const SDL_Rect& asset)
 {
     this->asset = asset;
 }
 
+/**
+ * @brief Gets asset
+ * @return Ladder asset
+*/
 SDL_Rect Ladder::getAsset()
 {
     return this->asset;
 }
 
+/**
+ * @brief Sets x position
+*/
 void Ladder::setX(int x)
 {
     this->asset.x  = x;
 }
 
+/**
+ * @brief Sets y position
+*/
 void Ladder::setY(int y)
 {
     this->asset.y  = y;

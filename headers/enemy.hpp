@@ -1,11 +1,7 @@
 #ifndef ENEMY_HPP
 #define ENEMY_HPP
 
-#include <SDL2/SDL.h>
-#include <iostream>
-#include <math.h>
 #include <chrono>
-#include <thread>
 #include <unordered_map>
 #include <vector>
 
@@ -13,7 +9,6 @@
 #include "gameSettings.hpp"
 #include "entity.hpp"
 #include "ladder.hpp"
-// #include "game.hpp"
 
 using namespace std;
 
@@ -56,6 +51,10 @@ class Enemy : public EntityAnimation
         static void generateEnemyPositions(unordered_map<pair<int, int>, bool, PairHash>& grid, Player& player, vector <Enemy>& enemyList, int enemyCounter);
 };
 
+/**
+ * @brief Contructor for Enemy
+ * @param asset The enemy asset
+*/
 Enemy::Enemy(const SDL_Rect& asset)
 {
     this->asset = asset;
@@ -70,21 +69,37 @@ Enemy::Enemy(const SDL_Rect& asset)
     setBounds();
 }
 
+/**
+ * @brief Returns if enemy is touching player
+ * @param player Player asset
+ * @return True or False
+*/
 bool Enemy::isPlayerTouching(const SDL_Rect& player)
 {
     return SDL_HasIntersection(&player, &asset) == SDL_TRUE;
 }
 
+/**
+ * @brief Gets state
+ * @return State
+*/
 EnemyState Enemy::getState()
 {
     return this->state;
 }
 
+/**
+ * @brief Sets state
+ * @param newState New state
+*/
 void Enemy::setState(const EnemyState& newState)
 {
     this->state = newState;
 }
 
+/**
+ * @brief Sets bounding box
+*/
 void Enemy::setBounds()
 {
     this->bounds[0] = this->asset.x - BOUND_RANGE; // x left
@@ -93,6 +108,12 @@ void Enemy::setBounds()
     this->bounds[3] = this->asset.y + BOUND_RANGE; // y right
 }
 
+/**
+ * @brief Updates AI
+ * @param player Player
+ * @param detectionDistance The distance to detect player
+ * @param animationSpeed The animation speed
+*/
 void Enemy::updateEnemyAI(Player& player, float detectionDistance, int animationSpeed)
 {
     auto currentTime = chrono::steady_clock::now();
@@ -144,20 +165,30 @@ void Enemy::updateEnemyAI(Player& player, float detectionDistance, int animation
     }
 }
 
+/**
+ * @brief Returns if player is in view
+ * @param player The player 
+ * @param detectionDistance The distance to detect player
+ * @return True or False
+*/
 bool Enemy::isPlayerInView(Player& player, float detectionDistance)
 {
-    float dx = static_cast <float> (player.getAsset().x + player.getAsset().w / 2) - static_cast <float> (asset.x + asset.w / 2);
-    float dy = static_cast <float> (player.getAsset().y + player.getAsset().h / 2) - static_cast <float> (asset.y + asset.h / 2);
+    float dx = (float) (player.getAsset().x + player.getAsset().w / 2) - (float) (asset.x + asset.w / 2);
+    float dy = (float) (player.getAsset().y + player.getAsset().h / 2) - (float) (asset.y + asset.h / 2);
 
     float distance = sqrt(dx * dx + dy * dy);
 
     return (distance <= detectionDistance);
 }
 
+/**
+ * @brief Chasing player movement
+ * @param playerAsset The player asset
+*/
 void Enemy::moveChasing(const SDL_Rect& playerAsset)
 {
-    float dx = static_cast <float> (playerAsset.x + playerAsset.w / 2) - static_cast <float> (asset.x + asset.w / 2);
-    float dy = static_cast <float> (playerAsset.y + playerAsset.h / 2) - static_cast <float> (asset.y + asset.h / 2);
+    float dx = (float) (playerAsset.x + playerAsset.w / 2) - (float) (asset.x + asset.w / 2);
+    float dy = (float) (playerAsset.y + playerAsset.h / 2) - (float) (asset.y + asset.h / 2);
 
     float distance = sqrt(dx * dx + dy * dy);
 
@@ -174,10 +205,13 @@ void Enemy::moveChasing(const SDL_Rect& playerAsset)
     else    
         this->flip = SDL_FLIP_NONE;
 
-    setX(asset.x + static_cast <int> (dx * speed));
-    setY(asset.y + static_cast <int> (dy * speed));
+    setX(asset.x + (int) (dx * speed));
+    setY(asset.y + (int) (dy * speed));
 }
 
+/**
+ * @brief Idle movement
+*/
 void Enemy::moveIdle()
 {
     const float speed = 2.5;
@@ -205,11 +239,21 @@ void Enemy::moveIdle()
         this->direction *= -1;
 }
 
+/**
+ * @brief Sets attack timer
+*/
 void Enemy::setAttackTimer()
 {
     attackStartTime = chrono::steady_clock::now();
 }
 
+/**
+ * @brief Generates positions
+ * @param grid The grid to spawn on
+ * @param player The player
+ * @param enemyList The enemy list
+ * @param enemyCounter How many enemies to spawn
+*/
 void Enemy::generateEnemyPositions(unordered_map<pair<int, int>, bool, PairHash>& grid, Player& player, vector <Enemy>& enemyList, int enemyCounter)
 {
     for (int i = 0; i < enemyCounter; i++)

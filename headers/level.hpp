@@ -1,10 +1,6 @@
 #ifndef LEVEL_HPP
 #define LEVEL_HPP
 
-#include <iostream>
-#include <vector>
-#include <unordered_map>
-
 #include "player.hpp"
 #include "enemy.hpp"
 #include "arena.hpp"
@@ -32,12 +28,24 @@ class Level
         void decreaseEnemyCounter();
 };
 
+/**
+ * @brief Default constructor for Level
+*/
 Level::Level()
 {
     this->lvl = 1;
     this->enemyCounter = 1;
 }
 
+/**
+ * @brief Next level
+ * @param player The player object
+ * @param enemyList The enemy list
+ * @param arenaList The arena list
+ * @param ladder The ladder object
+ * @param isCloseTo The index for arena clicks
+ * @param health The player health
+*/
 void Level::nextLevel(Player& player, vector <Enemy>& enemyList, unordered_map <int, Arena>& arenaList, Ladder& ladder, int isCloseTo, int health)
 {
     player.reset(health, {max((rand() % GameSettings::WIDTH - player.getAsset().w), 0), max((rand() % GameSettings::HEIGHT - player.getAsset().h), 0), player.getAsset().w, player.getAsset().h});
@@ -68,41 +76,70 @@ void Level::nextLevel(Player& player, vector <Enemy>& enemyList, unordered_map <
     player.setNearLadder(false);
 }
 
+/**
+ * @brief Sets the next level
+*/
 void Level::setLevel()
 {
     this->lvl++;
 }
 
+/**
+ * @brief
+ * @param x The x level
+*/
 void Level::setLevel(int x)
 {
     this->lvl = x;
 }
 
+/**
+ * @brief Resets lvl to 1
+*/
 void Level::resetLevel()
 {
     this->lvl = 1;
 }
 
+/**
+ * @brief Sets arena counter
+ * @param arenaCounter The new arena counter
+*/
 void Level::setArenaCounter(int arenaCounter)
 {
     this->arenaCounter = arenaCounter;
 }
 
+/**
+ * @brief Gets the level
+ * @return Level count
+*/
 int Level::getLevel()
 {
     return this->lvl;
 }
 
+/**
+ * @brief Gets arena counter
+ * @return Arena counter
+*/
 int Level::getArenaCounter()
 {
     return this->arenaCounter;
 }
 
+/**
+ * @brief Sets enemy counter
+ * @param x The new enemy counter
+*/
 void Level::setEnemyCounter(int x)
 {
     this->enemyCounter = x;
 }
 
+/**
+ * @brief Decreasese enemy counter by 1
+*/
 void Level::decreaseEnemyCounter()
 {
     this->enemyCounter--;

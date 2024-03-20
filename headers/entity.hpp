@@ -1,8 +1,6 @@
 #ifndef ENTITY_HPP
 #define ENTITY_HPP
 
-#include <SDL2/SDL.h>
-
 using namespace std;
 
 class Entity
@@ -109,14 +107,14 @@ void EntityAnimation::setFlip(const SDL_RendererFlip& newFlip)
 class Menu
 {
     protected:
-        TTF_Font *font;
+        TTF_Font* font;
         SDL_Color textColor;
         unordered_map<string, TextSize> textCache;
 
     public:
         Menu();
         void createText(SDL_Renderer *renderer, const char* textString, SDL_Rect &destRect);
-        virtual void handleMouseClick(SDL_Renderer* renderer);
+        virtual void handleMouseClick();
 };
 
 /**
@@ -130,6 +128,9 @@ Menu::Menu()
 
 /**
  * @brief
+ * @param renderer The renderer
+ * @param textString The text to draw
+ * @param destRect Rectangle to draw to
 */
 void Menu::createText(SDL_Renderer *renderer, const char* textString, SDL_Rect &destRect)
 {
@@ -165,7 +166,10 @@ void Menu::createText(SDL_Renderer *renderer, const char* textString, SDL_Rect &
     SDL_DestroyTexture(textTexture);
 }
 
-void Menu::handleMouseClick(SDL_Renderer *renderer)
+/**
+ * @brief Virtual method
+*/
+void Menu::handleMouseClick()
 {
 
 }

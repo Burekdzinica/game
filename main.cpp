@@ -1,10 +1,8 @@
 #include <iostream>
-#include <SDL2/SDL.h>
 
 #include "headers/game.hpp"
 #include "headers/startScreen.hpp"
 #include "headers/pauseScreen.hpp"
-
 
 using namespace std;
 
@@ -18,7 +16,7 @@ int main(int argc, char *argv[])
     Game game;
     game.setup();
 
-    StartScreen startscreen(Data::renderer);
+    StartScreen startscreen;
     PauseScreen pausescreen;
 
     while (game.isOpen())
@@ -28,7 +26,7 @@ int main(int argc, char *argv[])
         switch (Game::getGameState())
         {
             case GameState::ContinueScreen:
-                startscreen.run(Data::renderer, true);
+                startscreen.run(true);
 
                 break;
             
@@ -38,13 +36,13 @@ int main(int argc, char *argv[])
                 break;
             
             case GameState::StartScreen:
-                startscreen.run(Data::renderer);
+                startscreen.run(false);
 
                 break;
 
             case GameState::PauseScreen:
                 startscreen.setUiCreated();
-                pausescreen.run(Data::renderer, &game);
+                pausescreen.run(&game);
     
                 break;
 
@@ -76,9 +74,8 @@ int main(int argc, char *argv[])
             SDL_Delay(frameDelay - frameTime);
     }
    
-
     return EXIT_SUCCESS;
 }
 
 
-// BE CAREFUL OF CIRCULAR DEPENDANY !!!!
+// BE CAREFUL OF CIRCULAR DEPENDACNY !!!!

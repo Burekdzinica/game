@@ -1,11 +1,7 @@
 #ifndef SPEAR_HPP
 #define SPEAR_HPP
 
-#include <SDL2/SDL.h>
-#include <unordered_map>
-
 #include "entity.hpp"
-#include "ladder.hpp"
 
 using namespace std;
 

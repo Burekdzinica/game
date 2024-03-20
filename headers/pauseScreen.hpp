@@ -1,12 +1,6 @@
 #ifndef PAUSE_SCREEN_HPP
 #define PAUSE_SCREEN_HPP
 
-#include <SDL2/SDL.h>
-
-#include "entity.hpp"
-#include "gameSettings.hpp"
-#include "game.hpp"
-
 const extern int NAME_WIDTH, NAME_HEIGHT;
 
 class PauseScreen : public Menu
@@ -18,19 +12,26 @@ class PauseScreen : public Menu
 
     public:
         PauseScreen();
-        void handleMouseClick(SDL_Renderer* renderer, Game* game); 
-        void run(SDL_Renderer* renderer, Game* game);
+        void handleMouseClick(Game* game); 
+        void run(Game* game);
 
 };
 
+/**
+ * @brief Default constructor for PauseScreen
+*/
 PauseScreen::PauseScreen()
 {
     this->continueButton = {GameSettings::WIDTH / 2 - NAME_WIDTH / 2, (GameSettings::HEIGHT / 2) - NAME_HEIGHT, NAME_WIDTH, NAME_HEIGHT};
     this->exitButton = {GameSettings::WIDTH / 2 - NAME_WIDTH / 2, (GameSettings::HEIGHT / 2), NAME_WIDTH, NAME_HEIGHT};
-    this->saveQuitButton = {GameSettings::WIDTH / 2 - NAME_WIDTH / 2, (GameSettings::HEIGHT / 2) + 100, NAME_WIDTH, NAME_HEIGHT};
+    this->saveQuitButton = {GameSettings::WIDTH / 2 - NAME_WIDTH / 2, (GameSettings::HEIGHT / 2) + 75, NAME_WIDTH, NAME_HEIGHT};
 }
 
-void PauseScreen::handleMouseClick(SDL_Renderer* renderer, Game* game)
+/**
+ * @brief Handler for mouse clicks
+ * @param game The game object
+*/
+void PauseScreen::handleMouseClick(Game* game)
 {
     int mouseX, mouseY;
     SDL_GetMouseState(&mouseX, &mouseY);
@@ -48,24 +49,31 @@ void PauseScreen::handleMouseClick(SDL_Renderer* renderer, Game* game)
     }
 }   
 
-void PauseScreen::run(SDL_Renderer* renderer, Game* game)
+/**
+ * @brief Runs the pause screen
+ * @param game The game object
+*/
+void PauseScreen::run(Game* game)
 {
-    SDL_RenderClear(renderer);
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    Window::clear();
+    SDL_SetRenderDrawColor(Data::renderer, 0, 0, 0, 255);
 
-    createText(renderer, "Continue", continueButton);
-    createText(renderer, "Main Menu", exitButton);
-    createText(renderer, "Save & Quit", saveQuitButton);
+    createText(Data::renderer, "Continue", continueButton);
+    // Window::createText("Continue", continueButton.x + continueButton.w, continueButton.y + continueButton.h - 75);
+    // Window::createText("Main Menu", exitButton.x + exitButton.w + 15, exitButton.y + exitButton.h - 75);
+    // Window::createText("Save & Quit", saveQuitButton.x + saveQuitButton.w + 50, saveQuitButton.y + saveQuitButton.h - 75);
+    createText(Data::renderer, "Main Menu", exitButton);
+    createText(Data::renderer, "Save & Quit", saveQuitButton);
 
-    SDL_RenderPresent(renderer);
+    Window::present();
 
     SDL_Event event;
     if (SDL_PollEvent(&event))
     {
         if (SDL_QUIT == event.type)
             exit(0);
-        else if (event.type == SDL_MOUSEBUTTONDOWN)
-            handleMouseClick(renderer, game);
+         if (event.type == SDL_MOUSEBUTTONDOWN)
+            handleMouseClick(game);
     }
 }
 

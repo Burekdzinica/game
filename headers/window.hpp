@@ -1,14 +1,6 @@
 #ifndef WINDOW_HPP
 #define WINDOW_HPP
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
-#include <unordered_map>
-
-#include "arena.hpp"
-#include "player.hpp"
-#include "gameSettings.hpp"
-
 using namespace std;
 
 const extern int WIDTH, HEIGHT;
@@ -28,8 +20,8 @@ class Window
         ~Window(); //destructor
         void init();
         static void createText(const char* textString, int x, int y);
-        void clear();
-        void present();
+        static void clear();
+        static void present();
         SDL_Renderer* getRenderer();
         static void draw(SDL_Texture* tex, SDL_Rect src, SDL_Rect dest);
         static void draw(SDL_Texture* tex, SDL_Rect dest); // if no srcRect
@@ -136,7 +128,10 @@ void Window::createText(const char* textString, int x, int y)
     TTF_SizeText(Data::font, textString, &textWidth, &textHeight);
 
     SDL_Rect textRect = {abs(x - textWidth), y , textWidth, textHeight};
+
     SDL_RenderCopy(Data::renderer, textTexture, NULL, &textRect);
+
+    SDL_DestroyTexture(textTexture);
 
 }
 
@@ -145,7 +140,7 @@ void Window::createText(const char* textString, int x, int y)
 */
 void Window::clear()
 {
-    SDL_RenderClear(renderer);
+    SDL_RenderClear(Data::renderer);
 }
 
 /**
@@ -153,7 +148,7 @@ void Window::clear()
 */
 void Window::present()
 {
-    SDL_RenderPresent(renderer);
+    SDL_RenderPresent(Data::renderer);
 }
 
 /**

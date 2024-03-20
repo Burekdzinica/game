@@ -1,12 +1,6 @@
 #ifndef OPTIONS_HPP
 #define OPTIONS_HPP
 
-#include <unordered_map>
-#include <SDL2/SDL_ttf.h>
-#include <SDL2/SDL.h>
-
-#include "gameSettings.hpp"
-
 const extern int NAME_WIDTH, NAME_HEIGHT;
 
 using namespace std;
@@ -14,9 +8,9 @@ using namespace std;
 class Options : public Menu 
 {
     private:
+        bool resolutionChange;
         bool inOptions;
         bool inFullscreen;
-        int counter;
         bool inResolutionOptions;
         bool resolutionOptionsOpen;
         bool backInOptions;
@@ -32,16 +26,21 @@ class Options : public Menu
         Options();
         bool isOpen() const;
         void setOpen(bool newOpen);
-        void handleMouseClick(SDL_Renderer* renderer) override;
-        void openResolutionOptions(SDL_Renderer* renderer);
-        void open(SDL_Renderer* renderer);
+        void handleMouseClick() override;
+        void openResolutionOptions();
+        void drawResolutions();
+        void drawOptions();
+        void open();
 };
 
+/**
+ * @brief Default constructor for Options
+*/
 Options::Options()
 {
+    this->resolutionChange = true;
     this->inOptions = true;
     this->inFullscreen = false;
-    this->counter = 0;
     this->inResolutionOptions = true;
     this->resolutionOptionsOpen = false;
     this->backInOptions = false;
@@ -54,17 +53,28 @@ Options::Options()
     this->fullscreenButton = {(GameSettings::WIDTH - NAME_WIDTH) / 2, 0, NAME_WIDTH, NAME_HEIGHT};
 }
 
+/**
+ * @brief Returns if options are open
+ * @return True or False
+*/
 bool Options::isOpen() const
 {
     return this->inOptions;
 }
 
+/**
+ * @brief Sets new open
+ * @param newOpen New open
+*/
 void Options::setOpen(bool newOpen)
 {
     this->inOptions = newOpen;
 }
 
-void Options::handleMouseClick(SDL_Renderer *renderer)
+/**
+ * @brief Handles mouse clicks
+*/
+void Options::handleMouseClick()
 {
     int mouseX, mouseY;
     SDL_GetMouseState(&mouseX, &mouseY);
@@ -73,7 +83,7 @@ void Options::handleMouseClick(SDL_Renderer *renderer)
     {
         if (mouseX >= resolutionButton.x && mouseX <= resolutionButton.x + resolutionButton.w && mouseY >= resolutionButton.y && mouseY <= resolutionButton.y + resolutionButton.h)
         {
-            openResolutionOptions(renderer);
+            openResolutionOptions();
             inResolutionOptions = true;
         }
         
@@ -86,30 +96,35 @@ void Options::handleMouseClick(SDL_Renderer *renderer)
     {
         if (mouseX >= resolution_1920x1080_button.x && mouseX <= resolution_1920x1080_button.x + resolution_1920x1080_button.w && mouseY >= resolution_1920x1080_button.y && mouseY <= resolution_1920x1080_button.y + resolution_1920x1080_button.h)
         {
+            this->resolutionChange = true;
             GameSettings::WIDTH = 1920;
             GameSettings::HEIGHT = 1080;
             SDL_SetWindowSize(Data::window, GameSettings::WIDTH, GameSettings::HEIGHT);
         }
         else if (mouseX >= resolution_1280x720_button.x && mouseX <= resolution_1280x720_button.x + resolution_1280x720_button.w && mouseY >= resolution_1280x720_button.y && mouseY <= resolution_1280x720_button.y + resolution_1280x720_button.h)
         {
+            this->resolutionChange = true;
             GameSettings::WIDTH = 1280;
             GameSettings::HEIGHT = 720;
             SDL_SetWindowSize(Data::window, GameSettings::WIDTH, GameSettings::HEIGHT);
         }
         else if (mouseX >= resolution_800x600_button.x && mouseX <= resolution_800x600_button.x + resolution_800x600_button.w && mouseY >= resolution_800x600_button.y && mouseY <= resolution_800x600_button.y + resolution_800x600_button.h)
         {
+            this->resolutionChange = true;
             GameSettings::WIDTH = 800;
             GameSettings::HEIGHT = 600;
             SDL_SetWindowSize(Data::window, GameSettings::WIDTH, GameSettings::HEIGHT);
         }
         else if (mouseX >= exitButton.x && mouseX <= exitButton.x + exitButton.w && mouseY >= exitButton.y && mouseY <= exitButton.y + exitButton.h)
         {
+            this->resolutionChange = true;
             inResolutionOptions = false;
             resolutionOptionsOpen = false;
             backInOptions = true;
         }
         else if (mouseX >= fullscreenButton.x && mouseX <= fullscreenButton.x + fullscreenButton.w && mouseY >= fullscreenButton.y && mouseY <= fullscreenButton.y + fullscreenButton.h)
         {
+            this->resolutionChange = true;
             if (!this->inFullscreen)
             {
                 SDL_SetWindowFullscreen(Data::window, SDL_WINDOW_FULLSCREEN_DESKTOP);
@@ -124,7 +139,10 @@ void Options::handleMouseClick(SDL_Renderer *renderer)
     }
 }
 
-void Options::openResolutionOptions(SDL_Renderer *renderer)
+/**
+ * @brief Opens resolution options
+*/
+void Options::openResolutionOptions()
 {
     this->resolutionOptionsOpen = true;
     while (inResolutionOptions)
@@ -135,31 +153,61 @@ void Options::openResolutionOptions(SDL_Renderer *renderer)
             if (SDL_QUIT == event.type)
                 exit(0);
             else if (event.type == SDL_MOUSEBUTTONDOWN)
-                handleMouseClick(renderer);
+                handleMouseClick();
         }
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderClear(renderer);
-        createText(renderer, "Exit", exitButton);
-        createText(renderer, "Fullscreen", fullscreenButton);
-        createText(renderer, "1920x1080", resolution_1920x1080_button);
-        createText(renderer, "1280x720", resolution_1280x720_button);
-        createText(renderer, "800x600", resolution_800x600_button);
-        SDL_RenderPresent(renderer);
+        if (this->resolutionChange)
+        {
+            drawResolutions();
+
+            this->resolutionChange = false;
+        }
     }
-    SDL_RenderClear(renderer);
-    SDL_RenderPresent(renderer);
+    Window::clear();
+    Window::present();
 }
 
-void Options::open(SDL_Renderer *renderer)
+/**
+ * @brief Draws resolutions options
+*/
+void Options::drawResolutions()
+{
+    Window::clear();
+
+    SDL_SetRenderDrawColor(Data::renderer, 0, 0, 0, 255);
+
+    createText(Data::renderer, "Exit", exitButton);
+    createText(Data::renderer, "Fullscreen", fullscreenButton);
+    createText(Data::renderer, "1920x1080", resolution_1920x1080_button);
+    createText(Data::renderer, "1280x720", resolution_1280x720_button);
+    createText(Data::renderer, "800x600", resolution_800x600_button);
+
+    Window::present();
+}
+
+/**
+ * @brief Draws option settings
+*/
+void Options::drawOptions()
+{
+    Window::clear();
+
+    createText(Data::renderer, "Resolution", resolutionButton);
+    createText(Data::renderer, "Exit", exitButton);
+    
+    SDL_SetRenderDrawColor(Data::renderer, 0, 0, 0, 255);
+    
+    Window::present();
+}
+
+/**
+ * @brief Opens the options
+*/
+void Options::open()
 {
     this->inOptions = true;
-    SDL_RenderClear(renderer);
 
-    createText(renderer, "Resolution", resolutionButton);
-    createText(renderer, "Exit", exitButton);
-    
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderPresent(renderer);
+    drawOptions();
+
     while (inOptions)
     {
         SDL_Event event;
@@ -168,23 +216,15 @@ void Options::open(SDL_Renderer *renderer)
             if (SDL_QUIT == event.type)
                 exit(0);
             else if (event.type == SDL_MOUSEBUTTONDOWN)
-                handleMouseClick(renderer);
+                handleMouseClick();
         }
         if (backInOptions)
         {
-            SDL_RenderClear(renderer);
-            createText(renderer, "Exit", exitButton);
-            createText(renderer, "Resolution", resolutionButton);
-            
-
-            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-            SDL_RenderPresent(renderer);
+            drawOptions();
 
             backInOptions = false;
         }
     }
-
-    this->counter = 1;
 
     return START_SCREEN_HPP;
 }

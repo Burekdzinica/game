@@ -1,19 +1,12 @@
 #ifndef START_SCREEN_HPP
 #define START_SCREEN_HPP
 
-#include <unordered_map>
-#include <SDL2/SDL_ttf.h>
-#include <SDL2/SDL.h>
-
 #include "options.hpp"
-#include "gameSettings.hpp"
 #include "highscores.hpp"
-#include "entity.hpp"
-#include "game.hpp"
 
 using namespace std;
 
-const int NAME_WIDTH = 200, NAME_HEIGHT = 100;
+const int NAME_WIDTH = 250, NAME_HEIGHT = 75;
 const int GAME_NAME_WIDTH = 1000, GAME_NAME_HEIGHT = 100;
 
 class StartScreen : public Menu
@@ -25,7 +18,7 @@ class StartScreen : public Menu
         Options options;
         Highscores highscores;
         string playerName;
-        SDL_Texture *imgTexture;
+        SDL_Texture* imgTexture;
 
         SDL_Rect screenRect;
         SDL_Rect playButton; 
@@ -39,23 +32,27 @@ class StartScreen : public Menu
         SDL_Rect continueButton;
 
     public:
-        StartScreen(SDL_Renderer* renderer);
+        StartScreen();
         ~StartScreen();
-        void createUI(SDL_Renderer* renderer);
-        void handleMouseClick(SDL_Renderer* renderer);
-        void createPlayerName(SDL_Renderer* renderer);
-        void renderUI(SDL_Renderer* renderer);
+        void createUI();
+        void handleMouseClick();
+        void createPlayerName();
+        void renderUI();
         void resetPlayerName();
-        void run(SDL_Renderer* renderer);
-        void run(SDL_Renderer* renderer, bool continueGame);
+        void run(bool continueGame);
+        void runFromSave();
+        void runFromStart();
         void setUiCreated();
 };
 
-StartScreen::StartScreen(SDL_Renderer *renderer)
+/**
+ * @brief Default constructor for StartScreen
+*/
+StartScreen::StartScreen()
 {
     this->uiCreated = false;
     this->exitedOptions = false;
-    this->imgTexture = IMG_LoadTexture(renderer, "assets/startScreen.png");
+    this->imgTexture = IMG_LoadTexture(Data::renderer, "assets/startScreen.png");
     this->count = 0;
 
     this->playButton = {GameSettings::WIDTH / 2 - NAME_WIDTH / 2, (GameSettings::HEIGHT / 2), NAME_WIDTH, NAME_HEIGHT};
@@ -69,43 +66,52 @@ StartScreen::StartScreen(SDL_Renderer *renderer)
     this->continueButton = {GameSettings::WIDTH / 2 - NAME_WIDTH / 2, (GameSettings::HEIGHT / 2) - NAME_HEIGHT, NAME_WIDTH, NAME_HEIGHT};
 }
 
+/**
+ * @brief Destructor for StartScreen
+*/
 StartScreen::~StartScreen()
 {
     TTF_CloseFont(this->font);
 }
 
-void StartScreen::createUI(SDL_Renderer *renderer)
+/**
+ * @brief Creates UI
+*/
+void StartScreen::createUI()
 {
-    SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, imgTexture, NULL, NULL);
+    Window::clear();
+    SDL_RenderCopy(Data::renderer, imgTexture, NULL, NULL);
 
-    createText(renderer, "Resevanje bikca Ferdinda", gameName);
+    createText(Data::renderer, "Resevanje bikca Ferdinda", gameName);
 
-    SDL_RenderPresent(renderer);
+    Window::present();
 
     if (count == 0)
     {
-        createPlayerName(renderer);
+        createPlayerName();
         count++;
     }
     
 
-    createText(renderer, "Reset name", resetNameButton);
-    createText(renderer, "Play", playButton);
-    createText(renderer, "Scores", highscoresButton);
+    createText(Data::renderer, "Reset name", resetNameButton);
+    createText(Data::renderer, "Play", playButton);
+    createText(Data::renderer, "Scores", highscoresButton);
 
     playerNameRect.x = inputNameRect.x + inputNameRect.w - playerNameRect.w;
     playerNameRect.y = GameSettings::HEIGHT / 4;
 
     if (!playerName.empty())
-        createText(renderer, playerName.c_str(), playerNameRect);
+        createText(Data::renderer, playerName.c_str(), playerNameRect);
 
-    createText(renderer, "Options", optionsButton);
+    createText(Data::renderer, "Options", optionsButton);
 
-    SDL_RenderPresent(renderer);
+    Window::present();
 }
 
-void StartScreen::handleMouseClick(SDL_Renderer *renderer)
+/**
+ * @brief Handles mouse clicks
+*/
+void StartScreen::handleMouseClick()
 {
     int mouseX, mouseY;
     SDL_GetMouseState(&mouseX, &mouseY);
@@ -124,23 +130,26 @@ void StartScreen::handleMouseClick(SDL_Renderer *renderer)
             Game::setGameState(GameState::Playing);
    
         else if (mouseX >= highscoresButton.x && mouseX <= highscoresButton.x + highscoresButton.w && mouseY >= highscoresButton.y && mouseY <= highscoresButton.y + highscoresButton.h)
-            highscores.open(renderer);
+            highscores.open();
 
         else if (mouseX >= optionsButton.x && mouseX <= optionsButton.x + optionsButton.w && mouseY >= optionsButton.y && mouseY <= optionsButton.y + optionsButton.h)
-            options.open(renderer);
+            options.open();
             
         else if (mouseX >= resetNameButton.x && mouseX <= resetNameButton.x + resetNameButton.w && mouseY >= resetNameButton.y && mouseY <= resetNameButton.y + resetNameButton.h)
         {
             resetPlayerName();
             this->count = 0;
-            createUI(renderer);
+            createUI();
         }
     }
 }
 
-void StartScreen::createPlayerName(SDL_Renderer* renderer)
+/**
+ * @brief Creates player name
+*/
+void StartScreen::createPlayerName()
 {   
-    createText(renderer, "Enter name: ", inputNameRect);
+    createText(Data::renderer, "Enter name: ", inputNameRect);
     bool nameTyped = false;
 
     while (!nameTyped)
@@ -153,14 +162,14 @@ void StartScreen::createPlayerName(SDL_Renderer* renderer)
             else if (event.type == SDL_TEXTINPUT)
             {
                 playerName += event.text.text;;
-                renderUI(renderer);
+                renderUI();
             }
             else if (event.type == SDL_KEYDOWN)
             {
                 if (event.key.keysym.scancode == SDL_SCANCODE_BACKSPACE && !playerName.empty())
                 {
                     playerName.pop_back();
-                    renderUI(renderer);
+                    renderUI();
                 }
                 if ((event.key.keysym.scancode == SDL_SCANCODE_RETURN || event.key.keysym.scancode == SDL_SCANCODE_KP_ENTER) && playerName.empty()) 
                     cout << "Name can't be empty\n";
@@ -169,41 +178,63 @@ void StartScreen::createPlayerName(SDL_Renderer* renderer)
                     nameTyped = true;
             }
         }
-        SDL_RenderPresent(renderer);
+        Window::present();
     }
-    SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, imgTexture, NULL, NULL);
-    createText(renderer, "Resevanje bikca Ferdinanda", gameName);
+    Window::clear();
+    SDL_RenderCopy(Data::renderer, imgTexture, NULL, NULL);
+    createText(Data::renderer, "Resevanje bikca Ferdinanda", gameName);
 
     Data::playerName = playerName;
 
     ofstream saveFile;
     saveFile.open("saveFile.txt");
     saveFile << "Name: " <<  playerName << "\n";
+    saveFile.close();
 }
 
-void StartScreen::renderUI(SDL_Renderer* renderer)
+/**
+ * @brief Creates UI for typing name
+*/
+void StartScreen::renderUI()
 {
-    SDL_RenderClear(renderer);
+    Window::clear();
     
-    SDL_RenderCopy(renderer, imgTexture, NULL, NULL);
-    createText(renderer, "Resevanje bikca Ferdinda", gameName);
-    createText(renderer, "Enter name: ", inputNameRect);
+    SDL_RenderCopy(Data::renderer, imgTexture, NULL, NULL);
+    createText(Data::renderer, "Resevanje bikca Ferdinda", gameName);
+    createText(Data::renderer, "Enter name: ", inputNameRect);
 
     if (!playerName.empty())
-        createText(renderer, playerName.c_str(), playerNameRect);
+        createText(Data::renderer, playerName.c_str(), playerNameRect);
 }
 
+/**
+ * @brief Resets player name
+*/
 void StartScreen::resetPlayerName()
 {
     this->playerName.clear();
 }
 
-void StartScreen::run(SDL_Renderer *renderer)
+/**
+ * @brief Runs startScreen
+ * @param continueGame If true then continue from save
+*/
+void StartScreen::run(bool continueGame)
 {
-    if (!uiCreated)
+    if (continueGame)
+        runFromSave();
+    else
+        runFromStart();
+}
+
+/**
+ * @brief Runs from start
+*/
+void StartScreen::runFromStart()
+{
+   if (!uiCreated)
     {
-        createUI(renderer);
+        createUI();
         uiCreated = true;
     }
 
@@ -213,35 +244,39 @@ void StartScreen::run(SDL_Renderer *renderer)
         if (SDL_QUIT == event.type)
             exit(0);
         else if (event.type == SDL_MOUSEBUTTONDOWN)
-            handleMouseClick(renderer);
+            handleMouseClick();
     }
 
     if (!options.isOpen())
     {
-        createUI(renderer);
+        createUI();
 
         options.setOpen(true);
 
-        SDL_RenderPresent(renderer);
+        Window::present();
     }
     if (!highscores.isOpen())
     {  
-        createUI(renderer);
+        createUI();
 
         highscores.setOpen(true);
 
-        SDL_RenderPresent(renderer);
-    }
+        Window::present();
+    } 
 }
 
-void StartScreen::run(SDL_Renderer *renderer, bool continueGame)
+/**
+ * @brief Runs from save
+*/
+void StartScreen::runFromSave()
 {
-    SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, imgTexture, NULL, NULL);
+    Window::clear();
 
-    createText(renderer, "Resevanje bikca Ferdinda", gameName);
-    createText(renderer, "Continue", continueButton);
-    createText(renderer, "New Game", newGameButton);
+    SDL_RenderCopy(Data::renderer, imgTexture, NULL, NULL);
+
+    createText(Data::renderer, "Resevanje bikca Ferdinda", gameName);
+    createText(Data::renderer, "Continue", continueButton);
+    createText(Data::renderer, "New Game", newGameButton);
 
     ifstream file("saveFile.txt");
     if (file.is_open())
@@ -250,7 +285,7 @@ void StartScreen::run(SDL_Renderer *renderer, bool continueGame)
         file.close();
     }
 
-    createText(renderer, Data::playerName.c_str(), resetNameButton);
+    createText(Data::renderer, Data::playerName.c_str(), resetNameButton);
 
     SDL_Event event;
     if (SDL_PollEvent(&event))
@@ -258,13 +293,15 @@ void StartScreen::run(SDL_Renderer *renderer, bool continueGame)
         if (SDL_QUIT == event.type)
             exit(0);
         else if (event.type == SDL_MOUSEBUTTONDOWN)
-            handleMouseClick(renderer);
+            handleMouseClick();
     }
 
-   SDL_RenderPresent(renderer);
+   Window::present();
 }
 
-/* @brief Next start screen it renders the ui again */
+/**
+ * @brief Sets UI is created
+*/
 void StartScreen::setUiCreated()
 {
     this->uiCreated = false;

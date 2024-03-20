@@ -2,7 +2,6 @@
 #define PLAYER_HPP
 
 #include <cmath>
-#include <SDL2/SDL.h>
 
 #include "gameSettings.hpp"
 #include "entity.hpp"

@@ -2,10 +2,6 @@
 #define HIGHSCORES_HPP
 
 #include <fstream>
-#include <cstring>
-#include <unordered_map>
-#include <SDL2/SDL_ttf.h>
-#include <SDL2/SDL.h>
 
 #include "gameSettings.hpp"
 
@@ -27,11 +23,14 @@ class Highscores : public Menu
         ~Highscores();
         bool isOpen() const;
         void setOpen(bool newOpen);
-        void handleMouseClick(SDL_Renderer* renderer) override;
-        void drawHighscores(SDL_Renderer* renderer);
-        void open(SDL_Renderer* renderer);
+        void handleMouseClick() override;
+        void drawHighscores();
+        void open();
 };
 
+/**
+ * @brief Default constructor for Highscores
+*/
 Highscores::Highscores()
 {
     this->inHighscores = true;
@@ -40,22 +39,36 @@ Highscores::Highscores()
     this->replayButton = {(GameSettings::WIDTH / 2) + 250, GameSettings::HEIGHT / 2, NAME_WIDTH, NAME_HEIGHT};
 }
 
+/**
+ * @brief Destructor for Highscores
+*/
 Highscores::~Highscores()
 {
     TTF_CloseFont(font);
 }
 
+/**
+ * @brief Returns if open
+ * @return True or False
+*/
 bool Highscores::isOpen() const
 {
     return this->inHighscores;
 }
 
+/**
+ * @brief Sets open
+ * @param newOpen New open
+*/
 void Highscores::setOpen(bool newOpen)
 {
     this->inHighscores = newOpen;
 }
 
-void Highscores::handleMouseClick(SDL_Renderer *renderer)
+/**
+ * @brief Handles mouse clicks
+*/
+void Highscores::handleMouseClick()
 {
     int mouseX, mouseY;
     SDL_GetMouseState(&mouseX, &mouseY);
@@ -71,7 +84,10 @@ void Highscores::handleMouseClick(SDL_Renderer *renderer)
 
 }
 
-void Highscores::drawHighscores(SDL_Renderer* renderer)
+/**
+ * @brief Draws highscores in menu
+*/
+void Highscores::drawHighscores()
 {
     ifstream highscoresData("files/highscores.txt");
 
@@ -82,7 +98,7 @@ void Highscores::drawHighscores(SDL_Renderer* renderer)
     {
         SDL_Rect tempRect = {GameSettings::WIDTH / 2, yPos, 0, 0};
 
-        createText(renderer, line.c_str(), tempRect);
+        createText(Data::renderer, line.c_str(), tempRect);
 
         yPos += 50;
     }
@@ -90,16 +106,20 @@ void Highscores::drawHighscores(SDL_Renderer* renderer)
     highscoresData.close();
 }
 
-void Highscores::open(SDL_Renderer* renderer)
+/**
+ * @brief Opens highscore menu
+*/
+void Highscores::open()
 {
-    SDL_RenderClear(renderer);
+    Window::clear();
 
-    createText(renderer, "Exit", exitButton);
-    createText(renderer, "Replay", replayButton);
-    createText(renderer, "Highscores", highscoresName);
+    createText(Data::renderer, "Exit", exitButton);
+    createText(Data::renderer, "Replay", replayButton);
+    createText(Data::renderer, "Highscores", highscoresName);
 
-    drawHighscores(renderer);
-    SDL_RenderPresent(renderer);
+    drawHighscores();
+    
+    Window::present();
     while (inHighscores)
     {
         SDL_Event event;
@@ -108,7 +128,7 @@ void Highscores::open(SDL_Renderer* renderer)
             if (SDL_QUIT == event.type)
                 exit(0);
             else if (event.type == SDL_MOUSEBUTTONDOWN)
-                handleMouseClick(renderer);
+                handleMouseClick();
 
         }
     }
