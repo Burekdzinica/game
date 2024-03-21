@@ -10,7 +10,10 @@
 #include "entity.hpp"
 #include "ladder.hpp"
 
+
 using namespace std;
+
+typedef unordered_map<pair<int, int>, bool, PairHash> Grid_t;
 
 extern const int PLAYER_WIDTH, PLAYER_HEIGHT ;
 extern const int PLAYER_WIDTH, PLAYER_HEIGHT;
@@ -35,10 +38,13 @@ class Enemy : public EntityAnimation
         int yMovement;
         int direction;
         int bounds[4];
+        SDL_Texture* enemyTexture;
 
     
     public:
+        Enemy();
         Enemy(const SDL_Rect& asset);
+        ~Enemy();
         EnemyState getState();
         void setState(const EnemyState& state);
         void setBounds();
@@ -48,8 +54,27 @@ class Enemy : public EntityAnimation
         void moveChasing(const SDL_Rect& playerAsset);
         void moveIdle();
         void setAttackTimer();
-        static void generateEnemyPositions(unordered_map<pair<int, int>, bool, PairHash>& grid, Player& player, vector <Enemy>& enemyList, int enemyCounter);
+        static void generateEnemyPositions(Grid_t& grid, Player& player, vector <Enemy>& enemyList, int enemyCounter);
+        void render(Enemy currentEnemy);
 };
+
+/**
+ * @brief Default constructor for Enemy
+*/
+Enemy::Enemy()
+{
+    this->asset = asset;
+    this->state = EnemyState::Attacked;
+    this->attackStartTime = chrono::steady_clock::now();
+    this->xMovement = rand() % 2; // 1
+    this->yMovement = (xMovement == 1) ? 0 : 1;
+    this->direction = 1;
+    this->srcRect = {0 , 0, 73, 126};
+    this->flip = SDL_FLIP_NONE;
+    this->enemyTexture = Window::loadTexture("assets/enemy_reloaded.png");
+
+    setBounds();
+}
 
 /**
  * @brief Contructor for Enemy
@@ -65,8 +90,14 @@ Enemy::Enemy(const SDL_Rect& asset)
     this->direction = 1;
     this->srcRect = {0 , 0, 73, 126};
     this->flip = SDL_FLIP_NONE;
+    this->enemyTexture = Window::loadTexture("assets/enemy_reloaded.png");
 
     setBounds();
+}
+
+Enemy::~Enemy()
+{
+    SDL_DestroyTexture(enemyTexture);
 }
 
 /**
@@ -254,7 +285,7 @@ void Enemy::setAttackTimer()
  * @param enemyList The enemy list
  * @param enemyCounter How many enemies to spawn
 */
-void Enemy::generateEnemyPositions(unordered_map<pair<int, int>, bool, PairHash>& grid, Player& player, vector <Enemy>& enemyList, int enemyCounter)
+void Enemy::generateEnemyPositions(Grid_t& grid, Player& player, vector <Enemy>& enemyList, int enemyCounter)
 {
     for (int i = 0; i < enemyCounter; i++)
     {
@@ -281,5 +312,15 @@ void Enemy::generateEnemyPositions(unordered_map<pair<int, int>, bool, PairHash>
         enemyList.push_back(newEnemy);
     }
 }
+
+/**
+ * @brief Renders the enemy
+ * @param currentEnemy The current enemy
+*/
+void Enemy::render(Enemy currentEnemy)
+{
+    Window::drawAnimation(currentEnemy.getSrcRect(), currentEnemy.getAsset(), enemyTexture, currentEnemy.getFlip());
+}
+
 
 #endif

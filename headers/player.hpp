@@ -5,6 +5,7 @@
 
 #include "gameSettings.hpp"
 #include "entity.hpp"
+#include "window.hpp"
 
 extern const int ANIMATION_SPEED;
 
@@ -23,18 +24,25 @@ class Player : public EntityAnimation
         bool nearLadder;
         bool nearArena;
         int attack;
+        SDL_Texture* playerNoSpearTexture;
+        SDL_Texture* playerSpearTexture;
 
     public:
         Player() = default;
         Player(int health, const SDL_Rect& asset);
+        ~Player();
+        
         void setHealth(int newHealth);
         int getHealth();
         void changeHealth(int healthDiff);
+
         void movePlayer();
         void move(int x, int y);
+
         bool isNearby(const SDL_Rect& player, const SDL_Rect& arena, int range);
         bool isNearLadder();
         bool isNearArena();
+
         void updatePlayerAnimation(int speed);
         PlayerState getState();
         void setNearArena(bool newNearArena);
@@ -46,6 +54,7 @@ class Player : public EntityAnimation
         void decreaseAttack();
         int getAttack();
         bool isPlayerTouching (const SDL_Rect& other);
+        void render();
 };
 
 /**
@@ -62,9 +71,23 @@ Player::Player(int health, const SDL_Rect& asset)
     this->isMoving = false;
     this->flip = SDL_FLIP_NONE;
     this->state = PlayerState::Idle;
+
     this->nearArena = false;
     this->nearLadder = false;
+
     this->attack = 0;
+
+    this->playerSpearTexture = Window::loadTexture("assets/player_spear.png");
+    this->playerNoSpearTexture = Window::loadTexture("assets/player_no_spear.png");
+}
+
+/**
+ * @brief Destructor for player
+*/
+Player::~Player()
+{
+    SDL_DestroyTexture(playerNoSpearTexture);
+    SDL_DestroyTexture(playerSpearTexture);
 }
 
 /**
@@ -268,6 +291,7 @@ void Player::reset(int health, const SDL_Rect& newAsset)
     this->srcRect = {0, 0, 120, 116};
     this->isMoving = false;
     this->asset = newAsset;
+    this->attack = 0;
 }
 
 /**
@@ -311,6 +335,18 @@ int Player::getAttack()
 bool Player::isPlayerTouching(const SDL_Rect& other)
 {
     return SDL_HasIntersection(&other, &asset) == SDL_TRUE;
+}
+
+/**
+ * @brief Renders player
+*/
+void Player::render()
+{
+    if (this->attack <= 0) 
+        Window::drawAnimation(this->srcRect, this->asset, playerNoSpearTexture, this->flip);
+    else
+        Window::drawAnimation(this->srcRect, this->asset, playerSpearTexture, this->flip);
+
 }
 
 #endif

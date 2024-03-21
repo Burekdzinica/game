@@ -122,12 +122,12 @@ void StartScreen::handleMouseClick()
             Game::setGameState(GameState::ContinueGame);
         
         else if (mouseX >= newGameButton.x && mouseX <= newGameButton.x + newGameButton.w && mouseY >= newGameButton.y && mouseY <= newGameButton.y + newGameButton.h)
-            Game::setGameState(GameState::ResetGame);
+            Game::setGameState(GameState::StartScreen);
     }
     else if (Game::getGameState() == GameState::StartScreen)
     {
         if (mouseX >= playButton.x && mouseX <= playButton.x + playButton.w && mouseY >= playButton.y && mouseY <= playButton.y + playButton.h)
-            Game::setGameState(GameState::Playing);
+            Game::setGameState(GameState::ResetGame);
    
         else if (mouseX >= highscoresButton.x && mouseX <= highscoresButton.x + highscoresButton.w && mouseY >= highscoresButton.y && mouseY <= highscoresButton.y + highscoresButton.h)
             highscores.open();

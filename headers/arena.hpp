@@ -8,6 +8,8 @@
 
 using namespace std;
 
+typedef unordered_map<pair<int, int>, bool, PairHash> Grid_t;
+
 class Arena : public Entity
 {
     private:
@@ -15,10 +17,12 @@ class Arena : public Entity
         bool didArenaSpawn;
         bool isVisible;
         bool forcedVisibilty;
+        SDL_Texture* arenaTexture;
 
     public:
         Arena();
         Arena(const SDL_Rect& asset);
+        ~Arena();
         bool getArenaSpawn() const;
         int getArenaCounter();
         bool getLvlDone();
@@ -29,7 +33,8 @@ class Arena : public Entity
         void setForcedVisibility(bool newForcedVisibility);
         void setArenaSpawn();
         void setVisible(bool newVisible);
-        static void generateArenaPositions(int counter, unordered_map<pair<int, int>, bool, PairHash> &grid, unordered_map<int, Arena> &arenaList);
+        static void generateArenaPositions(int counter, Grid_t& grid, unordered_map<int, Arena> &arenaList);
+        void render(Arena currentArena);
 };
 
 /**
@@ -41,6 +46,7 @@ Arena::Arena()
     this->isLvlDone = false;
     this->didArenaSpawn = false;
     this->isVisible = true;
+    this->arenaTexture = Window::loadTexture("assets/arena.png");
 }
 
 /**
@@ -53,6 +59,11 @@ Arena::Arena(const SDL_Rect& asset)
     this->isLvlDone = false;
     this->isVisible = false;
     this->forcedVisibilty = false; 
+}
+
+Arena::~Arena()
+{
+    SDL_DestroyTexture(arenaTexture);
 }
 
 /**
@@ -142,7 +153,7 @@ void Arena::setVisible(bool newVisible)
  * @param grid The grid for spawns
  * @param arenaList The arenaList
 */
-void Arena::generateArenaPositions(int counter, unordered_map<pair<int, int>, bool, PairHash>& grid, unordered_map<int, Arena>& arenaList)
+void Arena::generateArenaPositions(int counter, Grid_t& grid, unordered_map<int, Arena>& arenaList)
 {
     int xArena, yArena;
     for (int i=0; i < counter; i++)
@@ -186,6 +197,16 @@ void Arena::generateArenaPositions(int counter, unordered_map<pair<int, int>, bo
         arenaList.insert({i, Arena({xArena, yArena, ARENA_WIDTH, ARENA_HEIGHT})});
         grid[{xArena / ARENA_WIDTH, yArena / ARENA_HEIGHT}] = true;
     }   
+}
+
+/**
+ * @brief Renders arena
+ * @param arenaList The arena list
+*/
+void Arena::render(Arena currentArena)
+{
+    if (currentArena.getVisible() || currentArena.isForcedVisible())
+        Window::draw(arenaTexture, currentArena.getAsset());
 }
 
 #endif

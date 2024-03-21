@@ -1,9 +1,13 @@
 #ifndef WINDOW_HPP
 #define WINDOW_HPP
 
+#include <SDL2/SDL_image.h>
+
 using namespace std;
 
 const extern int WIDTH, HEIGHT;
+
+const int FONT_SIZE = 25;
 
 class Window
 {
@@ -25,8 +29,9 @@ class Window
         SDL_Renderer* getRenderer();
         static void draw(SDL_Texture* tex, SDL_Rect src, SDL_Rect dest);
         static void draw(SDL_Texture* tex, SDL_Rect dest); // if no srcRect
-        void drawAnimation(SDL_Renderer* renderer, SDL_Rect srcRect, SDL_Rect destRect, SDL_Texture* imgTexture, SDL_RendererFlip flip);
+        static void drawAnimation(SDL_Rect srcRect, SDL_Rect destRect, SDL_Texture* imgTexture, SDL_RendererFlip flip);
         static void drawPlayerHealth(int playerHealth, SDL_Texture* hearts_1, SDL_Texture* hearts_2, SDL_Texture* hearts_3);
+        static SDL_Texture* loadTexture(const char* texture);
 };
 
 SDL_Rect Window::healthRect = {1, 1, 279, 66};
@@ -47,7 +52,7 @@ Window::Window()
     if (renderer == NULL)
         cout << "Could not create renderer: " << SDL_GetError() << "\n";
 
-    this->font = TTF_OpenFont("fonts/pixel.ttf", 30);
+    this->font = TTF_OpenFont("fonts/pixel.ttf", FONT_SIZE);
     if (!font)
         cout << "Font initilization failed " << TTF_GetError() << "\n"; 
 
@@ -189,12 +194,12 @@ void Window::draw(SDL_Texture* tex, SDL_Rect dest)
  * @param imgTexture The asset to draw
  * @param flip Flips the asset   
 */
-void Window::drawAnimation(SDL_Renderer* renderer, SDL_Rect srcRect, SDL_Rect destRect, SDL_Texture* imgTexture, SDL_RendererFlip flip)
+void Window::drawAnimation(SDL_Rect srcRect, SDL_Rect destRect, SDL_Texture* imgTexture, SDL_RendererFlip flip)
 {
     if (imgTexture == NULL)
         cout << "Cannot create texture\n";
 
-    SDL_RenderCopyEx(renderer, imgTexture, &srcRect, &destRect, 0, NULL, flip);
+    SDL_RenderCopyEx(Data::renderer, imgTexture, &srcRect, &destRect, 0, NULL, flip);
 }
 
 /**
@@ -219,6 +224,22 @@ void Window::drawPlayerHealth(int playerHealth, SDL_Texture* hearts_1, SDL_Textu
             break;
     }
 }
+
+/**
+ * @brief Loads the texture
+ * @param texture The texture to save to
+ * @return Texture
+*/
+SDL_Texture* Window::loadTexture(const char* texture)
+{
+    SDL_Surface* tmpSurface = IMG_Load(texture);
+    SDL_Texture* tex = SDL_CreateTextureFromSurface(Data::renderer, tmpSurface);
+    SDL_FreeSurface(tmpSurface);
+
+    return tex;
+}
+
+
 
 //     SDL_SetRenderDrawColor(renderer, 204, 144, 64, 255);
 

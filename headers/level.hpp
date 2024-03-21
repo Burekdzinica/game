@@ -7,6 +7,8 @@
 
 using namespace std;
 
+typedef unordered_map<pair<int, int>, bool, PairHash> Grid_t;
+
 class Level
 {
     private:
@@ -18,7 +20,7 @@ class Level
         // Level() = default;
         Level();
         void nextLevel(Player& player, vector <Enemy>&  enemyList, unordered_map <int, Arena>& arenaList, Ladder& ladder, int isCloseTo, int health);    
-        void setLevel();
+        void increaseLevel();
         void setLevel(int x);
         void resetLevel();
         void setArenaCounter(int arenaCounter);
@@ -48,16 +50,15 @@ Level::Level()
 */
 void Level::nextLevel(Player& player, vector <Enemy>& enemyList, unordered_map <int, Arena>& arenaList, Ladder& ladder, int isCloseTo, int health)
 {
-    player.reset(health, {max((rand() % GameSettings::WIDTH - player.getAsset().w), 0), max((rand() % GameSettings::HEIGHT - player.getAsset().h), 0), player.getAsset().w, player.getAsset().h});
+    player.reset(health, {max((rand() % GameSettings::WIDTH - player.getAsset().w), 0), 
+                          max((rand() % GameSettings::HEIGHT - player.getAsset().h), 0), player.getAsset().w, player.getAsset().h});
 
-    unordered_map <pair<int, int>, bool, PairHash> grid;
+    Grid_t grid;
     for (int i = 0; i < GameSettings::WIDTH / ENEMY_WIDTH; i++)
         for (int j = 0; j < GameSettings::HEIGHT / ENEMY_HEIGHT; j++)
             grid.insert({(make_pair(i,j)), false});
 
-    static int levelCounter = lvl;
-    levelCounter++;
-    if ((levelCounter == 2) || (((levelCounter - 2) % 3 == 0)))
+    if ((lvl == 2) || (((lvl - 2) % 3 == 0)))
         enemyCounter++;
 
     enemyList.clear();
@@ -79,7 +80,7 @@ void Level::nextLevel(Player& player, vector <Enemy>& enemyList, unordered_map <
 /**
  * @brief Sets the next level
 */
-void Level::setLevel()
+void Level::increaseLevel()
 {
     this->lvl++;
 }
@@ -94,7 +95,7 @@ void Level::setLevel(int x)
 }
 
 /**
- * @brief Resets lvl to 1
+ * @brief Sets lvl to 1
 */
 void Level::resetLevel()
 {

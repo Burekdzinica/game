@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 
             case GameState::ResetGame:
                 game.restart();
-                Game::setGameState(GameState::StartScreen);
+                Game::setGameState(GameState::Playing);
 
                 break;
 
@@ -76,6 +76,3 @@ int main(int argc, char *argv[])
    
     return EXIT_SUCCESS;
 }
-
-
-// BE CAREFUL OF CIRCULAR DEPENDACNY !!!!

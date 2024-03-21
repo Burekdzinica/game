@@ -11,14 +11,16 @@ class Spear : public Entity
 {
     private:
         bool spearTouched;
+        SDL_Texture* spearTexture;
 
     public:
         Spear();
         ~Spear();
-        void spawnSpear(unordered_map<pair<int, int>, bool, PairHash>& grid);
+        void spawnSpear(Grid_t& grid);
         bool isPlayerTouching(const SDL_Rect& player);
         void setSpearTouched();
         bool isSpearTouched();
+        void render(Spear* spear);
 };
 
 /**
@@ -28,6 +30,7 @@ Spear::Spear()
 {
     this->asset = {0, 0, SPEAR_WIDTH, SPEAR_HIGHT};
     this->spearTouched = false;
+    this->spearTexture = Window::loadTexture("assets/spear.png");
 }
 
 /**
@@ -35,14 +38,14 @@ Spear::Spear()
 */
 Spear::~Spear()
 {
-
+    SDL_DestroyTexture(spearTexture);
 }
 
 /**
  * @brief Spawns the spear
  * @param grid The grid for spawn
 */
-void Spear::spawnSpear(unordered_map<pair<int, int>, bool, PairHash>& grid)
+void Spear::spawnSpear(Grid_t& grid)
 {
     int xSpear, ySpear;
     do
@@ -90,6 +93,16 @@ void Spear::setSpearTouched()
 bool Spear::isSpearTouched()
 {
     return this->spearTouched;
+}
+
+/**
+ * @brief Renders spear
+ * @param spear The spear pointer
+*/
+void Spear::render(Spear* spear)
+{
+    if (spear != nullptr)
+        Window::draw(spearTexture, spear->getAsset());
 }
 
 #endif

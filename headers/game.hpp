@@ -30,8 +30,8 @@ const int LADDER_WIDTH = 74, LADDER_HEIGHT = 74;
 
 const int ANIMATION_SPEED = 200;
 
-const int SIGHT_RANGE = 200;
-// const int SIGHT_RANGE = 2000;
+// const int SIGHT_RANGE = 200;
+const int SIGHT_RANGE = 2000;
 const int ENEMY_RANGE = 450;
 const int INTERACTION_RANGE_ARENA = SIGHT_RANGE + ARENA_WIDTH - 150;
 const int INTERACTION_RANGE_LADDER = SIGHT_RANGE + LADDER_WIDTH - 50;
@@ -61,26 +61,25 @@ class Game
         ofstream highscoresData;
         ofstream saveFile;
         ofstream replayFile;
-        SDL_Texture *playerSpearTexture;
-        SDL_Texture *playerNoSpearTexture;
-        SDL_Texture *enemyTexture;
-        SDL_Texture *arenaTexture;
-        SDL_Texture *ladderTexture;
+
         SDL_Texture *hearts_1Texture;
         SDL_Texture *hearts_2Texture;
         SDL_Texture *hearts_3Texture;
-        SDL_Texture* spearTexture;
         
         static GameState gameState;
+
         Window window;
-        Spear* spear = nullptr;
+        Arena arena;
+        Spear* spear;
         Map map;
-        Player player;
+        Player* player;
+        Enemy enemy;
         Level level;
-        Ladder ladder;
+        Ladder* ladder;
+
         vector <Enemy> enemyList;
         vector<PlayerPosition> replayList;
-        unordered_map <pair<int, int>, bool, PairHash> grid;
+        Grid_t grid;
         unordered_map <int, Arena> arenaList;
         int points;
         int isCloseTo;
@@ -89,19 +88,27 @@ class Game
     public:
         Game();
         ~Game();
+
         void loadTextures();
+
         void setup();
         void eventHandler();
         void update();
         void render();
+
+        void renderUI();
+        void renderGameOver();
+        
         bool isOpen();
         void restart();
         void updateHighscores();
         void continueGame();
+
         void save();
         void replay();
         void saveReplayToList();
         void saveReplay();
+
         int getLowestScore();
         static void setGameState(GameState newGameState);
         static GameState getGameState();
@@ -111,9 +118,10 @@ class Game
 GameState Game::gameState = GameState::ContinueScreen;
 
 /**
- * @brief Default contructor for Game, calling Map constructor
+ * @brief Default contructor for Game, calling Map, Ladder, Player constructor
 */
-Game::Game() : map()
+Game::Game() : map(), ladder(new Ladder({max((rand() % GameSettings::WIDTH - LADDER_WIDTH), 0), max((rand() % GameSettings::HEIGHT - LADDER_HEIGHT), 0), LADDER_WIDTH, LADDER_HEIGHT})), 
+                      player(new Player(3, {max((rand() % GameSettings::WIDTH - PLAYER_WIDTH), 0), max((rand() % GameSettings::HEIGHT - PLAYER_HEIGHT), 0), PLAYER_WIDTH, PLAYER_HEIGHT}))
 {
     this->points = 0;
     this-> isCloseTo = -1;
@@ -125,15 +133,13 @@ Game::Game() : map()
 */
 Game::~Game()
 {
-    SDL_DestroyTexture(spearTexture);
-    SDL_DestroyTexture(playerSpearTexture);
-    SDL_DestroyTexture(playerNoSpearTexture);
-    SDL_DestroyTexture(enemyTexture);
-    SDL_DestroyTexture(arenaTexture);
-    SDL_DestroyTexture(ladderTexture);
     SDL_DestroyTexture(hearts_1Texture);
     SDL_DestroyTexture(hearts_2Texture);
     SDL_DestroyTexture(hearts_3Texture);
+
+    delete player;
+    delete ladder;
+    delete spear;
 }
 
 /**
@@ -141,19 +147,10 @@ Game::~Game()
 */
 void Game::loadTextures()
 {
-    #define LOAD_TEXTURE(renderer, imgPath) SDL_CreateTextureFromSurface(renderer, IMG_Load(imgPath))
-
-    playerSpearTexture = LOAD_TEXTURE(window.getRenderer(), "assets/player_spear.png");
-    playerNoSpearTexture = LOAD_TEXTURE(window.getRenderer(), "assets/player_no_spear.png");
-    enemyTexture = LOAD_TEXTURE(window.getRenderer(), "assets/enemy_reloaded.png");
-    arenaTexture = LOAD_TEXTURE(window.getRenderer(), "assets/arena.png");
-    ladderTexture = LOAD_TEXTURE(window.getRenderer(), "assets/ladder.png");
-    hearts_1Texture = LOAD_TEXTURE(window.getRenderer(), "assets/3_hearts_reloaded.png");
-    hearts_2Texture = LOAD_TEXTURE(window.getRenderer(), "assets/2_hearts_reloaded.png");
-    hearts_3Texture = LOAD_TEXTURE(window.getRenderer(), "assets/1_hearts_reloaded.png");
-    spearTexture = LOAD_TEXTURE(window.getRenderer(), "assets/spear.png");
+    hearts_1Texture = Window::loadTexture("assets/3_hearts_reloaded.png");
+    hearts_2Texture = Window::loadTexture("assets/2_hearts_reloaded.png");
+    hearts_3Texture = Window::loadTexture("assets/1_hearts_reloaded.png");
 }
-
 
 /**
  * @brief Setup
@@ -177,12 +174,7 @@ void Game::setup()
     level.setArenaCounter(2 + rand() % 2);
 
     Arena::generateArenaPositions(level.getArenaCounter(), grid, arenaList);
-    Enemy::generateEnemyPositions(grid, player, enemyList, 1); 
-
-    // this->player = Player(3, {max((rand() % GameSettings::WIDTH - PLAYER_WIDTH), 0), max((rand() % GameSettings::HEIGHT - PLAYER_HEIGHT), 0), PLAYER_WIDTH, PLAYER_HEIGHT});
-    this->player = Player(3, {rand() % (GameSettings::WIDTH - PLAYER_WIDTH) + PLAYER_WIDTH, rand() % (GameSettings::HEIGHT - PLAYER_HEIGHT) + PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT});
-
-    this->ladder = Ladder({max((rand() % GameSettings::WIDTH - LADDER_WIDTH), 0), max((rand() % GameSettings::HEIGHT - LADDER_HEIGHT), 0), LADDER_WIDTH, LADDER_HEIGHT});
+    Enemy::generateEnemyPositions(grid, *player, enemyList, 1); 
 }
 
 /**
@@ -202,8 +194,8 @@ void Game::eventHandler()
         {
             if (event.type == SDL_KEYUP)
             {
-                player.setFlip(SDL_FLIP_NONE);
-                player.setState(PlayerState::Idle);
+                player->setFlip(SDL_FLIP_NONE);
+                player->setState(PlayerState::Idle);
             }   
             if (event.key.keysym.sym == SDLK_ESCAPE)
             {
@@ -214,7 +206,7 @@ void Game::eventHandler()
             // deletes arena
             if (event.type == SDL_KEYDOWN)
             {
-                if (event.key.keysym.sym == SDLK_e && isCloseTo >= 0 && player.isNearArena())
+                if (event.key.keysym.sym == SDLK_e && isCloseTo >= 0 && player->isNearArena())
                 {
                     arenaList.erase(isCloseTo);
                     
@@ -234,15 +226,15 @@ void Game::eventHandler()
                 //spawns door for next lvl 
                 if (arenaList.empty())
                 {
-                    if (player.isNearby(player.getAsset(), ladder.getAsset(), INTERACTION_RANGE_LADDER))
+                    if (player->isNearby(player->getAsset(), ladder->getAsset(), INTERACTION_RANGE_LADDER))
                     {
-                        player.setNearLadder(true);
+                        player->setNearLadder(true);
                         if (event.type == SDL_KEYDOWN)
                         {
                             if (event.key.keysym.sym == SDLK_f)
                             {
-                                level.nextLevel(player, enemyList, arenaList, ladder, isCloseTo, player.getHealth());
-                                level.setLevel();
+                                level.increaseLevel();
+                                level.nextLevel(*player, enemyList, arenaList, *ladder, isCloseTo, player->getHealth());
                             }
                         }
                     }
@@ -255,7 +247,7 @@ void Game::eventHandler()
                 restart();
         }
     }
-    player.movePlayer();
+    player->movePlayer();
 }
 
 /**
@@ -267,7 +259,7 @@ void Game::update()
 
     // if you continue from save this makes it so it doesn't spawn spear --> not good solution
     static bool preventSpear = false;
-    if (player.getAttack() > 0 && preventSpear == false)
+    if (player->getAttack() > 0 && preventSpear == false)
     {
         delete spear;
         spear = nullptr;
@@ -276,9 +268,9 @@ void Game::update()
     if (preventSpear == false)
         preventSpear = true;
 
-    player.setNearArena(false);
-    if (!(player.isNearby(player.getAsset(), ladder.getAsset(), INTERACTION_RANGE_LADDER)) && arenaList.empty())
-        player.setNearLadder(false);
+    player->setNearArena(false);
+    if (!(player->isNearby(player->getAsset(), ladder->getAsset(), INTERACTION_RANGE_LADDER)) && arenaList.empty())
+        player->setNearLadder(false);
 
     static int previousPoints = 0;
     if (points >= previousPoints + 1000)
@@ -289,23 +281,23 @@ void Game::update()
         previousPoints += 1000;
     }
 
-    if (spear->isPlayerTouching(player.getAsset()) && !spear->isSpearTouched())
+    if (spear->isPlayerTouching(player->getAsset()) && !spear->isSpearTouched())
     {
-        player.increaseAttack();
+        player->increaseAttack();
         spear->setSpearTouched();
 
         delete spear;
         spear = nullptr;
     }
  
-    if (player.getAttack() > 0)
+    if (player->getAttack() > 0)
     {
         for (auto it = enemyList.begin(); it != enemyList.end();)
         {
-            if (player.isPlayerTouching(it->getAsset()))
+            if (player->isPlayerTouching(it->getAsset()))
             {
                 it = enemyList.erase(it);
-                player.decreaseAttack();
+                player->decreaseAttack();
                 // level.decreaseEnemyCounter();
 
                 points += 200;
@@ -318,21 +310,21 @@ void Game::update()
     {
         for (auto& currentEnemy : enemyList)
         {
-            if (currentEnemy.isPlayerTouching(player.getAsset()))
+            if (currentEnemy.isPlayerTouching(player->getAsset()))
             {
-                player.changeHealth(-1);
+                player->changeHealth(-1);
 
                 //moves enemy a bit / depends on pos
-                if (player.getAsset().x > currentEnemy.getAsset().x)
+                if (player->getAsset().x > currentEnemy.getAsset().x)
                     currentEnemy.setX(max((currentEnemy.getAsset().x - 50), 0));
-
-                else if (player.getAsset().x < currentEnemy.getAsset().x)
+        
+                else if (player->getAsset().x < currentEnemy.getAsset().x)
                     currentEnemy.setX(max((currentEnemy.getAsset().x + 50), 0));
                 
-                if (player.getAsset().y > currentEnemy.getAsset().y)
+                if (player->getAsset().y > currentEnemy.getAsset().y)
                     currentEnemy.setY(max((currentEnemy.getAsset().y - 50), 0));
                 
-                else if (player.getAsset().y < currentEnemy.getAsset().y)
+                else if (player->getAsset().y < currentEnemy.getAsset().y)
                     currentEnemy.setY(max((currentEnemy.getAsset().y + 50), 0));
 
                 currentEnemy.setState(EnemyState::Attacked);
@@ -341,14 +333,14 @@ void Game::update()
         }   
     }
     for (auto& currentEnemy : enemyList)
-        currentEnemy.updateEnemyAI(player, ENEMY_RANGE, ANIMATION_SPEED);
+        currentEnemy.updateEnemyAI(*player, ENEMY_RANGE, ANIMATION_SPEED);
 
     // arena visibility
     for (auto& entry : arenaList)
     {
         Arena& currentArena = entry.second;
 
-        if (player.isNearby(player.getAsset(), currentArena.getAsset(), SIGHT_RANGE))
+        if (player->isNearby(player->getAsset(), currentArena.getAsset(), SIGHT_RANGE))
         {
             currentArena.setVisible(true);
 
@@ -362,12 +354,12 @@ void Game::update()
     {
         Arena& currentArena = entry.second;
 
-        if (player.isNearby(player.getAsset(), currentArena.getAsset(), INTERACTION_RANGE_ARENA))
-            player.setNearArena(true);
+        if (player->isNearby(player->getAsset(), currentArena.getAsset(), INTERACTION_RANGE_ARENA))
+            player->setNearArena(true);
     }
 
-    if (player.getState() == PlayerState::Idle)
-        player.updatePlayerAnimation(ANIMATION_SPEED);
+    if (player->getState() == PlayerState::Idle)
+        player->updatePlayerAnimation(ANIMATION_SPEED);
 
 }
 
@@ -376,65 +368,71 @@ void Game::update()
 */
 void Game::render()
 {
-    window.clear();
+    Window::clear();
 
     map.drawMap();
 
     if (arenaList.empty())
-        Window::draw(ladderTexture, ladder.getAsset());
-
+        ladder->render();
+  
     for (auto& currentArena : arenaList)
-        if (currentArena.second.getVisible() || currentArena.second.isForcedVisible())
-            Window::draw(arenaTexture, currentArena.second.getAsset());
+        arena.render(currentArena.second);
 
-    if (spear != nullptr)
-        Window::draw(spearTexture, spear->getAsset());
-
-    if (player.getAttack() <= 0)
-        window.drawAnimation(window.getRenderer(), player.getSrcRect(), player.getAsset(), playerNoSpearTexture, player.getFlip());
-    else
-        window.drawAnimation(window.getRenderer(), player.getSrcRect(), player.getAsset(), playerSpearTexture, player.getFlip());
+    spear->render(spear);
+    player->render();
 
     for (auto& currentEnemy : enemyList)
-        window.drawAnimation(window.getRenderer(),currentEnemy.getSrcRect(), currentEnemy.getAsset(), enemyTexture, currentEnemy.getFlip());
+        enemy.render(currentEnemy);
 
+    renderUI();
 
-    Window::createText(("Attack: " + to_string(player.getAttack())).c_str(), GameSettings::WIDTH, GameSettings::HEIGHT - 35);
+    if (!Data::isPlayerAlive)
+        renderGameOver();
+
+    Window::present();
+}
+
+/**
+ * @brief Renders UI
+*/
+void Game::renderUI()
+{
+    Window::createText(("Attack: " + to_string(player->getAttack())).c_str(), GameSettings::WIDTH, GameSettings::HEIGHT - 35);
 
     if (arenaList.size() < level.getArenaCounter())
         Window::createText(("Remaining arenas: " + to_string(arenaList.size())).c_str(), GameSettings::WIDTH, 50);
 
-    if (player.isNearArena())
-        Window::createText("Save bull [E]", (GameSettings::WIDTH / 2) + 180, GameSettings::HEIGHT - 50);
+    if (player->isNearArena())
+        Window::createText("Save bull [E]", (GameSettings::WIDTH / 2) + 160, GameSettings::HEIGHT - 35);
 
-    if (player.isNearLadder())
-        Window::createText(("Next level [F]"), (GameSettings::WIDTH / 2) + 200, GameSettings::HEIGHT - 50);
+    if (player->isNearLadder())
+        Window::createText(("Next level [F]"), (GameSettings::WIDTH / 2) + 180, GameSettings::HEIGHT - 35);
 
     Window::createText(("Level: " + to_string(level.getLevel())).c_str(), GameSettings::WIDTH / 2 + 100, 0);
     Window::createText(("Points: " + to_string(points)).c_str(), GameSettings::WIDTH, 0);
 
-    Window::drawPlayerHealth(player.getHealth(), hearts_1Texture, hearts_2Texture, hearts_3Texture);
-    // last renders overlay above renders
+    Window::drawPlayerHealth(player->getHealth(), hearts_1Texture, hearts_2Texture, hearts_3Texture);
+}
 
-    // game over screen
-    if (!(Data::isPlayerAlive))
-    {
-        replayFile.close();
+/**
+ * @brief Renders game over screen
+*/
+void Game::renderGameOver()
+{
+    replayFile.close();
 
-        SDL_RenderClear(window.getRenderer());     
-        SDL_SetRenderDrawColor(window.getRenderer(), 0, 0, 0, 0);
+    SDL_RenderClear(window.getRenderer());     
+    SDL_SetRenderDrawColor(window.getRenderer(), 0, 0, 0, 0);
 
-        Window::createText("Game over", GameSettings::WIDTH / 2, GameSettings::HEIGHT / 2);
-        Window::createText("Press [R] to restart", GameSettings::WIDTH / 2, GameSettings::HEIGHT / 2 + 200);
+    Window::createText("Game over", GameSettings::WIDTH / 2, GameSettings::HEIGHT / 2);
+    Window::createText("Press [R] to restart", GameSettings::WIDTH / 2, GameSettings::HEIGHT / 2 + 200);
 
-        window.present();
+    Window::present();
 
-        updateHighscores();
-        if (points < getLowestScore() || points == 0)
-            saveReplay();
+    updateHighscores();
+    if (points < getLowestScore() || points == 0)
+        saveReplay();
 
-    }
-    window.present();  
 }
 
 /**
@@ -466,10 +464,8 @@ void Game::restart()
         for (int j = 0; j < GameSettings::HEIGHT / ENEMY_HEIGHT; j++)
             grid.insert({(make_pair(i,j)), false});
 
-    player.setX(max((rand() % (GameSettings::WIDTH - PLAYER_WIDTH)), 0));
-    player.setY(max((rand() % (GameSettings::HEIGHT - PLAYER_HEIGHT)), 0));
-    player.setHealth(3);
-    player.setAttack(0);
+    player->reset(3, {max((rand() % (GameSettings::WIDTH - PLAYER_WIDTH)), 0), 
+                      max((rand() % (GameSettings::HEIGHT - PLAYER_HEIGHT)), 0), PLAYER_WIDTH, PLAYER_HEIGHT});
 
     level.setArenaCounter(2 + rand() % 2);
     level.resetLevel();
@@ -479,14 +475,14 @@ void Game::restart()
 
     level.setEnemyCounter(1);
     enemyList.clear();
-    Enemy::generateEnemyPositions(grid, player, enemyList, 1);
+    Enemy::generateEnemyPositions(grid, *player, enemyList, 1);
 
-    ladder.setX(max((rand() % GameSettings::WIDTH - LADDER_WIDTH), 0));
-    ladder.setY(max((rand() % GameSettings::HEIGHT - LADDER_HEIGHT), 0));
+    ladder->setX(max((rand() % GameSettings::WIDTH - LADDER_WIDTH), 0));
+    ladder->setY(max((rand() % GameSettings::HEIGHT - LADDER_HEIGHT), 0));
 
     points = 0;
 
-    player.setNearLadder(false);
+    player->setNearLadder(false);
 }
 
 /**
@@ -567,8 +563,8 @@ void Game::continueGame()
             else if (key == "Player:")
             {
                 iss >> value1 >> value2;
-                player.setX(value1);
-                player.setY(value2);
+                player->setX(value1);
+                player->setY(value2);
             }
             else if (key == "Arena:")
             {
@@ -617,7 +613,7 @@ void Game::continueGame()
             else if (key == "Attack:")
             {
                 iss >> value1;
-                player.setAttack(value1);
+                player->setAttack(value1);
             }
         }
     }
@@ -632,7 +628,7 @@ void Game::save()
     saveFile.open("files/saveFile.txt");
 
     saveFile << "Name: " << Data::playerName << "\n"; 
-    saveFile << "Player: " << player.getAsset().x << "\t" << player.getAsset().y << "\n";
+    saveFile << "Player: " << player->getAsset().x << "\t" << player->getAsset().y << "\n";
 
     for (auto entry : arenaList)
         saveFile << "Arena: " << entry.second.getAsset().x << "\t" << entry.second.getAsset().y << "\n";
@@ -641,9 +637,9 @@ void Game::save()
         saveFile << "Enemy: " << currentEnemy.getAsset().x << "\t" << currentEnemy.getAsset().y << "\n";
 
     saveFile << "Level: " << level.getLevel() << "\n";
-    saveFile << "Ladder: " << ladder.getAsset().x << "\t" << ladder.getAsset().y << "\n";
+    saveFile << "Ladder: " << ladder->getAsset().x << "\t" << ladder->getAsset().y << "\n";
     saveFile << "Points: " << points << "\n";
-    saveFile << "Attack: " << player.getAttack() << "\n";
+    saveFile << "Attack: " << player->getAttack() << "\n";
 
     saveFile.close();
 }
@@ -661,8 +657,8 @@ void Game::replay()
 
     while (readReplayFile.read((char*) &playerPos, sizeof(PlayerPosition)))
     {
-        player.setX(playerPos.x);
-        player.setY(playerPos.y);
+        player->setX(playerPos.x);
+        player->setY(playerPos.y);
 
         render();
         SDL_Delay(15); // very bad --> crashes game
@@ -685,8 +681,8 @@ void Game::saveReplayToList()
 {
     PlayerPosition playerPos;
     
-    playerPos.x = player.getAsset().x;
-    playerPos.y = player.getAsset().y;
+    playerPos.x = player->getAsset().x;
+    playerPos.y = player->getAsset().y;
 
     replayList.push_back(playerPos);
 }

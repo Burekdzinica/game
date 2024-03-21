@@ -29,23 +29,38 @@ class Ladder
 {
     private:
         SDL_Rect asset;
+        SDL_Texture* ladderTexture;
 
     public:
-        Ladder() = default;
+        Ladder();
         Ladder(const SDL_Rect& asset);
+        ~Ladder();
         SDL_Rect getAsset();
         void setX(int x);
         void setY(int y);
+        void render();
 
 };
 
+// Ladder::Ladder()
+// {
+//     this->asset = asset;
+//     this->ladderTexture = Window::loadTexture("assets/ladder.png");
+// }
+
 /**
- * @brief Contrustor for Ladder
+ * @brief Constructor for Ladder
  * @param asset The ladder asset
 */
 Ladder::Ladder(const SDL_Rect& asset)
 {
     this->asset = asset;
+    this->ladderTexture = Window::loadTexture("assets/ladder.png");
+}
+
+Ladder::~Ladder()
+{
+    SDL_DestroyTexture(ladderTexture);
 }
 
 /**
@@ -71,6 +86,11 @@ void Ladder::setX(int x)
 void Ladder::setY(int y)
 {
     this->asset.y  = y;
+}
+
+void Ladder::render()
+{
+    Window::draw(this->ladderTexture, this->asset);  
 }
 
 #endif

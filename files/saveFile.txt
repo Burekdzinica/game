@@ -1,9 +1,7 @@
-Name: qe
-Player: 285	272
-Arena: 372	0
-Arena: 1302	310
-Enemy: 1100	132
+Name: w
+Player: 872	185
+Enemy: 0	625
 Level: 1
-Ladder: 1386	433
-Points: 0
+Ladder: 1098	33
+Points: 300
 Attack: 0

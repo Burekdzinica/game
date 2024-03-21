@@ -40,7 +40,7 @@ void PauseScreen::handleMouseClick(Game* game)
         Game::setGameState(GameState::Playing);
 
     else if (mouseX >= exitButton.x && mouseX <= exitButton.x + exitButton.w && mouseY >= exitButton.y && mouseY <= exitButton.y + exitButton.h)
-        Game::setGameState(GameState::ResetGame);
+        Game::setGameState(GameState::StartScreen);
         
     else if (mouseX >= saveQuitButton.x && mouseX <= saveQuitButton.x + saveQuitButton.w && mouseY >= saveQuitButton.y && mouseY <= saveQuitButton.y + saveQuitButton.h)
     {
