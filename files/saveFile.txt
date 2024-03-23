@@ -1,7 +1,1 @@
 Name: w
-Player: 872	185
-Enemy: 0	625
-Level: 1
-Ladder: 1098	33
-Points: 300
-Attack: 0

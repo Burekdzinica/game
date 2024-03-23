@@ -83,13 +83,17 @@ Enemy::Enemy()
 Enemy::Enemy(const SDL_Rect& asset)
 {
     this->asset = asset;
+    
     this->state = EnemyState::Attacked;
     this->attackStartTime = chrono::steady_clock::now();
+
     this->xMovement = rand() % 2; // 1
     this->yMovement = (xMovement == 1) ? 0 : 1;
     this->direction = 1;
+
     this->srcRect = {0 , 0, 73, 126};
     this->flip = SDL_FLIP_NONE;
+
     this->enemyTexture = Window::loadTexture("assets/enemy_reloaded.png");
 
     setBounds();

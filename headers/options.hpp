@@ -173,7 +173,7 @@ void Options::drawResolutions()
 {
     Window::clear();
 
-    SDL_SetRenderDrawColor(Data::renderer, 0, 0, 0, 255);
+    Window::createBlackScreen();
 
     createText(Data::renderer, "Exit", exitButton);
     createText(Data::renderer, "Fullscreen", fullscreenButton);
@@ -194,7 +194,7 @@ void Options::drawOptions()
     createText(Data::renderer, "Resolution", resolutionButton);
     createText(Data::renderer, "Exit", exitButton);
     
-    SDL_SetRenderDrawColor(Data::renderer, 0, 0, 0, 255);
+    Window::createBlackScreen();
     
     Window::present();
 }

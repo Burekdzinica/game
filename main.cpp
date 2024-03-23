@@ -48,6 +48,7 @@ int main(int argc, char *argv[])
 
             case GameState::Replay:
                 game.replay();
+                
                 startscreen.setUiCreated();
                 Game::setGameState(GameState::StartScreen);
 

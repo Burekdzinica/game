@@ -30,8 +30,8 @@ const int LADDER_WIDTH = 74, LADDER_HEIGHT = 74;
 
 const int ANIMATION_SPEED = 200;
 
-// const int SIGHT_RANGE = 200;
-const int SIGHT_RANGE = 2000;
+const int SIGHT_RANGE = 200;
+// const int SIGHT_RANGE = 2000;
 const int ENEMY_RANGE = 450;
 const int INTERACTION_RANGE_ARENA = SIGHT_RANGE + ARENA_WIDTH - 150;
 const int INTERACTION_RANGE_LADDER = SIGHT_RANGE + LADDER_WIDTH - 50;
@@ -61,6 +61,8 @@ class Game
         ofstream highscoresData;
         ofstream saveFile;
         ofstream replayFile;
+
+        chrono::steady_clock::time_point startTime;
 
         SDL_Texture *hearts_1Texture;
         SDL_Texture *hearts_2Texture;
@@ -106,12 +108,20 @@ class Game
 
         void save();
         void replay();
+
+        // for delay 
+        long long getCurrentTime();
+        void delay(int milliseconds);
+        void startTimer();
+        long long getElapsedTime();
+
         void saveReplayToList();
         void saveReplay();
 
         int getLowestScore();
         static void setGameState(GameState newGameState);
         static GameState getGameState();
+
 };
 
 // Default gameState
@@ -415,13 +425,16 @@ void Game::renderUI()
 }
 
 /**
- * @brief Renders game over screen
+ * @brief Renders game over screen.
+ * Saves the score and replay.
+ * 
 */
 void Game::renderGameOver()
 {
     replayFile.close();
 
-    SDL_RenderClear(window.getRenderer());     
+    Window::clear();    
+
     SDL_SetRenderDrawColor(window.getRenderer(), 0, 0, 0, 0);
 
     Window::createText("Game over", GameSettings::WIDTH / 2, GameSettings::HEIGHT / 2);
@@ -430,6 +443,7 @@ void Game::renderGameOver()
     Window::present();
 
     updateHighscores();
+
     if (points < getLowestScore() || points == 0)
         saveReplay();
 
@@ -493,7 +507,7 @@ void Game::updateHighscores()
 {
     vector<pair<string,int>> highscores;
     
-    ifstream highscoresInput("highscores.txt");
+    ifstream highscoresInput("files/highscores.txt");
     string line;
 
     while(getline(highscoresInput, line))
@@ -647,6 +661,54 @@ void Game::save()
 /**
  * @brief Plays replay.
  * Lowest score player can replay, not the most recent one (except if he's worst).
+ * Chrono delay because SDL delays whole program.
+*/
+// void Game::replay()
+// {
+//     PlayerPosition playerPos;
+
+//     ifstream readReplayFile;
+//     readReplayFile.open("files/replayFile.bin", ios::binary);
+
+//     startTimer();
+
+//     const long long frameDuration = 15;
+
+//     long long elapsedTime;
+
+//     while (readReplayFile.read((char*) &playerPos, sizeof(PlayerPosition)))
+//     {
+//         player->setX(playerPos.x);
+//         player->setY(playerPos.y);
+
+//         render();
+
+//         elapsedTime = getElapsedTime();
+//         if (elapsedTime < frameDuration)
+//             delay(frameDuration - elapsedTime);
+
+//         startTimer();
+//     }
+//     readReplayFile.close();
+
+//     Window::clear();
+
+//     Window::createBlackScreen();
+//     Window::createText("Replay over", GameSettings::WIDTH / 2 + 150, GameSettings::HEIGHT / 2);
+
+//     Window::present();
+
+//     delay(1250);  // if more then crash
+// }
+
+
+// Top with my delay bottom with SDL
+// If a lot of replay it crashes
+
+/**
+ * @brief Plays replay.
+ * Lowest score player can replay, not the most recent one (except if he's worst).
+ * Chrono delay because SDL delays whole program.
 */
 void Game::replay()
 {
@@ -661,17 +723,60 @@ void Game::replay()
         player->setY(playerPos.y);
 
         render();
-        SDL_Delay(15); // very bad --> crashes game
+
+        SDL_Delay(15);
     }
     readReplayFile.close();
 
-    SDL_RenderClear(Data::renderer);
-    SDL_SetRenderDrawColor(Data::renderer, 0, 0, 0, 255);
-    Window::createText("Replay over", GameSettings::WIDTH / 2 + 200, GameSettings::HEIGHT / 2);
-    SDL_RenderPresent(Data::renderer);
+    Window::clear();
 
-    SDL_Delay(3000);
+    Window::createBlackScreen();
+    Window::createText("Replay over", GameSettings::WIDTH / 2 + 150, GameSettings::HEIGHT / 2);
 
+    Window::present();
+
+    SDL_Delay(1250);
+}
+
+/**
+ * @brief Gets current time
+*/
+long long Game::getCurrentTime() 
+{
+    return chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count();
+}
+
+/**
+ * @brief Delays 
+ * @param milliseconds The ms time
+*/
+void Game::delay(int milliseconds) 
+{
+    long long start = getCurrentTime();
+
+    while (getCurrentTime() - start < milliseconds)
+    {
+        // just waits
+    }
+}
+
+/**
+ * @brief Starts timer
+*/
+void Game::startTimer()
+{
+    startTime = chrono::steady_clock::now();
+}
+
+/**
+ * @brief Gets elapsed time
+ * @return Elapsed time
+*/
+long long Game::getElapsedTime() 
+{
+    auto endTime = chrono::steady_clock::now();
+
+    return chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
 }
 
 /**

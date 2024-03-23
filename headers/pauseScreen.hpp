@@ -56,12 +56,10 @@ void PauseScreen::handleMouseClick(Game* game)
 void PauseScreen::run(Game* game)
 {
     Window::clear();
-    SDL_SetRenderDrawColor(Data::renderer, 0, 0, 0, 255);
+    
+    Window::createBlackScreen();
 
     createText(Data::renderer, "Continue", continueButton);
-    // Window::createText("Continue", continueButton.x + continueButton.w, continueButton.y + continueButton.h - 75);
-    // Window::createText("Main Menu", exitButton.x + exitButton.w + 15, exitButton.y + exitButton.h - 75);
-    // Window::createText("Save & Quit", saveQuitButton.x + saveQuitButton.w + 50, saveQuitButton.y + saveQuitButton.h - 75);
     createText(Data::renderer, "Main Menu", exitButton);
     createText(Data::renderer, "Save & Quit", saveQuitButton);
 

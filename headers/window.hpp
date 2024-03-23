@@ -22,16 +22,24 @@ class Window
         Window();
         Window(const string& title, int WIDTH, int HEIGHT, const char* fontName, int fontSize);
         ~Window(); //destructor
+
         void init();
+
         static void createText(const char* textString, int x, int y);
+
         static void clear();
         static void present();
+
         SDL_Renderer* getRenderer();
+
         static void draw(SDL_Texture* tex, SDL_Rect src, SDL_Rect dest);
         static void draw(SDL_Texture* tex, SDL_Rect dest); // if no srcRect
         static void drawAnimation(SDL_Rect srcRect, SDL_Rect destRect, SDL_Texture* imgTexture, SDL_RendererFlip flip);
         static void drawPlayerHealth(int playerHealth, SDL_Texture* hearts_1, SDL_Texture* hearts_2, SDL_Texture* hearts_3);
+
         static SDL_Texture* loadTexture(const char* texture);
+
+        static void createBlackScreen();
 };
 
 SDL_Rect Window::healthRect = {1, 1, 279, 66};
@@ -237,6 +245,14 @@ SDL_Texture* Window::loadTexture(const char* texture)
     SDL_FreeSurface(tmpSurface);
 
     return tex;
+}
+
+/**
+ * @brief Creates black screen
+*/
+void Window::createBlackScreen()
+{
+    SDL_SetRenderDrawColor(Data::renderer, 0, 0, 0, 255);
 }
 
 

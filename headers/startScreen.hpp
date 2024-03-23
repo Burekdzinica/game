@@ -187,7 +187,7 @@ void StartScreen::createPlayerName()
     Data::playerName = playerName;
 
     ofstream saveFile;
-    saveFile.open("saveFile.txt");
+    saveFile.open("files/saveFile.txt");
     saveFile << "Name: " <<  playerName << "\n";
     saveFile.close();
 }
@@ -278,7 +278,7 @@ void StartScreen::runFromSave()
     createText(Data::renderer, "Continue", continueButton);
     createText(Data::renderer, "New Game", newGameButton);
 
-    ifstream file("saveFile.txt");
+    ifstream file("files/saveFile.txt");
     if (file.is_open())
     {
         getline(file, Data::playerName);
