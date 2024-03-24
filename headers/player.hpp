@@ -291,7 +291,6 @@ void Player::reset(int health, const SDL_Rect& newAsset)
     this->srcRect = {0, 0, 120, 116};
     this->isMoving = false;
     this->asset = newAsset;
-    this->attack = 0;
 }
 
 /**

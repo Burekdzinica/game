@@ -77,15 +77,20 @@ class Game
         Player* player;
         Enemy enemy;
         Level level;
-        Ladder* ladder;
+        Ladder* ladder = nullptr;
 
         vector <Enemy> enemyList;
         vector<PlayerPosition> replayList;
         Grid_t grid;
         unordered_map <int, Arena> arenaList;
+
         int points;
+        int previousPoints;
         int isCloseTo;
+
         bool open;
+        bool spearDeleted;
+        bool isLadderSpawned;
 
     public:
         Game();
@@ -94,9 +99,21 @@ class Game
         void loadTextures();
 
         void setup();
+        
         void eventHandler();
         void update();
         void render();
+
+        void destroyArena();
+        void climbLadder();
+
+        void deleteSpearIfSave();
+        void enemyCollision();
+        void arenaVisibility();
+        void spearPickup();
+        void spawnNewSpear();
+        void setNearby();
+        void spawnLadder();
 
         void renderUI();
         void renderGameOver();
@@ -119,6 +136,7 @@ class Game
         void saveReplay();
 
         int getLowestScore();
+        
         static void setGameState(GameState newGameState);
         static GameState getGameState();
 
@@ -130,12 +148,16 @@ GameState Game::gameState = GameState::ContinueScreen;
 /**
  * @brief Default contructor for Game, calling Map, Ladder, Player constructor
 */
-Game::Game() : map(), ladder(new Ladder({max((rand() % GameSettings::WIDTH - LADDER_WIDTH), 0), max((rand() % GameSettings::HEIGHT - LADDER_HEIGHT), 0), LADDER_WIDTH, LADDER_HEIGHT})), 
+Game::Game() : map(), /*ladder(new Ladder({max((rand() % GameSettings::WIDTH - LADDER_WIDTH), 0), max((rand() % GameSettings::HEIGHT - LADDER_HEIGHT), 0), LADDER_WIDTH, LADDER_HEIGHT})),*/ 
                       player(new Player(3, {max((rand() % GameSettings::WIDTH - PLAYER_WIDTH), 0), max((rand() % GameSettings::HEIGHT - PLAYER_HEIGHT), 0), PLAYER_WIDTH, PLAYER_HEIGHT}))
 {
     this->points = 0;
     this-> isCloseTo = -1;
+    this->previousPoints = 0;
+
     this->open = true;
+    this->spearDeleted = false;
+    this->isLadderSpawned = false;
 }
 
 /**
@@ -202,52 +224,26 @@ void Game::eventHandler()
         }
         if (Data::isPlayerAlive)
         {
-            if (event.type == SDL_KEYUP)
-            {
-                player->setFlip(SDL_FLIP_NONE);
-                player->setState(PlayerState::Idle);
-            }   
             if (event.key.keysym.sym == SDLK_ESCAPE)
             {
                 Game::setGameState(GameState::PauseScreen);
                 replayFile.close();
             }
+            if (event.type == SDL_KEYUP)
+            {
+                player->setFlip(SDL_FLIP_NONE);
+                player->setState(PlayerState::Idle);
+            }   
 
-            // deletes arena
             if (event.type == SDL_KEYDOWN)
             {
                 if (event.key.keysym.sym == SDLK_e && isCloseTo >= 0 && player->isNearArena())
-                {
-                    arenaList.erase(isCloseTo);
-                    
-                    // 20% chance to see other arena on arena pickup
-                    if (!arenaList.empty() && (rand() % 5 + 1) == 1)
-                    {
-                        auto firstArena = arenaList.begin();
+                    destroyArena();
 
-                        firstArena->second.setVisible(true);              
-                        firstArena->second.setForcedVisibility(true);              
-                    }
-
-                    points += 100;
-                    
-                    isCloseTo = -1;
-                } 
-                //spawns door for next lvl 
-                if (arenaList.empty())
+                if (ladder != nullptr && player->isNearLadder())
                 {
-                    if (player->isNearby(player->getAsset(), ladder->getAsset(), INTERACTION_RANGE_LADDER))
-                    {
-                        player->setNearLadder(true);
-                        if (event.type == SDL_KEYDOWN)
-                        {
-                            if (event.key.keysym.sym == SDLK_f)
-                            {
-                                level.increaseLevel();
-                                level.nextLevel(*player, enemyList, arenaList, *ladder, isCloseTo, player->getHealth());
-                            }
-                        }
-                    }
+                    if (event.key.keysym.sym == SDLK_f)
+                        climbLadder();     
                 }
             }
         }
@@ -267,39 +263,117 @@ void Game::update()
 {
     saveReplayToList();
 
-    // if you continue from save this makes it so it doesn't spawn spear --> not good solution
-    static bool preventSpear = false;
-    if (player->getAttack() > 0 && preventSpear == false)
+    if (!spearDeleted)
     {
-        delete spear;
-        spear = nullptr;
+        deleteSpearIfSave();
+        spearDeleted = true;
     }
-    
-    if (preventSpear == false)
-        preventSpear = true;
 
-    player->setNearArena(false);
-    if (!(player->isNearby(player->getAsset(), ladder->getAsset(), INTERACTION_RANGE_LADDER)) && arenaList.empty())
-        player->setNearLadder(false);
+    if (arenaList.empty() && !isLadderSpawned)
+        spawnLadder();
 
-    static int previousPoints = 0;
-    if (points >= previousPoints + 1000)
-    {
-        spear = new Spear;
-        spear->spawnSpear(grid);
-
-        previousPoints += 1000;
-    }
+    setNearby();
+ 
+    if (points >= this->previousPoints + 1000)
+        spawnNewSpear();
 
     if (spear->isPlayerTouching(player->getAsset()) && !spear->isSpearTouched())
-    {
-        player->increaseAttack();
-        spear->setSpearTouched();
+        spearPickup();
+ 
+    enemyCollision();
 
+    // updates enemy AI
+    for (auto& currentEnemy : enemyList)
+        currentEnemy.updateEnemyAI(*player, ENEMY_RANGE, ANIMATION_SPEED);
+
+    arenaVisibility();
+
+    // changes player animation
+    if (player->getState() == PlayerState::Idle)
+        player->updatePlayerAnimation(ANIMATION_SPEED);
+
+}
+
+/**
+ * @brief Renders the changes
+*/
+void Game::render()
+{
+    Window::clear();
+
+    map.drawMap();
+
+    ladder->render(ladder);
+  
+    for (auto& currentArena : arenaList)
+        arena.render(currentArena.second);
+
+    spear->render(spear);
+    player->render();
+
+    for (auto& currentEnemy : enemyList)
+        enemy.render(currentEnemy);
+
+    renderUI();
+
+    if (!Data::isPlayerAlive)
+        renderGameOver();
+
+    Window::present();
+}
+
+/**
+ * @brief Destroy arena
+*/
+void Game::destroyArena()
+{
+    arenaList.erase(isCloseTo);
+
+    // 20% chance to see other arena on arena pickup
+    if (!arenaList.empty() && (rand() % 5 + 1) == 1)
+    {
+        auto firstArena = arenaList.begin();
+
+        firstArena->second.setVisible(true);              
+        firstArena->second.setForcedVisibility(true);              
+    }
+
+    points += 100;
+
+    isCloseTo = -1;
+}
+
+/**
+ * @brief Climbs ladder
+*/
+void Game::climbLadder()
+{
+    level.increaseLevel();
+    level.nextLevel(*player, enemyList, arenaList, *ladder, isCloseTo, player->getHealth());
+
+    this->isLadderSpawned = false;
+
+    delete ladder;
+    ladder = nullptr;
+}
+
+/**
+ * @brief Deletes spear pickup if you continue from save
+*/
+void Game::deleteSpearIfSave()
+{
+    if (player->getAttack() > 0)
+    {
         delete spear;
         spear = nullptr;
     }
- 
+}
+
+/**
+ * @brief Logic when enemy touches player
+*/
+void Game::enemyCollision()
+{
     if (player->getAttack() > 0)
     {
         for (auto it = enemyList.begin(); it != enemyList.end();)
@@ -342,9 +416,13 @@ void Game::update()
             }
         }   
     }
-    for (auto& currentEnemy : enemyList)
-        currentEnemy.updateEnemyAI(*player, ENEMY_RANGE, ANIMATION_SPEED);
+}
 
+/**
+ * @brief If player near arena becomes visible
+*/
+void Game::arenaVisibility()
+{
     // arena visibility
     for (auto& entry : arenaList)
     {
@@ -359,6 +437,45 @@ void Game::update()
         else
             currentArena.setVisible(false);
     }
+}
+
+/**
+ * @brief Logic for spear pickup
+*/
+void Game::spearPickup()
+{
+    player->increaseAttack();
+    spear->setSpearTouched();
+
+    delete spear;
+    spear = nullptr;
+}
+
+/**
+ * @brief Spawns new spear
+*/
+void Game::spawnNewSpear()
+{
+    spear = new Spear;
+    spear->spawnSpear(grid);
+
+    this->previousPoints += 1000; 
+}
+
+/**
+ * @brief Sets arena/ladder isNear
+*/
+void Game::setNearby()
+{
+    // sets arena/ladder not near
+    player->setNearArena(false);
+    if (ladder != nullptr)
+    {
+        if (!(player->isNearby(player->getAsset(), ladder->getAsset(), INTERACTION_RANGE_LADDER)))
+            player->setNearLadder(false);
+        else if (player->isNearby(player->getAsset(), ladder->getAsset(), INTERACTION_RANGE_LADDER))
+                player->setNearLadder(true);
+    }
 
     for (auto& entry : arenaList)
     {
@@ -367,39 +484,16 @@ void Game::update()
         if (player->isNearby(player->getAsset(), currentArena.getAsset(), INTERACTION_RANGE_ARENA))
             player->setNearArena(true);
     }
-
-    if (player->getState() == PlayerState::Idle)
-        player->updatePlayerAnimation(ANIMATION_SPEED);
-
 }
 
 /**
- * @brief Renders the changes
+ * @brief Spawns ladder
 */
-void Game::render()
+void Game::spawnLadder()
 {
-    Window::clear();
+    ladder = new Ladder ({max((rand() % GameSettings::WIDTH - LADDER_WIDTH), 0), max((rand() % GameSettings::HEIGHT - LADDER_HEIGHT), 0), LADDER_WIDTH, LADDER_HEIGHT});
 
-    map.drawMap();
-
-    if (arenaList.empty())
-        ladder->render();
-  
-    for (auto& currentArena : arenaList)
-        arena.render(currentArena.second);
-
-    spear->render(spear);
-    player->render();
-
-    for (auto& currentEnemy : enemyList)
-        enemy.render(currentEnemy);
-
-    renderUI();
-
-    if (!Data::isPlayerAlive)
-        renderGameOver();
-
-    Window::present();
+    this->isLadderSpawned = true;
 }
 
 /**
@@ -490,9 +584,6 @@ void Game::restart()
     level.setEnemyCounter(1);
     enemyList.clear();
     Enemy::generateEnemyPositions(grid, *player, enemyList, 1);
-
-    ladder->setX(max((rand() % GameSettings::WIDTH - LADDER_WIDTH), 0));
-    ladder->setY(max((rand() % GameSettings::HEIGHT - LADDER_HEIGHT), 0));
 
     points = 0;
 
@@ -702,7 +793,7 @@ void Game::save()
 // }
 
 
-// Top with my delay bottom with SDL
+// Top with my delay --  bottom with SDL
 // If a lot of replay it crashes
 
 /**

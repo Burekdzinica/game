@@ -38,7 +38,7 @@ class Ladder
         SDL_Rect getAsset();
         void setX(int x);
         void setY(int y);
-        void render();
+        void render(Ladder* ladder);
 
 };
 
@@ -58,6 +58,9 @@ Ladder::Ladder(const SDL_Rect& asset)
     this->ladderTexture = Window::loadTexture("assets/ladder.png");
 }
 
+/**
+ * @brief Destructor for Ladder
+*/
 Ladder::~Ladder()
 {
     SDL_DestroyTexture(ladderTexture);
@@ -88,9 +91,10 @@ void Ladder::setY(int y)
     this->asset.y  = y;
 }
 
-void Ladder::render()
+void Ladder::render(Ladder* ladder)
 {
-    Window::draw(this->ladderTexture, this->asset);  
+    if (ladder != nullptr)
+        Window::draw(this->ladderTexture, this->asset);  
 }
 
 #endif
