@@ -6,7 +6,7 @@
 
 using namespace std;
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     const int FPS = 60;
     int frameDelay = 1000 / FPS;
@@ -57,6 +57,11 @@ int main(int argc, char *argv[])
             case GameState::ResetGame:
                 game.restart();
                 Game::setGameState(GameState::Playing);
+
+                break;
+
+            case GameState::GameOver:
+                game.gameOver();
 
                 break;
 

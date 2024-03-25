@@ -6,6 +6,7 @@
 #include "gameSettings.hpp"
 #include "entity.hpp"
 #include "window.hpp"
+#include "audioManager.hpp"
 
 extern const int ANIMATION_SPEED;
 
@@ -19,13 +20,19 @@ class Player : public EntityAnimation
 {
     private:
         int health;
+
         PlayerState state;
+
         bool isMoving;
         bool nearLadder;
         bool nearArena;
+
         int attack;
+
         SDL_Texture* playerNoSpearTexture;
         SDL_Texture* playerSpearTexture;
+
+        AudioManager audioManager;
 
     public:
         Player() = default;
@@ -45,15 +52,20 @@ class Player : public EntityAnimation
 
         void updatePlayerAnimation(int speed);
         PlayerState getState();
+
         void setNearArena(bool newNearArena);
         void setNearLadder(bool newNearLadder);
         void setState(const PlayerState& newState);
+
         void reset(int health, const SDL_Rect& newAsset);
         void setAttack(int newAttack);
+
         void increaseAttack();
         void decreaseAttack();
         int getAttack();
+
         bool isPlayerTouching (const SDL_Rect& other);
+        
         void render();
 };
 
@@ -189,6 +201,9 @@ void Player::move(int x, int y)
     
     if ((this->asset.x + x) >= 0 && (this->asset.x + x) <= (GameSettings::WIDTH - asset.w) && (this->asset.y + y) >= 0 && (this->asset.y + y) <= (GameSettings::HEIGHT - asset.h))
     {
+        // if (x != 0 || y != 0)
+        //     audioManager.playSound(5);
+            
         this->asset.x += x;
         this->asset.y += y;
     }

@@ -2,6 +2,7 @@
 #define WINDOW_HPP
 
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_mixer.h>
 
 using namespace std;
 
@@ -68,7 +69,7 @@ Window::Window()
     Data::renderer = renderer;
     Data::font = this->font;
 
-    init();
+    // init();
 }
 
 /**
@@ -90,6 +91,9 @@ Window::Window(const string& title, int WIDTH, int HEIGHT, const char* fontName,
     if (!font)
         cout << "Font initilization failed " << TTF_GetError() << "\n"; 
 
+    Data::window = window;
+    Data::renderer = renderer;
+    Data::font = this->font;
 }
 
 /**
@@ -117,6 +121,9 @@ void Window::init()
 
     if(IMG_Init(IMG_INIT_PNG) == 0)
         cout << "IMG initialization failed: " << IMG_GetError() << "\n";
+    
+    if(Mix_Init(0) < 0)
+        cout << "Mixer initiliazation failed: " << Mix_GetError() << "\n";
 }
 
 /** 

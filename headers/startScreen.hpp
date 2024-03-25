@@ -15,9 +15,13 @@ class StartScreen : public Menu
         bool uiCreated;
         bool exitedOptions;
         int count;
+
         Options options;
         Highscores highscores;
+        AudioManager audioManager;
+
         string playerName;
+
         SDL_Texture* imgTexture;
 
         SDL_Rect screenRect;
@@ -119,7 +123,10 @@ void StartScreen::handleMouseClick()
     if (Game::getGameState() == GameState::ContinueScreen)
     {
         if (mouseX >= continueButton.x && mouseX <= continueButton.x + continueButton.w && mouseY >= continueButton.y && mouseY <= continueButton.y + continueButton.h)
+        {
+            audioManager.playMusic(1);
             Game::setGameState(GameState::ContinueGame);
+        }
         
         else if (mouseX >= newGameButton.x && mouseX <= newGameButton.x + newGameButton.w && mouseY >= newGameButton.y && mouseY <= newGameButton.y + newGameButton.h)
             Game::setGameState(GameState::StartScreen);
@@ -127,7 +134,10 @@ void StartScreen::handleMouseClick()
     else if (Game::getGameState() == GameState::StartScreen)
     {
         if (mouseX >= playButton.x && mouseX <= playButton.x + playButton.w && mouseY >= playButton.y && mouseY <= playButton.y + playButton.h)
+        {
+            audioManager.playMusic(1);
             Game::setGameState(GameState::ResetGame);
+        }
    
         else if (mouseX >= highscoresButton.x && mouseX <= highscoresButton.x + highscoresButton.w && mouseY >= highscoresButton.y && mouseY <= highscoresButton.y + highscoresButton.h)
             highscores.open();

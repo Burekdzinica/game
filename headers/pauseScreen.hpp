@@ -10,6 +10,8 @@ class PauseScreen : public Menu
         SDL_Rect exitButton;
         SDL_Rect saveQuitButton;
 
+        AudioManager audioManager;
+
     public:
         PauseScreen();
         void handleMouseClick(Game* game); 
@@ -37,7 +39,10 @@ void PauseScreen::handleMouseClick(Game* game)
     SDL_GetMouseState(&mouseX, &mouseY);
 
     if (mouseX >= continueButton.x && mouseX <= continueButton.x + continueButton.w && mouseY >= continueButton.y && mouseY <= continueButton.y + continueButton.h)
+    {
+        audioManager.playMusic(1);
         Game::setGameState(GameState::Playing);
+    }
 
     else if (mouseX >= exitButton.x && mouseX <= exitButton.x + exitButton.w && mouseY >= exitButton.y && mouseY <= exitButton.y + exitButton.h)
         Game::setGameState(GameState::StartScreen);

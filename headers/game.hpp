@@ -10,6 +10,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_mixer.h>
 
 #include "player.hpp"
 #include "window.hpp"
@@ -20,6 +21,7 @@
 #include "enemy.hpp"
 #include "level.hpp"
 #include "spear.hpp"
+#include "audioManager.hpp"
 
 using namespace std;
 
@@ -53,6 +55,7 @@ enum class GameState
     Replay,
     StartScreen,
     PauseScreen,
+    GameOver,
 };
 
 class Game
@@ -71,6 +74,7 @@ class Game
         static GameState gameState;
 
         Window window;
+        AudioManager audioManager;
         Arena arena;
         Spear* spear;
         Map map;
@@ -91,6 +95,7 @@ class Game
         bool open;
         bool spearDeleted;
         bool isLadderSpawned;
+        bool gameEnded;
 
     public:
         Game();
@@ -116,8 +121,10 @@ class Game
         void spawnLadder();
 
         void renderUI();
+
+        void gameOver();
         void renderGameOver();
-        
+
         bool isOpen();
         void restart();
         void updateHighscores();
@@ -148,8 +155,7 @@ GameState Game::gameState = GameState::ContinueScreen;
 /**
  * @brief Default contructor for Game, calling Map, Ladder, Player constructor
 */
-Game::Game() : map(), /*ladder(new Ladder({max((rand() % GameSettings::WIDTH - LADDER_WIDTH), 0), max((rand() % GameSettings::HEIGHT - LADDER_HEIGHT), 0), LADDER_WIDTH, LADDER_HEIGHT})),*/ 
-                      player(new Player(3, {max((rand() % GameSettings::WIDTH - PLAYER_WIDTH), 0), max((rand() % GameSettings::HEIGHT - PLAYER_HEIGHT), 0), PLAYER_WIDTH, PLAYER_HEIGHT}))
+Game::Game() : map(), player(new Player(3, {max((rand() % GameSettings::WIDTH - PLAYER_WIDTH), 0), max((rand() % GameSettings::HEIGHT - PLAYER_HEIGHT), 0), PLAYER_WIDTH, PLAYER_HEIGHT}))
 {
     this->points = 0;
     this-> isCloseTo = -1;
@@ -158,6 +164,7 @@ Game::Game() : map(), /*ladder(new Ladder({max((rand() % GameSettings::WIDTH - L
     this->open = true;
     this->spearDeleted = false;
     this->isLadderSpawned = false;
+    this->gameEnded = false;
 }
 
 /**
@@ -207,6 +214,8 @@ void Game::setup()
 
     Arena::generateArenaPositions(level.getArenaCounter(), grid, arenaList);
     Enemy::generateEnemyPositions(grid, *player, enemyList, 1); 
+
+    audioManager.playMusic(3);
 }
 
 /**
@@ -226,6 +235,7 @@ void Game::eventHandler()
         {
             if (event.key.keysym.sym == SDLK_ESCAPE)
             {
+                audioManager.playMusic(2);
                 Game::setGameState(GameState::PauseScreen);
                 replayFile.close();
             }
@@ -246,11 +256,6 @@ void Game::eventHandler()
                         climbLadder();     
                 }
             }
-        }
-        else if (!Data::isPlayerAlive)
-        {
-            if (event.key.keysym.sym == SDLK_r)
-                restart();
         }
     }
     player->movePlayer();
@@ -292,6 +297,8 @@ void Game::update()
     if (player->getState() == PlayerState::Idle)
         player->updatePlayerAnimation(ANIMATION_SPEED);
 
+    if (!Data::isPlayerAlive)
+        Game::setGameState(GameState::GameOver);
 }
 
 /**
@@ -316,9 +323,6 @@ void Game::render()
 
     renderUI();
 
-    if (!Data::isPlayerAlive)
-        renderGameOver();
-
     Window::present();
 }
 
@@ -327,6 +331,8 @@ void Game::render()
 */
 void Game::destroyArena()
 {
+    audioManager.playSound(6);
+
     arenaList.erase(isCloseTo);
 
     // 20% chance to see other arena on arena pickup
@@ -348,6 +354,8 @@ void Game::destroyArena()
 */
 void Game::climbLadder()
 {
+    audioManager.playSound(9);
+
     level.increaseLevel();
     level.nextLevel(*player, enemyList, arenaList, *ladder, isCloseTo, player->getHealth());
 
@@ -380,6 +388,8 @@ void Game::enemyCollision()
         {
             if (player->isPlayerTouching(it->getAsset()))
             {
+                audioManager.playSound(3);
+
                 it = enemyList.erase(it);
                 player->decreaseAttack();
                 // level.decreaseEnemyCounter();
@@ -396,6 +406,8 @@ void Game::enemyCollision()
         {
             if (currentEnemy.isPlayerTouching(player->getAsset()))
             {
+                audioManager.playSound(2);
+
                 player->changeHealth(-1);
 
                 //moves enemy a bit / depends on pos
@@ -456,6 +468,8 @@ void Game::spearPickup()
 */
 void Game::spawnNewSpear()
 {
+    audioManager.playSound(8);
+
     spear = new Spear;
     spear->spawnSpear(grid);
 
@@ -491,6 +505,8 @@ void Game::setNearby()
 */
 void Game::spawnLadder()
 {
+    audioManager.playSound(4);
+
     ladder = new Ladder ({max((rand() % GameSettings::WIDTH - LADDER_WIDTH), 0), max((rand() % GameSettings::HEIGHT - LADDER_HEIGHT), 0), LADDER_WIDTH, LADDER_HEIGHT});
 
     this->isLadderSpawned = true;
@@ -501,7 +517,7 @@ void Game::spawnLadder()
 */
 void Game::renderUI()
 {
-    Window::createText(("Attack: " + to_string(player->getAttack())).c_str(), GameSettings::WIDTH, GameSettings::HEIGHT - 35);
+    Window::createText(("Attack: " + to_string(player->getAttack())).c_str(), GameSettings::WIDTH, GameSettings::HEIGHT - 30);
 
     if (arenaList.size() < level.getArenaCounter())
         Window::createText(("Remaining arenas: " + to_string(arenaList.size())).c_str(), GameSettings::WIDTH, 50);
@@ -519,6 +535,41 @@ void Game::renderUI()
 }
 
 /**
+ * @brief Plays game over screen
+*/
+void Game::gameOver()
+{
+    // renders only once
+    if (this->gameEnded == false)
+    {
+        renderGameOver();
+        this->gameEnded = true;
+    }
+
+    SDL_Event event;
+    if (SDL_PollEvent(&event))
+    {
+        if (event.type == SDL_QUIT)
+        {
+            this->open = false;
+            return;
+        }
+   
+        if (event.type == SDL_KEYDOWN)
+        {
+            if (event.key.keysym.sym == SDLK_r)
+            {
+                restart();
+                Game::setGameState(GameState::Playing);
+                this->gameEnded = false;
+
+                audioManager.playMusic(1);
+            }
+        }
+    }
+}
+
+/**
  * @brief Renders game over screen.
  * Saves the score and replay.
  * 
@@ -526,6 +577,9 @@ void Game::renderUI()
 void Game::renderGameOver()
 {
     replayFile.close();
+
+    audioManager.playSound(1);
+    audioManager.playMusic(4);
 
     Window::clear();    
 
@@ -540,8 +594,8 @@ void Game::renderGameOver()
 
     if (points < getLowestScore() || points == 0)
         saveReplay();
-
 }
+
 
 /**
  * @brief Returns if game is open
