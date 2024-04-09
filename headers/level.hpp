@@ -64,6 +64,7 @@ void Level::nextLevel(Player& player, vector <Enemy>& enemyList, unordered_map <
     enemyList.clear();
     Enemy::generateEnemyPositions(grid, player, enemyList, this->enemyCounter);
 
+    cout << "";
     arenaCounter += rand() % 2; 
 
     arenaList.clear();

@@ -32,8 +32,8 @@ const int LADDER_WIDTH = 74, LADDER_HEIGHT = 74;
 
 const int ANIMATION_SPEED = 200;
 
-const int SIGHT_RANGE = 200;
-// const int SIGHT_RANGE = 2000;
+//const int SIGHT_RANGE = 200;
+const int SIGHT_RANGE = 2000;
 const int ENEMY_RANGE = 450;
 const int INTERACTION_RANGE_ARENA = SIGHT_RANGE + ARENA_WIDTH - 150;
 const int INTERACTION_RANGE_LADDER = SIGHT_RANGE + LADDER_WIDTH - 50;
@@ -97,6 +97,10 @@ class Game
         bool isLadderSpawned;
         bool gameEnded;
 
+
+        SDL_Texture* spearTexture;
+        SDL_Texture* ladderTexture;
+
     public:
         Game();
         ~Game();
@@ -147,6 +151,9 @@ class Game
         static void setGameState(GameState newGameState);
         static GameState getGameState();
 
+        void renderSpear();
+        void renderLadder();
+
 };
 
 // Default gameState
@@ -155,14 +162,15 @@ GameState Game::gameState = GameState::ContinueScreen;
 /**
  * @brief Default contructor for Game, calling Map, Ladder, Player constructor
 */
-Game::Game() : map(), player(new Player(3, {max((rand() % GameSettings::WIDTH - PLAYER_WIDTH), 0), max((rand() % GameSettings::HEIGHT - PLAYER_HEIGHT), 0), PLAYER_WIDTH, PLAYER_HEIGHT}))
+Game::Game() : map(), player(new Player(3, {max((rand() % GameSettings::WIDTH - PLAYER_WIDTH), 0), 
+                                            max((rand() % GameSettings::HEIGHT - PLAYER_HEIGHT), 0), PLAYER_WIDTH, PLAYER_HEIGHT}))
 {
     this->points = 0;
     this-> isCloseTo = -1;
     this->previousPoints = 0;
 
     this->open = true;
-    this->spearDeleted = false;
+    //this->spearDeleted = false;
     this->isLadderSpawned = false;
     this->gameEnded = false;
 }
@@ -189,6 +197,8 @@ void Game::loadTextures()
     hearts_1Texture = Window::loadTexture("assets/3_hearts_reloaded.png");
     hearts_2Texture = Window::loadTexture("assets/2_hearts_reloaded.png");
     hearts_3Texture = Window::loadTexture("assets/1_hearts_reloaded.png");
+    spearTexture = Window::loadTexture("assets/spear.png");
+    ladderTexture = Window::loadTexture("assets/ladder.png");
 }
 
 /**
@@ -253,7 +263,10 @@ void Game::eventHandler()
                 if (ladder != nullptr && player->isNearLadder())
                 {
                     if (event.key.keysym.sym == SDLK_f)
+                    {
+                        //cout << "d";
                         climbLadder();     
+                    }
                 }
             }
         }
@@ -268,6 +281,7 @@ void Game::update()
 {
     saveReplayToList();
 
+    // If game played by save remove spear
     if (!spearDeleted)
     {
         deleteSpearIfSave();
@@ -310,12 +324,14 @@ void Game::render()
 
     map.drawMap();
 
-    ladder->render(ladder);
+    //ladder->render(ladder);
+    renderLadder();
   
     for (auto& currentArena : arenaList)
         arena.render(currentArena.second);
 
-    spear->render(spear);
+    //spear->render(spear);
+    renderSpear();
     player->render();
 
     for (auto& currentEnemy : enemyList)
@@ -324,6 +340,18 @@ void Game::render()
     renderUI();
 
     Window::present();
+}
+
+void Game::renderSpear()
+{
+    if (spear != nullptr)
+        Window::draw(spearTexture, spear->getAsset());
+}
+
+void Game::renderLadder()
+{
+    if (ladder != nullptr)
+        Window::draw(this->ladderTexture, ladder->getAsset());  
 }
 
 /**
@@ -356,6 +384,7 @@ void Game::climbLadder()
 {
     audioManager.playSound(9);
 
+
     level.increaseLevel();
     level.nextLevel(*player, enemyList, arenaList, *ladder, isCloseTo, player->getHealth());
 
@@ -372,6 +401,7 @@ void Game::deleteSpearIfSave()
 {
     if (player->getAttack() > 0)
     {
+        player->setAttack(0);
         delete spear;
         spear = nullptr;
     }
@@ -700,6 +730,8 @@ void Game::continueGame()
 {
     ifstream readSaveFile;
     readSaveFile.open("files/saveFile.txt");
+
+    this->spearDeleted = false;
 
     string line;
 
