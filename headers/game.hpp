@@ -324,13 +324,11 @@ void Game::render()
 
     map.drawMap();
 
-    //ladder->render(ladder);
     renderLadder();
   
     for (auto& currentArena : arenaList)
         arena.render(currentArena.second);
 
-    //spear->render(spear);
     renderSpear();
     player->render();
 
@@ -818,21 +816,26 @@ void Game::save()
 {
     saveFile.open("files/saveFile.txt");
 
-    saveFile << "Name: " << Data::playerName << "\n"; 
-    saveFile << "Player: " << player->getAsset().x << "\t" << player->getAsset().y << "\n";
+    if (saveFile.is_open())
+    {
+        saveFile << "Name: " << Data::playerName << "\n"; 
+        saveFile << "Player: " << player->getAsset().x << "\t" << player->getAsset().y << "\n";
 
-    for (auto entry : arenaList)
-        saveFile << "Arena: " << entry.second.getAsset().x << "\t" << entry.second.getAsset().y << "\n";
-    
-    for (auto currentEnemy : enemyList)
-        saveFile << "Enemy: " << currentEnemy.getAsset().x << "\t" << currentEnemy.getAsset().y << "\n";
+        for (auto entry : arenaList)
+            saveFile << "Arena: " << entry.second.getAsset().x << "\t" << entry.second.getAsset().y << "\n";
+        
+        for (auto currentEnemy : enemyList)
+            saveFile << "Enemy: " << currentEnemy.getAsset().x << "\t" << currentEnemy.getAsset().y << "\n";
 
-    saveFile << "Level: " << level.getLevel() << "\n";
-    saveFile << "Ladder: " << ladder->getAsset().x << "\t" << ladder->getAsset().y << "\n";
-    saveFile << "Points: " << points << "\n";
-    saveFile << "Attack: " << player->getAttack() << "\n";
+        saveFile << "Level: " << level.getLevel() << "\n";
+        saveFile << "Ladder: " << ladder->getAsset().x << "\t" << ladder->getAsset().y << "\n";
+        saveFile << "Points: " << points << "\n";
+        saveFile << "Attack: " << player->getAttack() << "\n";
 
-    saveFile.close();
+        saveFile.close();
+    }
+    else
+        cout << "Save file was not opened\n";
 }
 
 /**

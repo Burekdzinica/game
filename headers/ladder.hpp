@@ -5,6 +5,8 @@
 #include "gameSettings.hpp"
 #include "arena.hpp"
 
+#include <unistd.h>
+
 using namespace std;
 
 extern const int ENEMY_WIDTH, ENEMY_HEIGHT;
@@ -29,7 +31,6 @@ class Ladder
 {
     private:
         SDL_Rect asset;
-        SDL_Texture* ladderTexture;
 
     public:
         Ladder();
@@ -38,8 +39,6 @@ class Ladder
         SDL_Rect getAsset();
         void setX(int x);
         void setY(int y);
-        void render(Ladder* ladder);
-
 };
 
 // Ladder::Ladder()
@@ -55,7 +54,6 @@ class Ladder
 Ladder::Ladder(const SDL_Rect& asset)
 {
     this->asset = asset;
-    this->ladderTexture = Window::loadTexture("assets/ladder.png");
 }
 
 /**
@@ -63,7 +61,7 @@ Ladder::Ladder(const SDL_Rect& asset)
 */
 Ladder::~Ladder()
 {
-    SDL_DestroyTexture(ladderTexture);
+   
 }
 
 /**
@@ -89,12 +87,6 @@ void Ladder::setX(int x)
 void Ladder::setY(int y)
 {
     this->asset.y  = y;
-}
-
-void Ladder::render(Ladder* ladder)
-{
-    if (ladder != nullptr)
-        Window::draw(this->ladderTexture, this->asset);  
 }
 
 #endif
