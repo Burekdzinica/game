@@ -1,7 +1,10 @@
-Name: w
-Player: 1224	244
-Arena: 62	62
-Enemy: 1356	221
+Name: wq
+Player: 280	369
+Arena: 1116	186
+Arena: 496	124
+Arena: 1054	310
+Enemy: 213	38
 Level: 1
-Points: 200
+Health: 1
+Points: 0
 Attack: 0

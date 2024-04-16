@@ -99,10 +99,6 @@ class Game
         bool isLadderSpawned;
         bool gameEnded;
 
-
-        SDL_Texture* spearTexture;
-        SDL_Texture* ladderTexture;
-
     public:
         Game();
         ~Game();
@@ -154,9 +150,6 @@ class Game
         
         static void setGameState(GameState newGameState);
         static GameState getGameState();
-
-        void renderSpear();
-        void renderLadder();
 
 };
 
@@ -272,7 +265,6 @@ void Game::eventHandler()
                 {
                     if (event.key.keysym.sym == SDLK_f)
                     {
-                        //cout << "d";
                         climbLadder();     
                     }
                 }
@@ -289,7 +281,7 @@ void Game::update()
 {
     saveReplayToList();
 
-    // If game played by save remove spear
+    // If game played by save --> remove spear
     if (!spearDeleted)
     {
         deleteSpearIfSave();
@@ -797,6 +789,11 @@ void Game::continueGame()
 
                 enemyCounter++;
             }
+            else if (key =="Health:")
+            {
+                iss >> value1;
+                player->setHealth(value1);
+            }
             else if (key == "Points:")
             {
                 iss >> value1;
@@ -835,13 +832,15 @@ void Game::save()
         for (auto currentEnemy : enemyList)
             saveFile << "Enemy: " << currentEnemy.getAsset().x << "\t" << currentEnemy.getAsset().y << "\n";
 
-    saveFile << "Level: " << level.getLevel() << "\n";
+        saveFile << "Level: " << level.getLevel() << "\n";
 
-    if (this->ladder != nullptr)
-        saveFile << "Ladder: " << ladder->getAsset().x << "\t" << ladder->getAsset().y << "\n";
-   
-    saveFile << "Points: " << points << "\n";
-    saveFile << "Attack: " << player->getAttack() << "\n";
+        if (this->ladder != nullptr)
+            saveFile << "Ladder: " << ladder->getAsset().x << "\t" << ladder->getAsset().y << "\n";
+
+
+        saveFile << "Health: " << player->getHealth() << "\n";
+        saveFile << "Points: " << points << "\n";
+        saveFile << "Attack: " << player->getAttack() << "\n";
 
         saveFile.close();
     }

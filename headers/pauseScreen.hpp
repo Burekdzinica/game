@@ -45,8 +45,10 @@ void PauseScreen::handleMouseClick(Game* game)
     }
 
     else if (mouseX >= exitButton.x && mouseX <= exitButton.x + exitButton.w && mouseY >= exitButton.y && mouseY <= exitButton.y + exitButton.h)
+    {
+        audioManager.playMusic(3);
         Game::setGameState(GameState::StartScreen);
-        
+    }
     else if (mouseX >= saveQuitButton.x && mouseX <= saveQuitButton.x + saveQuitButton.w && mouseY >= saveQuitButton.y && mouseY <= saveQuitButton.y + saveQuitButton.h)
     {
         game->save();
