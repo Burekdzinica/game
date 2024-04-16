@@ -32,8 +32,8 @@ const int LADDER_WIDTH = 74, LADDER_HEIGHT = 74;
 
 const int ANIMATION_SPEED = 200;
 
-const int SIGHT_RANGE = 200;
-// const int SIGHT_RANGE = 2000;
+//const int SIGHT_RANGE = 200;
+const int SIGHT_RANGE = 2000;
 const int ENEMY_RANGE = 450;
 const int INTERACTION_RANGE_ARENA = SIGHT_RANGE + ARENA_WIDTH - 150;
 const int INTERACTION_RANGE_LADDER = SIGHT_RANGE + LADDER_WIDTH - 50;
@@ -99,6 +99,10 @@ class Game
         bool isLadderSpawned;
         bool gameEnded;
 
+
+        SDL_Texture* spearTexture;
+        SDL_Texture* ladderTexture;
+
     public:
         Game();
         ~Game();
@@ -151,6 +155,9 @@ class Game
         static void setGameState(GameState newGameState);
         static GameState getGameState();
 
+        void renderSpear();
+        void renderLadder();
+
 };
 
 // Default gameState
@@ -159,14 +166,15 @@ GameState Game::gameState = GameState::ContinueScreen;
 /**
  * @brief Default contructor for Game, calling Map, Ladder, Player constructor
 */
-Game::Game() : map(), player(new Player(3, {max((rand() % GameSettings::WIDTH - PLAYER_WIDTH), 0), max((rand() % GameSettings::HEIGHT - PLAYER_HEIGHT), 0), PLAYER_WIDTH, PLAYER_HEIGHT}))
+Game::Game() : map(), player(new Player(3, {max((rand() % GameSettings::WIDTH - PLAYER_WIDTH), 0), 
+                                            max((rand() % GameSettings::HEIGHT - PLAYER_HEIGHT), 0), PLAYER_WIDTH, PLAYER_HEIGHT}))
 {
     this->points = 0;
     this-> isCloseTo = -1;
     this->previousPoints = 0;
 
     this->open = true;
-    this->spearDeleted = false;
+    //this->spearDeleted = false;
     this->isLadderSpawned = false;
     this->gameEnded = false;
 }
@@ -263,7 +271,10 @@ void Game::eventHandler()
                 if (ladder != nullptr && player->isNearLadder())
                 {
                     if (event.key.keysym.sym == SDLK_f)
+                    {
+                        //cout << "d";
                         climbLadder();     
+                    }
                 }
             }
         }
@@ -278,6 +289,7 @@ void Game::update()
 {
     saveReplayToList();
 
+    // If game played by save remove spear
     if (!spearDeleted)
     {
         deleteSpearIfSave();
@@ -378,6 +390,7 @@ void Game::climbLadder()
 {
     audioManager.playSound(9);
 
+
     level.increaseLevel();
     level.nextLevel(*player, enemyList, arenaList, *ladder, isCloseTo, player->getHealth());
 
@@ -394,6 +407,7 @@ void Game::deleteSpearIfSave()
 {
     if (player->getAttack() > 0)
     {
+        player->setAttack(0);
         delete spear;
         spear = nullptr;
     }
@@ -723,6 +737,8 @@ void Game::continueGame()
     ifstream readSaveFile;
     readSaveFile.open("files/saveFile.txt");
 
+    this->spearDeleted = false;
+
     string line;
 
     int enemyCounter = 1;
@@ -808,14 +824,16 @@ void Game::save()
 {
     saveFile.open("files/saveFile.txt");
 
-    saveFile << "Name: " << Data::playerName << "\n"; 
-    saveFile << "Player: " << player->getAsset().x << "\t" << player->getAsset().y << "\n";
+    if (saveFile.is_open())
+    {
+        saveFile << "Name: " << Data::playerName << "\n"; 
+        saveFile << "Player: " << player->getAsset().x << "\t" << player->getAsset().y << "\n";
 
-    for (auto entry : arenaList)
-        saveFile << "Arena: " << entry.second.getAsset().x << "\t" << entry.second.getAsset().y << "\n";
-    
-    for (auto currentEnemy : enemyList)
-        saveFile << "Enemy: " << currentEnemy.getAsset().x << "\t" << currentEnemy.getAsset().y << "\n";
+        for (auto entry : arenaList)
+            saveFile << "Arena: " << entry.second.getAsset().x << "\t" << entry.second.getAsset().y << "\n";
+        
+        for (auto currentEnemy : enemyList)
+            saveFile << "Enemy: " << currentEnemy.getAsset().x << "\t" << currentEnemy.getAsset().y << "\n";
 
     saveFile << "Level: " << level.getLevel() << "\n";
 
@@ -825,7 +843,10 @@ void Game::save()
     saveFile << "Points: " << points << "\n";
     saveFile << "Attack: " << player->getAttack() << "\n";
 
-    saveFile.close();
+        saveFile.close();
+    }
+    else
+        cout << "Save file was not opened\n";
 }
 
 /**

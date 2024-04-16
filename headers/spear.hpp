@@ -11,7 +11,6 @@ class Spear : public Entity
 {
     private:
         bool spearTouched;
-        SDL_Texture* spearTexture;
 
     public:
         Spear();
@@ -29,7 +28,6 @@ Spear::Spear()
 {
     this->asset = {0, 0, SPEAR_WIDTH, SPEAR_HIGHT};
     this->spearTouched = false;
-    this->spearTexture = Window::loadTexture("assets/spear.png");
 }
 
 /**
@@ -37,7 +35,7 @@ Spear::Spear()
 */
 Spear::~Spear()
 {
-    SDL_DestroyTexture(spearTexture);
+   
 }
 
 /**
