@@ -1,1 +1,7 @@
-Name: burek
+Name: w
+Player: 1224	244
+Arena: 62	62
+Enemy: 1356	221
+Level: 1
+Points: 200
+Attack: 0

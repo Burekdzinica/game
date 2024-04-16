@@ -20,7 +20,6 @@ class Spear : public Entity
         bool isPlayerTouching(const SDL_Rect& player);
         void setSpearTouched();
         bool isSpearTouched();
-        void render(Spear* spear);
 };
 
 /**
@@ -93,16 +92,6 @@ void Spear::setSpearTouched()
 bool Spear::isSpearTouched()
 {
     return this->spearTouched;
-}
-
-/**
- * @brief Renders spear
- * @param spear The spear pointer
-*/
-void Spear::render(Spear* spear)
-{
-    if (spear != nullptr)
-        Window::draw(spearTexture, spear->getAsset());
 }
 
 #endif

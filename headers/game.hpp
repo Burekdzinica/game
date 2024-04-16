@@ -70,6 +70,8 @@ class Game
         SDL_Texture *hearts_1Texture;
         SDL_Texture *hearts_2Texture;
         SDL_Texture *hearts_3Texture;
+        SDL_Texture* spearTexture;
+        SDL_Texture* ladderTexture;
         
         static GameState gameState;
 
@@ -121,6 +123,8 @@ class Game
         void spawnLadder();
 
         void renderUI();
+        void renderSpear();
+        void renderLadder();
 
         void gameOver();
         void renderGameOver();
@@ -176,6 +180,9 @@ Game::~Game()
     SDL_DestroyTexture(hearts_2Texture);
     SDL_DestroyTexture(hearts_3Texture);
 
+    SDL_DestroyTexture(spearTexture);
+    SDL_DestroyTexture(ladderTexture);
+
     delete player;
     delete ladder;
     delete spear;
@@ -189,6 +196,9 @@ void Game::loadTextures()
     hearts_1Texture = Window::loadTexture("assets/3_hearts_reloaded.png");
     hearts_2Texture = Window::loadTexture("assets/2_hearts_reloaded.png");
     hearts_3Texture = Window::loadTexture("assets/1_hearts_reloaded.png");
+
+    spearTexture = Window::loadTexture("assets/spear.png");
+    ladderTexture = Window::loadTexture("assets/ladder.png");
 }
 
 /**
@@ -310,12 +320,12 @@ void Game::render()
 
     map.drawMap();
 
-    ladder->render(ladder);
+    renderLadder();
   
     for (auto& currentArena : arenaList)
         arena.render(currentArena.second);
 
-    spear->render(spear);
+    renderSpear();
     player->render();
 
     for (auto& currentEnemy : enemyList)
@@ -324,6 +334,18 @@ void Game::render()
     renderUI();
 
     Window::present();
+}
+
+void Game::renderSpear()
+{
+    if (spear != nullptr)
+        Window::draw(this->spearTexture, spear->getAsset());
+}
+
+void Game::renderLadder()
+{
+    if (ladder != nullptr)
+        Window::draw(this->ladderTexture, ladder->getAsset());  
 }
 
 /**
@@ -796,7 +818,10 @@ void Game::save()
         saveFile << "Enemy: " << currentEnemy.getAsset().x << "\t" << currentEnemy.getAsset().y << "\n";
 
     saveFile << "Level: " << level.getLevel() << "\n";
-    saveFile << "Ladder: " << ladder->getAsset().x << "\t" << ladder->getAsset().y << "\n";
+
+    if (this->ladder != nullptr)
+        saveFile << "Ladder: " << ladder->getAsset().x << "\t" << ladder->getAsset().y << "\n";
+   
     saveFile << "Points: " << points << "\n";
     saveFile << "Attack: " << player->getAttack() << "\n";
 

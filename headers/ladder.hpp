@@ -38,8 +38,6 @@ class Ladder
         SDL_Rect getAsset();
         void setX(int x);
         void setY(int y);
-        void render(Ladder* ladder);
-
 };
 
 // Ladder::Ladder()
@@ -89,12 +87,6 @@ void Ladder::setX(int x)
 void Ladder::setY(int y)
 {
     this->asset.y  = y;
-}
-
-void Ladder::render(Ladder* ladder)
-{
-    if (ladder != nullptr)
-        Window::draw(this->ladderTexture, this->asset);  
 }
 
 #endif
